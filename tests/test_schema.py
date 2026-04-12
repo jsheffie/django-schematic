@@ -1,7 +1,7 @@
 """Tests for schema extraction."""
 import pytest
 
-from schema_graph.schema import build_schema
+from schematic.schema import build_schema
 
 
 @pytest.mark.django_db

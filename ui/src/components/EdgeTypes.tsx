@@ -2,13 +2,15 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   getSmoothStepPath,
+  type Edge,
   type EdgeProps,
+  type EdgeTypes,
 } from "@xyflow/react";
 
-export interface SchemaEdgeData extends Record<string, unknown> {
+export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
   field_name: string;
-}
+}, 'schema'>;
 
 const EDGE_COLORS: Record<string, string> = {
   fk: "#6b7280",       // gray
@@ -70,6 +72,6 @@ export function SchemaEdge({
   );
 }
 
-export const edgeTypes = {
+export const edgeTypes: EdgeTypes = {
   schema: SchemaEdge,
-};
+} as unknown as EdgeTypes;

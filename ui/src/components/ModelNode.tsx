@@ -1,16 +1,16 @@
 import { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { appColor, appColorBg } from "../lib/colors";
 import type { FieldInfo } from "../lib/types";
 
-export interface ModelNodeData extends Record<string, unknown> {
+export type ModelNodeData = Node<{
   nodeId: string;
   name: string;
   appLabel: string;
   tags: string[];
   fields: FieldInfo[];
-}
+}, 'model'>;
 
 function FieldRow({ field }: { field: FieldInfo }) {
   return (
