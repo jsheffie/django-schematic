@@ -42,8 +42,17 @@ export function useForceLayout(
 
     const simLinks = edges.map((e) => ({ source: e.source, target: e.target }));
 
+    // If nodes already have spread-out positions (e.g. switching from dagre),
+    // start the simulation cool so nodes stay roughly where they are instead
+    // of exploding. Only start at full alpha on a true first load (all at origin).
+    const hasExistingPositions = nodes.some(
+      (n) => Math.abs(n.position.x) > 1 || Math.abs(n.position.y) > 1,
+    );
+    const initialAlpha = hasExistingPositions ? 0.1 : 1.0;
+
     const simulation = d3
       .forceSimulation<SimNode>(simNodes)
+      .alpha(initialAlpha)
       .alphaDecay(params.alphaDecay)
       .alphaMin(params.alphaMin)
       .velocityDecay(params.velocityDecay)
