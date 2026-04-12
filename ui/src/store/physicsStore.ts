@@ -76,7 +76,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
       useSchemaStore.getState().setLayout("force");
       set({
         appMode: "fun",
-        edgeStyle: "bezier",
+        edgeStyle: "floating",
         liveDragPhysics: true,
         forceParams: FUN_FORCE_PARAMS,
       });
