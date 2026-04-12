@@ -167,6 +167,7 @@ export default function SchemaCanvas({ schema }: Props) {
         onNodeDragStop={onNodeDragStop}
         onNodeDrag={onNodeDrag}
         onMoveEnd={onMoveEnd}
+        proOptions={{ hideAttribution: true }}
         fitView
         minZoom={0.05}
         maxZoom={2}

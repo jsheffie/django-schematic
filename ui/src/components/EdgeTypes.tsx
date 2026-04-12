@@ -3,11 +3,14 @@ import {
   EdgeLabelRenderer,
   getBezierPath,
   getSmoothStepPath,
+  getStraightPath,
+  useInternalNode,
   type Edge,
   type EdgeProps,
   type EdgeTypes,
 } from "@xyflow/react";
 import type { EdgeStyle } from "../store/physicsStore";
+import { getNodeBorderPoint, getNodeCenter } from "../lib/floatingEdge";
 
 export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
@@ -25,6 +28,8 @@ const EDGE_COLORS: Record<string, string> = {
 
 export function SchemaEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -38,10 +43,45 @@ export function SchemaEdge({
   const color = EDGE_COLORS[relType] ?? "#6b7280";
   const style = data?.edgeStyle ?? "step";
 
-  const [edgePath, labelX, labelY] =
-    style === "bezier"
-      ? getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
-      : getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  // Always call hooks — floating edge needs live node positions from RF store.
+  // Results are only used when style === "floating".
+  const sourceNode = useInternalNode(source);
+  const targetNode = useInternalNode(target);
+
+  let edgePath: string;
+  let labelX: number;
+  let labelY: number;
+
+  if (style === "floating" && sourceNode && targetNode) {
+    const targetCenter = getNodeCenter(targetNode);
+    const sourceCenter = getNodeCenter(sourceNode);
+    const sp = getNodeBorderPoint(sourceNode, targetCenter.x, targetCenter.y);
+    const tp = getNodeBorderPoint(targetNode, sourceCenter.x, sourceCenter.y);
+    [edgePath, labelX, labelY] = getStraightPath({
+      sourceX: sp.x,
+      sourceY: sp.y,
+      targetX: tp.x,
+      targetY: tp.y,
+    });
+  } else if (style === "bezier") {
+    [edgePath, labelX, labelY] = getBezierPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+    });
+  } else {
+    [edgePath, labelX, labelY] = getSmoothStepPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+    });
+  }
 
   return (
     <>

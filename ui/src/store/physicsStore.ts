@@ -22,13 +22,14 @@ export const DEFAULT_FORCE_PARAMS: ForceParams = {
   collisionRadius: 80,
 };
 
+// Tuned for a satisfying settle without nodes exploding off-screen
 export const FUN_FORCE_PARAMS: ForceParams = {
-  alphaDecay: 0.005,
+  alphaDecay: 0.005,   // slow settle = longer bouncy animation
   alphaMin: 0.001,
-  velocityDecay: 0.3,
-  chargeStrength: -600,
-  linkDistance: 220,
-  collisionRadius: 100,
+  velocityDecay: 0.45, // enough friction to keep nodes on screen
+  chargeStrength: -350, // moderate repulsion
+  linkDistance: 160,   // tighter springs keep cluster together
+  collisionRadius: 90,
 };
 
 interface PhysicsStore {
@@ -36,12 +37,14 @@ interface PhysicsStore {
   liveDragPhysics: boolean;
   forceParams: ForceParams;
   drawerOpen: boolean;
+  helpOpen: boolean;
   appMode: AppMode;
 
   setEdgeStyle: (s: EdgeStyle) => void;
   setLiveDragPhysics: (v: boolean) => void;
   setForceParams: (p: Partial<ForceParams>) => void;
   setDrawerOpen: (v: boolean) => void;
+  setHelpOpen: (v: boolean) => void;
   applyPreset: (mode: AppMode) => void;
 }
 
@@ -50,6 +53,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   liveDragPhysics: false,
   forceParams: DEFAULT_FORCE_PARAMS,
   drawerOpen: false,
+  helpOpen: false,
   appMode: "normal",
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
@@ -57,6 +61,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setForceParams: (p) =>
     set((s) => ({ forceParams: { ...s.forceParams, ...p } })),
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
+  setHelpOpen: (helpOpen) => set({ helpOpen }),
 
   applyPreset: (mode) => {
     if (mode === "fun") {

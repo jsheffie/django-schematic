@@ -11,6 +11,7 @@ export default function Toolbar() {
   const applyPreset = usePhysicsStore((s) => s.applyPreset);
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
+  const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
 
   function handleExport() {
     const json = exportConfig();
@@ -50,13 +51,13 @@ export default function Toolbar() {
 
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
-      {/* Mode preset pill */}
+      {/* Mode preset pill — inactive uses bg-gray-100 so both buttons are visible */}
       <div className="flex rounded-md border border-gray-200 overflow-hidden mr-1">
         <button
-          className={`px-2.5 py-1 text-xs font-medium border-r border-gray-200 ${
+          className={`px-2.5 py-1 text-xs font-medium border-r border-gray-200 transition-colors ${
             appMode === "normal"
               ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
           onClick={() => applyPreset("normal")}
           title="Clean hierarchical layout with precise step edges"
@@ -64,10 +65,10 @@ export default function Toolbar() {
           Normal
         </button>
         <button
-          className={`px-2.5 py-1 text-xs font-medium ${
+          className={`px-2.5 py-1 text-xs font-medium transition-colors ${
             appMode === "fun"
               ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
           onClick={() => applyPreset("fun")}
           title="Force physics with smooth edges and live drag"
@@ -116,7 +117,7 @@ export default function Toolbar() {
 
       {/* Settings drawer toggle */}
       <button
-        className={`px-2 py-1 rounded text-xs border ${
+        className={`px-2 py-1 rounded text-xs border transition-colors ${
           drawerOpen
             ? "bg-blue-600 border-blue-600 text-white"
             : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
@@ -125,6 +126,15 @@ export default function Toolbar() {
         title="Appearance & Physics settings"
       >
         ⚙
+      </button>
+
+      {/* Help */}
+      <button
+        className="px-2 py-1 rounded text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-700"
+        onClick={() => setHelpOpen(true)}
+        title="Help"
+      >
+        ?
       </button>
     </div>
   );

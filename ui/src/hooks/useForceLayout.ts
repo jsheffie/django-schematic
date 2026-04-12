@@ -77,7 +77,7 @@ export function useForceLayout(
 
   /**
    * Pin a node at a position and reheat the simulation for remaining free nodes.
-   * Used both by onNodeDragStop (permanent pin) and onNodeDrag (live tracking).
+   * Used by onNodeDragStop (permanent pin) and onNodeDrag (live tracking).
    */
   const pinNode = useCallback((nodeId: string, x: number, y: number) => {
     const sim = simRef.current;
@@ -90,9 +90,6 @@ export function useForceLayout(
     }
   }, []);
 
-  /**
-   * Release a pinned node back into the simulation.
-   */
   const unpinNode = useCallback((nodeId: string) => {
     const sim = simRef.current;
     if (!sim) return;
@@ -106,13 +103,11 @@ export function useForceLayout(
 
   /**
    * Apply new force parameters to the running simulation and reheat it.
-   * Call this from the settings drawer's "Apply" button.
    * Preserves all current node positions — does not restart from scratch.
    */
   const reheat = useCallback((newParams: ForceParams) => {
     const sim = simRef.current;
     if (!sim) return;
-
     (sim.force("charge") as d3.ForceManyBody<SimNode>)?.strength(newParams.chargeStrength);
     (sim.force("collide") as d3.ForceCollide<SimNode>)?.radius(newParams.collisionRadius);
     (sim.force("link") as d3.ForceLink<SimNode, d3.SimulationLinkDatum<SimNode>>)?.distance(
