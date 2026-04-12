@@ -1,14 +1,24 @@
 /**
  * Main canvas component. Converts the SchemaGraph API response into React Flow
  * nodes and edges, applies the active layout, and renders the graph.
+ *
+ * Position update flow (React Flow v12 controlled mode):
+ *   setNodes() from useReactFlow() → BatchContext queue → onNodesChange()
+ *   → setDisplayNodes() → re-render → StoreUpdater syncs RF store → display
+ *
+ * Without onNodesChange the queue handler has nowhere to send changes
+ * (it only calls the internal store setter in *uncontrolled* mode), so
+ * every force-layout tick and every dagre call would be silently dropped.
  */
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
+  applyNodeChanges,
   type Edge,
+  type NodeChange,
   type NodeTypes,
   type OnNodeDrag,
   useReactFlow,
@@ -35,7 +45,9 @@ export default function SchemaCanvas({ schema }: Props) {
   const pinNode = useSchemaStore((s) => s.pinNode);
   const { getViewport, setNodes } = useReactFlow();
 
-  // Build React Flow nodes from API data, filtered to visible set
+  // Build React Flow nodes from API data, filtered to visible set.
+  // Positions here are only the initial/pinned values; the layout hooks
+  // will override them via setNodes → onNodesChange → displayNodes.
   const rfNodes: ModelNodeData[] = useMemo(() => {
     return schema.nodes
       .filter((n) => visibleNodeIds.has(n.id))
@@ -44,7 +56,7 @@ export default function SchemaCanvas({ schema }: Props) {
         return {
           id: n.id,
           type: "model",
-          position: pinned ?? { x: 0, y: 0 }, // d3-force will override unpinned
+          position: pinned ?? { x: 0, y: 0 },
           data: {
             nodeId: n.id,
             name: n.name,
@@ -74,6 +86,30 @@ export default function SchemaCanvas({ schema }: Props) {
       }));
   }, [schema.edges, visibleNodeIds]);
 
+  // displayNodes is the authoritative node list passed to <ReactFlow>.
+  // It starts from rfNodes and is updated by layout algorithms and user drags.
+  const [displayNodes, setDisplayNodes] = useState<ModelNodeData[]>(rfNodes);
+
+  // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
+  // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
+  useEffect(() => {
+    setDisplayNodes((curr) => {
+      const posMap = new Map(curr.map((n) => [n.id, n.position]));
+      return rfNodes.map((n) => ({
+        ...n,
+        position: posMap.get(n.id) ?? n.position,
+      }));
+    });
+  }, [rfNodes]);
+
+  // Route React Flow position changes (drags, layout updates via setNodes) into
+  // displayNodes so the controlled <ReactFlow nodes> prop stays current.
+  const onNodesChange = useCallback(
+    (changes: NodeChange<ModelNodeData>[]) =>
+      setDisplayNodes((nds) => applyNodeChanges(changes, nds)),
+    []
+  );
+
   // Run d3-force simulation — only when force layout is active
   const { pinNode: simPinNode } = useForceLayout(rfNodes, rfEdges, activeLayout === "force");
 
@@ -100,10 +136,11 @@ export default function SchemaCanvas({ schema }: Props) {
 
   return (
     <ReactFlow
-      nodes={rfNodes}
+      nodes={displayNodes}
       edges={rfEdges}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
+      onNodesChange={onNodesChange}
       onNodeDragStop={onNodeDragStop}
       onMoveEnd={onMoveEnd}
       fitView
