@@ -53,7 +53,6 @@ export function SchemaEdge({
   let labelY: number;
 
   if (style === "floating" && sourceNode && targetNode) {
-    // Compute border intersection points for true center-to-center routing
     const targetCenter = getNodeCenter(targetNode);
     const sourceCenter = getNodeCenter(sourceNode);
     const sp = getNodeBorderPoint(sourceNode, targetCenter.x, targetCenter.y);
