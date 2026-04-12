@@ -56,13 +56,13 @@ export default function Toolbar() {
         className={activeLayout === "dagre-lr" ? activeBtnClass : btnClass}
         onClick={() => setLayout("dagre-lr")}
       >
-        Dagre LR
+        Left → Right
       </button>
       <button
         className={activeLayout === "dagre-tb" ? activeBtnClass : btnClass}
         onClick={() => setLayout("dagre-tb")}
       >
-        Dagre TB
+        Top → Bottom
       </button>
 
       <div className="w-px h-4 bg-gray-200 mx-1" />

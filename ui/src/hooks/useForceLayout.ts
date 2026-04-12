@@ -14,13 +14,16 @@ interface SimNode extends d3.SimulationNodeDatum {
   id: string;
 }
 
-export function useForceLayout(nodes: Node[], edges: Edge[]) {
+export function useForceLayout(nodes: Node[], edges: Edge[], enabled: boolean) {
   const { setNodes } = useReactFlow();
   // Keep a stable ref to the simulation so we can stop/restart on changes
   const simRef = useRef<d3.Simulation<SimNode, undefined> | null>(null);
 
   useEffect(() => {
-    if (nodes.length === 0) return;
+    if (!enabled || nodes.length === 0) {
+      simRef.current?.stop();
+      return;
+    }
 
     // Stop any running simulation before starting a new one
     simRef.current?.stop();
@@ -65,7 +68,7 @@ export function useForceLayout(nodes: Node[], edges: Edge[]) {
     return () => {
       simulation.stop();
     };
-  }, [nodes.length, edges.length, setNodes]);
+  }, [nodes.length, edges.length, setNodes, enabled]);
 
   /**
    * Pin a node at its current position and reheat the simulation
