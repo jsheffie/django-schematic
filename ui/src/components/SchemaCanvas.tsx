@@ -176,7 +176,12 @@ export default function SchemaCanvas({ schema }: Props) {
         maxZoom={2}
       >
         <Background gap={20} color="#e5e7eb" />
-        <Controls />
+
+        {/* Zoom controls centered at the bottom */}
+        <Panel position="bottom-center">
+          <Controls showInteractive={false} />
+        </Panel>
+
         {minimapVisible ? (
           <MiniMap
             nodeColor={(node) => {
@@ -184,7 +189,31 @@ export default function SchemaCanvas({ schema }: Props) {
               return appColor(data?.appLabel ?? "");
             }}
             maskColor="rgba(255,255,255,0.7)"
-          />
+          >
+            {/* Built-in × button to hide the minimap */}
+            <button
+              onClick={() => setMinimapVisible(false)}
+              title="Hide minimap"
+              style={{
+                position: "absolute",
+                top: 2,
+                right: 2,
+                width: 16,
+                height: 16,
+                lineHeight: "14px",
+                textAlign: "center",
+                fontSize: 10,
+                background: "rgba(255,255,255,0.85)",
+                border: "1px solid #d1d5db",
+                borderRadius: 3,
+                cursor: "pointer",
+                color: "#6b7280",
+                padding: 0,
+              }}
+            >
+              ×
+            </button>
+          </MiniMap>
         ) : (
           <Panel position="bottom-right">
             <button
