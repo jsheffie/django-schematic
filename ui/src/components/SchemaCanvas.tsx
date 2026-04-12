@@ -2,7 +2,7 @@
  * Main canvas component. Converts the SchemaGraph API response into React Flow
  * nodes and edges, applies the active layout, and renders the graph.
  */
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   Background,
@@ -19,6 +19,7 @@ import { appColor } from "../lib/colors";
 import { ModelNode, type ModelNodeData } from "./ModelNode";
 import { edgeTypes } from "./EdgeTypes";
 import { useForceLayout } from "../hooks/useForceLayout";
+import { runDagreLayout } from "../hooks/useLayout";
 
 const nodeTypes: NodeTypes = { model: ModelNode } as unknown as NodeTypes;
 
@@ -29,9 +30,10 @@ interface Props {
 export default function SchemaCanvas({ schema }: Props) {
   const visibleNodeIds = useSchemaStore((s) => s.visibleNodeIds);
   const pinnedPositions = useSchemaStore((s) => s.pinnedPositions);
+  const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setViewport = useSchemaStore((s) => s.setViewport);
   const pinNode = useSchemaStore((s) => s.pinNode);
-  const { getViewport } = useReactFlow();
+  const { getViewport, setNodes } = useReactFlow();
 
   // Build React Flow nodes from API data, filtered to visible set
   const rfNodes: ModelNodeData[] = useMemo(() => {
@@ -72,8 +74,16 @@ export default function SchemaCanvas({ schema }: Props) {
       }));
   }, [schema.edges, visibleNodeIds]);
 
-  // Run d3-force simulation — updates node positions on each tick
-  const { pinNode: simPinNode } = useForceLayout(rfNodes, rfEdges);
+  // Run d3-force simulation — only when force layout is active
+  const { pinNode: simPinNode } = useForceLayout(rfNodes, rfEdges, activeLayout === "force");
+
+  // Apply dagre layout whenever the layout mode or visible nodes/edges change
+  useEffect(() => {
+    if (activeLayout === "force") return;
+    const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
+    const positioned = runDagreLayout(rfNodes, rfEdges, direction);
+    setNodes(positioned);
+  }, [activeLayout, rfNodes, rfEdges, setNodes]);
 
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
     (_event, node) => {
