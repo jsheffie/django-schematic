@@ -1,15 +1,18 @@
 import {
   BaseEdge,
   EdgeLabelRenderer,
+  getBezierPath,
   getSmoothStepPath,
   type Edge,
   type EdgeProps,
   type EdgeTypes,
 } from "@xyflow/react";
+import type { EdgeStyle } from "../store/physicsStore";
 
 export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
   field_name: string;
+  edgeStyle?: EdgeStyle;
 }, 'schema'>;
 
 const EDGE_COLORS: Record<string, string> = {
@@ -33,15 +36,12 @@ export function SchemaEdge({
 }: EdgeProps<SchemaEdgeData>) {
   const relType = data?.relation_type ?? "fk";
   const color = EDGE_COLORS[relType] ?? "#6b7280";
+  const style = data?.edgeStyle ?? "step";
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+  const [edgePath, labelX, labelY] =
+    style === "bezier"
+      ? getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
+      : getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
 
   return (
     <>
@@ -52,8 +52,7 @@ export function SchemaEdge({
         style={{
           stroke: color,
           strokeWidth: relType === "subclass" || relType === "proxy" ? 2 : 1.5,
-          strokeDasharray:
-            relType === "proxy" ? "5 3" : undefined,
+          strokeDasharray: relType === "proxy" ? "5 3" : undefined,
         }}
       />
       {data?.field_name && (
