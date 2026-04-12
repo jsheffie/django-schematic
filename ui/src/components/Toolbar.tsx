@@ -1,10 +1,16 @@
 import { useSchemaStore } from "../store/schemaStore";
+import { usePhysicsStore } from "../store/physicsStore";
 import { exportConfig, importConfig } from "../lib/config";
 
 export default function Toolbar() {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setLayout = useSchemaStore((s) => s.setLayout);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
+
+  const appMode = usePhysicsStore((s) => s.appMode);
+  const applyPreset = usePhysicsStore((s) => s.applyPreset);
+  const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
+  const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
 
   function handleExport() {
     const json = exportConfig();
@@ -44,6 +50,34 @@ export default function Toolbar() {
 
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
+      {/* Mode preset pill */}
+      <div className="flex rounded-md border border-gray-200 overflow-hidden mr-1">
+        <button
+          className={`px-2.5 py-1 text-xs font-medium border-r border-gray-200 ${
+            appMode === "normal"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-50"
+          }`}
+          onClick={() => applyPreset("normal")}
+          title="Clean hierarchical layout with precise step edges"
+        >
+          Normal
+        </button>
+        <button
+          className={`px-2.5 py-1 text-xs font-medium ${
+            appMode === "fun"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-50"
+          }`}
+          onClick={() => applyPreset("fun")}
+          title="Force physics with smooth edges and live drag"
+        >
+          Fun
+        </button>
+      </div>
+
+      <div className="w-px h-4 bg-gray-200 mx-0.5" />
+
       {/* Layout switcher */}
       <span className="text-xs text-gray-400 mr-1">Layout</span>
       <button
@@ -76,6 +110,21 @@ export default function Toolbar() {
       </button>
       <button className={btnClass} onClick={resetConfig}>
         Reset
+      </button>
+
+      <div className="w-px h-4 bg-gray-200 mx-0.5" />
+
+      {/* Settings drawer toggle */}
+      <button
+        className={`px-2 py-1 rounded text-xs border ${
+          drawerOpen
+            ? "bg-blue-600 border-blue-600 text-white"
+            : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
+        }`}
+        onClick={() => setDrawerOpen(!drawerOpen)}
+        title="Appearance & Physics settings"
+      >
+        ⚙
       </button>
     </div>
   );

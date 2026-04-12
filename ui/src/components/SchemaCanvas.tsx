@@ -25,11 +25,13 @@ import {
 } from "@xyflow/react";
 import type { SchemaGraph } from "../lib/types";
 import { useSchemaStore } from "../store/schemaStore";
+import { usePhysicsStore } from "../store/physicsStore";
 import { appColor } from "../lib/colors";
 import { ModelNode, type ModelNodeData } from "./ModelNode";
 import { edgeTypes } from "./EdgeTypes";
 import { useForceLayout } from "../hooks/useForceLayout";
 import { runDagreLayout } from "../hooks/useLayout";
+import SettingsDrawer from "./SettingsDrawer";
 
 const nodeTypes: NodeTypes = { model: ModelNode } as unknown as NodeTypes;
 
@@ -43,6 +45,11 @@ export default function SchemaCanvas({ schema }: Props) {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setViewport = useSchemaStore((s) => s.setViewport);
   const pinNode = useSchemaStore((s) => s.pinNode);
+
+  const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
+  const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
+  const forceParams = usePhysicsStore((s) => s.forceParams);
+
   const { getViewport, setNodes } = useReactFlow();
 
   // Build React Flow nodes from API data, filtered to visible set.
@@ -68,7 +75,7 @@ export default function SchemaCanvas({ schema }: Props) {
       });
   }, [schema.nodes, visibleNodeIds, pinnedPositions]);
 
-  // Build React Flow edges
+  // Build React Flow edges, passing edgeStyle through data so SchemaEdge can branch
   const rfEdges: Edge[] = useMemo(() => {
     const visibleSet = visibleNodeIds;
     return schema.edges
@@ -81,10 +88,11 @@ export default function SchemaCanvas({ schema }: Props) {
         data: {
           relation_type: e.relation_type,
           field_name: e.field_name,
+          edgeStyle,
         },
         markerEnd: { type: "arrowclosed" as const, color: "#6b7280" },
       }));
-  }, [schema.edges, visibleNodeIds]);
+  }, [schema.edges, visibleNodeIds, edgeStyle]);
 
   // displayNodes is the authoritative node list passed to <ReactFlow>.
   // It starts from rfNodes and is updated by layout algorithms and user drags.
@@ -107,11 +115,16 @@ export default function SchemaCanvas({ schema }: Props) {
   const onNodesChange = useCallback(
     (changes: NodeChange<ModelNodeData>[]) =>
       setDisplayNodes((nds) => applyNodeChanges(changes, nds)),
-    []
+    [],
   );
 
-  // Run d3-force simulation — only when force layout is active
-  const { pinNode: simPinNode } = useForceLayout(rfNodes, rfEdges, activeLayout === "force");
+  // Force layout — only active when force layout is selected
+  const { pinNode: simPinNode, reheat } = useForceLayout(
+    rfNodes,
+    rfEdges,
+    activeLayout === "force",
+    forceParams,
+  );
 
   // Apply dagre layout whenever the layout mode or visible nodes/edges change
   useEffect(() => {
@@ -121,13 +134,22 @@ export default function SchemaCanvas({ schema }: Props) {
     setNodes(positioned);
   }, [activeLayout, rfNodes, rfEdges, setNodes]);
 
+  // onNodeDragStop — always pins in Zustand + d3 sim
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
     (_event, node) => {
-      // Pin in both Zustand state and d3 simulation
       pinNode(node.id, node.position);
       simPinNode(node.id, node.position.x, node.position.y);
     },
-    [pinNode, simPinNode]
+    [pinNode, simPinNode],
+  );
+
+  // onNodeDrag — live physics: track dragged node in sim each frame
+  const onNodeDrag: OnNodeDrag<ModelNodeData> = useCallback(
+    (_event, node) => {
+      if (!liveDragPhysics) return;
+      simPinNode(node.id, node.position.x, node.position.y);
+    },
+    [liveDragPhysics, simPinNode],
   );
 
   const onMoveEnd = useCallback(() => {
@@ -135,27 +157,31 @@ export default function SchemaCanvas({ schema }: Props) {
   }, [getViewport, setViewport]);
 
   return (
-    <ReactFlow
-      nodes={displayNodes}
-      edges={rfEdges}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      onNodesChange={onNodesChange}
-      onNodeDragStop={onNodeDragStop}
-      onMoveEnd={onMoveEnd}
-      fitView
-      minZoom={0.05}
-      maxZoom={2}
-    >
-      <Background gap={20} color="#e5e7eb" />
-      <Controls />
-      <MiniMap
-        nodeColor={(node) => {
-          const data = node.data as ModelNodeData['data'];
-          return appColor(data?.appLabel ?? "");
-        }}
-        maskColor="rgba(255,255,255,0.7)"
-      />
-    </ReactFlow>
+    <div className="relative w-full h-full">
+      <ReactFlow
+        nodes={displayNodes}
+        edges={rfEdges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onNodeDragStop={onNodeDragStop}
+        onNodeDrag={onNodeDrag}
+        onMoveEnd={onMoveEnd}
+        fitView
+        minZoom={0.05}
+        maxZoom={2}
+      >
+        <Background gap={20} color="#e5e7eb" />
+        <Controls />
+        <MiniMap
+          nodeColor={(node) => {
+            const data = node.data as ModelNodeData["data"];
+            return appColor(data?.appLabel ?? "");
+          }}
+          maskColor="rgba(255,255,255,0.7)"
+        />
+      </ReactFlow>
+      <SettingsDrawer onReheat={reheat} />
+    </div>
   );
 }
