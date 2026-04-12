@@ -96,7 +96,7 @@ export default function HelpDialog() {
             <dl className="flex flex-col gap-1 mb-3">
               <div><dt className="font-medium inline">Step —</dt><dd className="inline text-gray-500"> edges route through 90° bends. Precise and architectural.</dd></div>
               <div><dt className="font-medium inline">Bezier —</dt><dd className="inline text-gray-500"> smooth curved edges. Closer to the traditional graph feel.</dd></div>
-              <div><dt className="font-medium inline">Floating —</dt><dd className="inline text-gray-500"> center-to-center routing, edges follow wherever you drag a node (coming soon).</dd></div>
+              <div><dt className="font-medium inline">Floating —</dt><dd className="inline text-gray-500"> center-to-center routing; edges connect directly between node centers and follow wherever you drag.</dd></div>
             </dl>
 
             <h4 className="font-medium text-gray-800 mb-1">Live Drag Physics</h4>
