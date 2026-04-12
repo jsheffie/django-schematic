@@ -2,6 +2,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import SchemaCanvas from "./components/SchemaCanvas";
 import Sidebar from "./components/Sidebar";
 import Toolbar from "./components/Toolbar";
+import HelpDialog from "./components/HelpDialog";
 import { useSchema } from "./hooks/useSchema";
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           <SchemaCanvas schema={schema} />
         </div>
       </div>
+      <HelpDialog />
     </ReactFlowProvider>
   );
 }
