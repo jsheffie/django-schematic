@@ -1,0 +1,40 @@
+name: UI Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Type check
+        working-directory: ui
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: ui
+        run: npm run lint
+
+      - name: Test
+        working-directory: ui
+        run: npm run test
+
+      - name: Build
+        working-directory: ui
+        run: npm run build
