@@ -12,6 +12,8 @@ export default function Toolbar() {
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
+  const minimapVisible = usePhysicsStore((s) => s.minimapVisible);
+  const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
 
   function handleExport() {
     const json = exportConfig();
@@ -51,24 +53,24 @@ export default function Toolbar() {
 
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
-      {/* Mode preset pill — inactive uses bg-gray-100 so both buttons are visible */}
-      <div className="flex rounded-md border border-gray-200 overflow-hidden mr-1">
+      {/* Mode preset pill — two bordered buttons sharing an edge, no overflow-hidden */}
+      <div className="flex mr-1">
         <button
-          className={`px-2.5 py-1 text-xs font-medium border-r border-gray-200 transition-colors ${
+          className={`px-3 py-1 text-xs font-semibold rounded-l-md border transition-colors ${
             appMode === "normal"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-blue-600 text-white border-blue-600 z-10"
+              : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
           }`}
           onClick={() => applyPreset("normal")}
-          title="Clean hierarchical layout with precise step edges"
+          title="Clean hierarchical layout with step edges"
         >
           Normal
         </button>
         <button
-          className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+          className={`px-3 py-1 text-xs font-semibold rounded-r-md border border-l-0 transition-colors ${
             appMode === "fun"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-blue-600 text-white border-blue-600 z-10"
+              : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
           }`}
           onClick={() => applyPreset("fun")}
           title="Force physics with smooth edges and live drag"
@@ -114,6 +116,19 @@ export default function Toolbar() {
       </button>
 
       <div className="w-px h-4 bg-gray-200 mx-0.5" />
+
+      {/* Minimap toggle */}
+      <button
+        className={`px-2 py-1 rounded text-xs border transition-colors ${
+          minimapVisible
+            ? "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
+            : "bg-gray-200 border-gray-300 text-gray-500"
+        }`}
+        onClick={() => setMinimapVisible(!minimapVisible)}
+        title={minimapVisible ? "Hide minimap" : "Show minimap"}
+      >
+        Map
+      </button>
 
       {/* Settings drawer toggle */}
       <button

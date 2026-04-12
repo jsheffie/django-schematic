@@ -16,6 +16,7 @@ import {
   Background,
   Controls,
   MiniMap,
+  Panel,
   applyNodeChanges,
   type Edge,
   type NodeChange,
@@ -49,6 +50,8 @@ export default function SchemaCanvas({ schema }: Props) {
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
   const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
   const forceParams = usePhysicsStore((s) => s.forceParams);
+  const minimapVisible = usePhysicsStore((s) => s.minimapVisible);
+  const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
 
   const { getViewport, setNodes } = useReactFlow();
 
@@ -174,13 +177,25 @@ export default function SchemaCanvas({ schema }: Props) {
       >
         <Background gap={20} color="#e5e7eb" />
         <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            const data = node.data as ModelNodeData["data"];
-            return appColor(data?.appLabel ?? "");
-          }}
-          maskColor="rgba(255,255,255,0.7)"
-        />
+        {minimapVisible ? (
+          <MiniMap
+            nodeColor={(node) => {
+              const data = node.data as ModelNodeData["data"];
+              return appColor(data?.appLabel ?? "");
+            }}
+            maskColor="rgba(255,255,255,0.7)"
+          />
+        ) : (
+          <Panel position="bottom-right">
+            <button
+              className="px-2 py-1 text-xs bg-white border border-gray-200 rounded shadow hover:bg-gray-50 text-gray-600"
+              onClick={() => setMinimapVisible(true)}
+              title="Show minimap"
+            >
+              Map
+            </button>
+          </Panel>
+        )}
       </ReactFlow>
       <SettingsDrawer onReheat={reheat} />
     </div>

@@ -38,6 +38,8 @@ interface PhysicsStore {
   forceParams: ForceParams;
   drawerOpen: boolean;
   helpOpen: boolean;
+  sidebarOpen: boolean;
+  minimapVisible: boolean;
   appMode: AppMode;
 
   setEdgeStyle: (s: EdgeStyle) => void;
@@ -45,6 +47,8 @@ interface PhysicsStore {
   setForceParams: (p: Partial<ForceParams>) => void;
   setDrawerOpen: (v: boolean) => void;
   setHelpOpen: (v: boolean) => void;
+  setSidebarOpen: (v: boolean) => void;
+  setMinimapVisible: (v: boolean) => void;
   applyPreset: (mode: AppMode) => void;
 }
 
@@ -54,6 +58,8 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   forceParams: DEFAULT_FORCE_PARAMS,
   drawerOpen: false,
   helpOpen: false,
+  sidebarOpen: true,
+  minimapVisible: true,
   appMode: "normal",
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
@@ -62,6 +68,8 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     set((s) => ({ forceParams: { ...s.forceParams, ...p } })),
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
+  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  setMinimapVisible: (minimapVisible) => set({ minimapVisible }),
 
   applyPreset: (mode) => {
     if (mode === "fun") {
