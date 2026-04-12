@@ -28,7 +28,7 @@ ui/dist/
 ui/.vite/
 
 # Static files (keep the committed build artifact)
-# schema_graph/static/schema_graph/main.js is committed intentionally
+# schematic/static/schematic/main.js is committed intentionally
 
 # Testing
 .pytest_cache/

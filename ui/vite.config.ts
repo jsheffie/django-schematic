@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: "../schema_graph/static/schema_graph",
+    outDir: "../schematic/static/schematic",
     emptyOutDir: true,
     rollupOptions: {
       input: "src/main.tsx",

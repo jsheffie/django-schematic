@@ -8,9 +8,9 @@ import {
   Background,
   Controls,
   MiniMap,
-  type Node,
   type Edge,
-  type OnNodeDragStop,
+  type NodeTypes,
+  type OnNodeDrag,
   useReactFlow,
 } from "@xyflow/react";
 import type { SchemaGraph } from "../lib/types";
@@ -20,7 +20,7 @@ import { ModelNode, type ModelNodeData } from "./ModelNode";
 import { edgeTypes } from "./EdgeTypes";
 import { useForceLayout } from "../hooks/useForceLayout";
 
-const nodeTypes = { model: ModelNode };
+const nodeTypes: NodeTypes = { model: ModelNode } as unknown as NodeTypes;
 
 interface Props {
   schema: SchemaGraph;
@@ -34,7 +34,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const { getViewport } = useReactFlow();
 
   // Build React Flow nodes from API data, filtered to visible set
-  const rfNodes: Node<ModelNodeData>[] = useMemo(() => {
+  const rfNodes: ModelNodeData[] = useMemo(() => {
     return schema.nodes
       .filter((n) => visibleNodeIds.has(n.id))
       .map((n) => {
@@ -75,7 +75,7 @@ export default function SchemaCanvas({ schema }: Props) {
   // Run d3-force simulation — updates node positions on each tick
   const { pinNode: simPinNode } = useForceLayout(rfNodes, rfEdges);
 
-  const onNodeDragStop: OnNodeDragStop = useCallback(
+  const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
     (_event, node) => {
       // Pin in both Zustand state and d3 simulation
       pinNode(node.id, node.position);
@@ -104,7 +104,7 @@ export default function SchemaCanvas({ schema }: Props) {
       <Controls />
       <MiniMap
         nodeColor={(node) => {
-          const data = node.data as ModelNodeData;
+          const data = node.data as ModelNodeData['data'];
           return appColor(data?.appLabel ?? "");
         }}
         maskColor="rgba(255,255,255,0.7)"

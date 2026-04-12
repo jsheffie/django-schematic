@@ -44,7 +44,7 @@ packages = ["schematic"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "schema_graph/",
+    "schematic/",
     "LICENSE",
     "README.md",
     "pyproject.toml",
