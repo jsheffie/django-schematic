@@ -24,17 +24,6 @@ export default function Toolbar() {
       <div className="flex mr-1">
         <button
           className={`px-3 py-1 text-xs font-semibold rounded-l-md border transition-colors ${
-            appMode === "normal"
-              ? "bg-blue-600 text-white border-blue-600 z-10"
-              : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
-          }`}
-          onClick={() => applyPreset("normal")}
-          title="Clean hierarchical layout with step edges"
-        >
-          Normal
-        </button>
-        <button
-          className={`px-3 py-1 text-xs font-semibold rounded-r-md border border-l-0 transition-colors ${
             appMode === "fun"
               ? "bg-blue-600 text-white border-blue-600 z-10"
               : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
@@ -43,6 +32,17 @@ export default function Toolbar() {
           title="Force physics with floating edges and live drag"
         >
           Fun
+        </button>
+        <button
+          className={`px-3 py-1 text-xs font-semibold rounded-r-md border border-l-0 transition-colors ${
+            appMode === "normal"
+              ? "bg-blue-600 text-white border-blue-600 z-10"
+              : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
+          }`}
+          onClick={() => applyPreset("normal")}
+          title="Clean hierarchical layout with step edges"
+        >
+          Normal
         </button>
       </div>
 

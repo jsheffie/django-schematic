@@ -53,14 +53,14 @@ interface PhysicsStore {
 }
 
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
-  edgeStyle: "step",
-  liveDragPhysics: false,
-  forceParams: DEFAULT_FORCE_PARAMS,
+  edgeStyle: "floating",
+  liveDragPhysics: true,
+  forceParams: FUN_FORCE_PARAMS,
   drawerOpen: false,
   helpOpen: false,
   sidebarOpen: true,
   minimapVisible: true,
-  appMode: "normal",
+  appMode: "fun",
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
   setLiveDragPhysics: (liveDragPhysics) => set({ liveDragPhysics }),
