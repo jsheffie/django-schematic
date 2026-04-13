@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { useReactFlow } from "@xyflow/react";
 import { exportConfig, importConfig } from "../lib/config";
 import { useSchemaStore } from "../store/schemaStore";
 
@@ -6,6 +7,7 @@ export default function FileMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
+  const { getNodes } = useReactFlow();
 
   // Close on outside click
   useEffect(() => {
@@ -21,7 +23,12 @@ export default function FileMenu() {
 
   function handleExport() {
     setOpen(false);
-    const json = exportConfig();
+    // Capture all current display positions, not just manually pinned ones
+    const positions: Record<string, { x: number; y: number }> = {};
+    getNodes().forEach((n) => {
+      positions[n.id] = n.position;
+    });
+    const json = exportConfig(positions);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

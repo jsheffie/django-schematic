@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ReactFlow,
   Background,
+  BackgroundVariant,
   Controls,
   MiniMap,
   Panel,
@@ -52,6 +53,8 @@ export default function SchemaCanvas({ schema }: Props) {
   const forceParams = usePhysicsStore((s) => s.forceParams);
   const minimapVisible = usePhysicsStore((s) => s.minimapVisible);
   const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
+  const colorPalette = usePhysicsStore((s) => s.colorPalette);
+  const backgroundStyle = usePhysicsStore((s) => s.backgroundStyle);
 
   const { getViewport, setNodes } = useReactFlow();
 
@@ -78,7 +81,7 @@ export default function SchemaCanvas({ schema }: Props) {
       });
   }, [schema.nodes, visibleNodeIds, pinnedPositions]);
 
-  // Build React Flow edges, passing edgeStyle through data so SchemaEdge can branch
+  // Build React Flow edges, passing edgeStyle and related_name through data
   const rfEdges: Edge[] = useMemo(() => {
     const visibleSet = visibleNodeIds;
     return schema.edges
@@ -91,6 +94,7 @@ export default function SchemaCanvas({ schema }: Props) {
         data: {
           relation_type: e.relation_type,
           field_name: e.field_name,
+          related_name: e.related_name,
           edgeStyle,
         },
         markerEnd: { type: "arrowclosed" as const, color: "#6b7280" },
@@ -175,46 +179,31 @@ export default function SchemaCanvas({ schema }: Props) {
         minZoom={0.05}
         maxZoom={2}
       >
-        <Background gap={20} color="#e5e7eb" />
+        {backgroundStyle !== "none" && (
+          <Background
+            variant={backgroundStyle === "lines" ? BackgroundVariant.Lines : BackgroundVariant.Dots}
+            gap={backgroundStyle === "lines" ? 24 : 20}
+            color={backgroundStyle === "lines" ? "#e5e7eb" : "#d1d5db"}
+            size={backgroundStyle === "lines" ? 1 : 1.5}
+          />
+        )}
 
-        {/* Zoom controls centered at the bottom */}
-        <Panel position="bottom-center">
+        {/* Zoom controls — bottom-left */}
+        <Panel position="bottom-left">
           <Controls showInteractive={false} />
         </Panel>
 
-        {minimapVisible ? (
+        {minimapVisible && (
           <MiniMap
             nodeColor={(node) => {
               const data = node.data as ModelNodeData["data"];
-              return appColor(data?.appLabel ?? "");
+              return appColor(data?.appLabel ?? "", colorPalette);
             }}
             maskColor="rgba(255,255,255,0.7)"
-          >
-            {/* Built-in × button to hide the minimap */}
-            <button
-              onClick={() => setMinimapVisible(false)}
-              title="Hide minimap"
-              style={{
-                position: "absolute",
-                top: 2,
-                right: 2,
-                width: 16,
-                height: 16,
-                lineHeight: "14px",
-                textAlign: "center",
-                fontSize: 10,
-                background: "rgba(255,255,255,0.85)",
-                border: "1px solid #d1d5db",
-                borderRadius: 3,
-                cursor: "pointer",
-                color: "#6b7280",
-                padding: 0,
-              }}
-            >
-              ×
-            </button>
-          </MiniMap>
-        ) : (
+          />
+        )}
+
+        {!minimapVisible && (
           <Panel position="bottom-right">
             <button
               className="px-2 py-1 text-xs bg-white border border-gray-200 rounded shadow hover:bg-gray-50 text-gray-600"
@@ -226,6 +215,20 @@ export default function SchemaCanvas({ schema }: Props) {
           </Panel>
         )}
       </ReactFlow>
+
+      {/* × button overlaid on the minimap's top-right corner.
+          MiniMap renders at bottom: 8px, right: 8px, size ~200×150px. */}
+      {minimapVisible && (
+        <button
+          onClick={() => setMinimapVisible(false)}
+          title="Hide minimap"
+          className="absolute z-10 bg-white/90 border border-gray-200 rounded text-gray-400 hover:text-gray-600 hover:bg-white leading-none"
+          style={{ bottom: 150, right: 10, width: 16, height: 16, fontSize: 11, padding: 0 }}
+        >
+          ×
+        </button>
+      )}
+
       <SettingsDrawer onReheat={reheat} />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useSchemaStore } from "../store/schemaStore";
-import { usePhysicsStore, type EdgeStyle, type ForceParams } from "../store/physicsStore";
+import { usePhysicsStore, type EdgeStyle, type ForceParams, type ColorPalette, type BackgroundStyle } from "../store/physicsStore";
 import SliderInput from "./SliderInput";
 
 interface Props {
@@ -16,6 +16,10 @@ export default function SettingsDrawer({ onReheat }: Props) {
   const forceParams = usePhysicsStore((s) => s.forceParams);
   const setForceParams = usePhysicsStore((s) => s.setForceParams);
   const activeLayout = useSchemaStore((s) => s.activeLayout);
+  const colorPalette = usePhysicsStore((s) => s.colorPalette);
+  const setColorPalette = usePhysicsStore((s) => s.setColorPalette);
+  const backgroundStyle = usePhysicsStore((s) => s.backgroundStyle);
+  const setBackgroundStyle = usePhysicsStore((s) => s.setBackgroundStyle);
 
   const forceActive = activeLayout === "force";
 
@@ -54,6 +58,80 @@ export default function SettingsDrawer({ onReheat }: Props) {
         </div>
 
         <div className="px-4 py-3 flex flex-col gap-4">
+
+          {/* Color Palette */}
+          <section>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Color Palette
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {(
+                [
+                  { value: "pastel" as ColorPalette, label: "Pastel", desc: "Soft HSL colors, one per app", swatches: ["hsl(0,55%,45%)", "hsl(120,55%,45%)", "hsl(210,55%,45%)", "hsl(45,55%,45%)", "hsl(270,55%,45%)"] },
+                  { value: "schema-graph" as ColorPalette, label: "Schema Graph", desc: "Vibrant — matches django-schema-view", swatches: ["#e91e63", "#1976d2", "#388e3c", "#f57c00", "#7b1fa2"] },
+                  { value: "muted" as ColorPalette, label: "Muted", desc: "Subdued, professional tones", swatches: ["#64748b", "#16a34a", "#2563eb", "#dc2626", "#7c3aed"] },
+                ] satisfies { value: ColorPalette; label: string; desc: string; swatches: string[] }[]
+              ).map(({ value, label, desc, swatches }) => (
+                <label
+                  key={value}
+                  className={`flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 border ${
+                    colorPalette === value
+                      ? "border-blue-400 bg-blue-50"
+                      : "border-gray-100 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="colorPalette"
+                    value={value}
+                    checked={colorPalette === value}
+                    onChange={() => setColorPalette(value)}
+                    className="accent-blue-500 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-gray-700">{label}</span>
+                      <div className="flex gap-0.5">
+                        {swatches.map((c, i) => (
+                          <span key={i} className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: c }} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-400">{desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          {/* Background Style */}
+          <section>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Background
+            </p>
+            <div className="flex gap-2">
+              {(
+                [
+                  { value: "dots" as BackgroundStyle, label: "Dots" },
+                  { value: "lines" as BackgroundStyle, label: "Grid" },
+                  { value: "none" as BackgroundStyle, label: "None" },
+                ] satisfies { value: BackgroundStyle; label: string }[]
+              ).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setBackgroundStyle(value)}
+                  className={`flex-1 py-1.5 text-xs rounded-md border transition-colors ${
+                    backgroundStyle === value
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
+
           {/* Edge Style */}
           <section>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
