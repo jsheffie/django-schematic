@@ -2,12 +2,13 @@ import { useRef, useState, useEffect } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { exportConfig, importConfig } from "../lib/config";
 import { useSchemaStore } from "../store/schemaStore";
+import type { Viewport } from "@xyflow/react";
 
 export default function FileMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
-  const { getNodes } = useReactFlow();
+  const { getNodes, setViewport } = useReactFlow();
 
   // Close on outside click
   useEffect(() => {
@@ -23,6 +24,8 @@ export default function FileMenu() {
 
   function handleExport() {
     setOpen(false);
+    const name = window.prompt("Save config as:", "schematic-config");
+    if (name === null) return; // user cancelled
     // Capture all current display positions, not just manually pinned ones
     const positions: Record<string, { x: number; y: number }> = {};
     getNodes().forEach((n) => {
@@ -33,7 +36,7 @@ export default function FileMenu() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "schematic-config.json";
+    a.download = `${name.replace(/\.json$/i, "")}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -49,7 +52,9 @@ export default function FileMenu() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
-          importConfig(ev.target?.result as string);
+          const viewport = importConfig(ev.target?.result as string);
+          // Restore the exact viewport saved at export time
+          setViewport(viewport as Viewport);
         } catch {
           alert("Invalid config file");
         }

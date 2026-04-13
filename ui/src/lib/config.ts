@@ -16,6 +16,7 @@ interface PhysicsConfig {
   appMode: AppMode;
   colorPalette?: ColorPalette;
   backgroundStyle?: BackgroundStyle;
+  minimapVisible?: boolean;
 }
 
 export interface ViewConfig {
@@ -73,12 +74,14 @@ export function exportConfig(
       appMode: p.appMode,
       colorPalette: p.colorPalette,
       backgroundStyle: p.backgroundStyle,
+      minimapVisible: p.minimapVisible,
     },
   };
   return JSON.stringify(config, null, 2);
 }
 
-export function importConfig(json: string): void {
+/** Returns the viewport from the config so the caller can apply it to React Flow. */
+export function importConfig(json: string): { x: number; y: number; zoom: number } {
   const raw = JSON.parse(json) as ViewConfig | ViewConfigV1;
 
   if (raw.version !== 1 && raw.version !== 2) {
@@ -104,6 +107,9 @@ export function importConfig(json: string): void {
       appMode: raw.physics.appMode,
       ...(raw.physics.colorPalette ? { colorPalette: raw.physics.colorPalette } : {}),
       ...(raw.physics.backgroundStyle ? { backgroundStyle: raw.physics.backgroundStyle } : {}),
+      ...(raw.physics.minimapVisible !== undefined ? { minimapVisible: raw.physics.minimapVisible } : {}),
     });
   }
+
+  return raw.viewport;
 }
