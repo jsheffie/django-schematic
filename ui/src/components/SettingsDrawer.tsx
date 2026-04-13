@@ -68,7 +68,7 @@ export default function SettingsDrawer({ onReheat }: Props) {
               {(
                 [
                   { value: "pastel" as ColorPalette, label: "Pastel", desc: "Soft HSL colors, one per app", swatches: ["hsl(0,55%,45%)", "hsl(120,55%,45%)", "hsl(210,55%,45%)", "hsl(45,55%,45%)", "hsl(270,55%,45%)"] },
-                  { value: "schema-graph" as ColorPalette, label: "Schema Graph", desc: "Vibrant — matches django-schema-view", swatches: ["#e91e63", "#1976d2", "#388e3c", "#f57c00", "#7b1fa2"] },
+                  { value: "schema-graph" as ColorPalette, label: "Schema Graph", desc: "Vibrant", swatches: ["#e91e63", "#1976d2", "#388e3c", "#f57c00", "#7b1fa2"] },
                   { value: "muted" as ColorPalette, label: "Muted", desc: "Subdued, professional tones", swatches: ["#64748b", "#16a34a", "#2563eb", "#dc2626", "#7c3aed"] },
                 ] satisfies { value: ColorPalette; label: string; desc: string; swatches: string[] }[]
               ).map(({ value, label, desc, swatches }) => (
