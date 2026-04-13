@@ -5,6 +5,8 @@ import {
   type EdgeStyle,
   type AppMode,
   type ForceParams,
+  type ColorPalette,
+  type BackgroundStyle,
 } from "../store/physicsStore";
 
 interface PhysicsConfig {
@@ -12,6 +14,8 @@ interface PhysicsConfig {
   liveDragPhysics: boolean;
   forceParams: ForceParams;
   appMode: AppMode;
+  colorPalette?: ColorPalette;
+  backgroundStyle?: BackgroundStyle;
 }
 
 export interface ViewConfig {
@@ -67,6 +71,8 @@ export function exportConfig(
       liveDragPhysics: p.liveDragPhysics,
       forceParams: p.forceParams,
       appMode: p.appMode,
+      colorPalette: p.colorPalette,
+      backgroundStyle: p.backgroundStyle,
     },
   };
   return JSON.stringify(config, null, 2);
@@ -96,6 +102,8 @@ export function importConfig(json: string): void {
       liveDragPhysics: raw.physics.liveDragPhysics,
       forceParams: { ...DEFAULT_FORCE_PARAMS, ...raw.physics.forceParams },
       appMode: raw.physics.appMode,
+      ...(raw.physics.colorPalette ? { colorPalette: raw.physics.colorPalette } : {}),
+      ...(raw.physics.backgroundStyle ? { backgroundStyle: raw.physics.backgroundStyle } : {}),
     });
   }
 }

@@ -1,7 +1,8 @@
 import { memo } from "react";
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
-import { appColor, appColorBg } from "../lib/colors";
+import { usePhysicsStore } from "../store/physicsStore";
+import { appColors } from "../lib/colors";
 import type { FieldInfo } from "../lib/types";
 
 export type ModelNodeData = Node<{
@@ -31,8 +32,9 @@ export const ModelNode = memo(function ModelNode({
 }: NodeProps<ModelNodeData>) {
   const isExpanded = useSchemaStore((s) => s.expandedNodeIds.has(data.nodeId));
   const toggleFieldExpansion = useSchemaStore((s) => s.toggleFieldExpansion);
-  const borderColor = appColor(data.appLabel);
-  const bgColor = appColorBg(data.appLabel);
+  const colorPalette = usePhysicsStore((s) => s.colorPalette);
+
+  const { border: borderColor, bg: bgColor } = appColors(data.appLabel, colorPalette);
 
   const isAbstract = data.tags.includes("abstract");
   const isProxy = data.tags.includes("proxy");
@@ -61,10 +63,7 @@ export const ModelNode = memo(function ModelNode({
         {isProxy && (
           <span className="text-xs text-gray-400 shrink-0">proxy</span>
         )}
-        <span
-          className="text-xs text-gray-400 shrink-0"
-          style={{ color: borderColor }}
-        >
+        <span className="text-xs shrink-0" style={{ color: borderColor }}>
           {data.appLabel}
         </span>
       </div>

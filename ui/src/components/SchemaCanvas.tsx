@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ReactFlow,
   Background,
+  BackgroundVariant,
   Controls,
   MiniMap,
   Panel,
@@ -52,6 +53,8 @@ export default function SchemaCanvas({ schema }: Props) {
   const forceParams = usePhysicsStore((s) => s.forceParams);
   const minimapVisible = usePhysicsStore((s) => s.minimapVisible);
   const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
+  const colorPalette = usePhysicsStore((s) => s.colorPalette);
+  const backgroundStyle = usePhysicsStore((s) => s.backgroundStyle);
 
   const { getViewport, setNodes } = useReactFlow();
 
@@ -176,7 +179,14 @@ export default function SchemaCanvas({ schema }: Props) {
         minZoom={0.05}
         maxZoom={2}
       >
-        <Background gap={20} color="#e5e7eb" />
+        {backgroundStyle !== "none" && (
+          <Background
+            variant={backgroundStyle === "lines" ? BackgroundVariant.Lines : BackgroundVariant.Dots}
+            gap={backgroundStyle === "lines" ? 24 : 20}
+            color={backgroundStyle === "lines" ? "#e5e7eb" : "#d1d5db"}
+            size={backgroundStyle === "lines" ? 1 : 1.5}
+          />
+        )}
 
         {/* Zoom controls — bottom-left */}
         <Panel position="bottom-left">
@@ -187,7 +197,7 @@ export default function SchemaCanvas({ schema }: Props) {
           <MiniMap
             nodeColor={(node) => {
               const data = node.data as ModelNodeData["data"];
-              return appColor(data?.appLabel ?? "");
+              return appColor(data?.appLabel ?? "", colorPalette);
             }}
             maskColor="rgba(255,255,255,0.7)"
           />

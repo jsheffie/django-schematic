@@ -1,8 +1,11 @@
 import { create } from "zustand";
 import { useSchemaStore } from "./schemaStore";
+import type { ColorPalette } from "../lib/colors";
 
+export type { ColorPalette };
 export type EdgeStyle = "step" | "bezier" | "floating";
 export type AppMode = "normal" | "fun";
+export type BackgroundStyle = "dots" | "lines" | "none";
 
 export interface ForceParams {
   alphaDecay: number;      // d3 default: 0.0228
@@ -41,6 +44,8 @@ interface PhysicsStore {
   sidebarOpen: boolean;
   minimapVisible: boolean;
   appMode: AppMode;
+  colorPalette: ColorPalette;
+  backgroundStyle: BackgroundStyle;
 
   setEdgeStyle: (s: EdgeStyle) => void;
   setLiveDragPhysics: (v: boolean) => void;
@@ -49,18 +54,22 @@ interface PhysicsStore {
   setHelpOpen: (v: boolean) => void;
   setSidebarOpen: (v: boolean) => void;
   setMinimapVisible: (v: boolean) => void;
+  setColorPalette: (p: ColorPalette) => void;
+  setBackgroundStyle: (s: BackgroundStyle) => void;
   applyPreset: (mode: AppMode) => void;
 }
 
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
-  edgeStyle: "floating",
-  liveDragPhysics: true,
-  forceParams: FUN_FORCE_PARAMS,
+  edgeStyle: "step",
+  liveDragPhysics: false,
+  forceParams: DEFAULT_FORCE_PARAMS,
   drawerOpen: false,
   helpOpen: false,
   sidebarOpen: true,
   minimapVisible: true,
-  appMode: "fun",
+  appMode: "normal",
+  colorPalette: "pastel",
+  backgroundStyle: "dots",
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
   setLiveDragPhysics: (liveDragPhysics) => set({ liveDragPhysics }),
@@ -70,6 +79,8 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   setMinimapVisible: (minimapVisible) => set({ minimapVisible }),
+  setColorPalette: (colorPalette) => set({ colorPalette }),
+  setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
 
   applyPreset: (mode) => {
     if (mode === "fun") {
