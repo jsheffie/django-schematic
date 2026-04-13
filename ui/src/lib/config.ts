@@ -16,6 +16,7 @@ interface PhysicsConfig {
 
 export interface ViewConfig {
   version: 2;
+  activeLayout: "force" | "dagre-lr" | "dagre-tb";
   visibleNodeIds: string[];
   expandedNodeIds: string[];
   pinnedPositions: Record<string, { x: number; y: number }>;
@@ -24,7 +25,7 @@ export interface ViewConfig {
   physics: PhysicsConfig;
 }
 
-// Legacy v1 format (no physics key)
+// Legacy v1 format (no physics or activeLayout)
 interface ViewConfigV1 {
   version: 1;
   visibleNodeIds: string[];
@@ -34,14 +35,31 @@ interface ViewConfigV1 {
   viewport: { x: number; y: number; zoom: number };
 }
 
-export function exportConfig(): string {
+/**
+ * Export current view state to JSON.
+ *
+ * Pass `currentPositions` (from useReactFlow().getNodes()) to capture all
+ * node positions — not just those explicitly pinned via drag. Store-pinned
+ * positions take precedence so manual pins are preserved exactly.
+ */
+export function exportConfig(
+  currentPositions?: Record<string, { x: number; y: number }>,
+): string {
   const s = useSchemaStore.getState();
   const p = usePhysicsStore.getState();
+
+  // Merge: current display positions as base, then overlay explicit store pins
+  const allPositions: Record<string, { x: number; y: number }> = {
+    ...(currentPositions ?? {}),
+    ...Object.fromEntries(s.pinnedPositions),
+  };
+
   const config: ViewConfig = {
     version: 2,
+    activeLayout: s.activeLayout,
     visibleNodeIds: Array.from(s.visibleNodeIds),
     expandedNodeIds: Array.from(s.expandedNodeIds),
-    pinnedPositions: Object.fromEntries(s.pinnedPositions),
+    pinnedPositions: allPositions,
     collapsedApps: Array.from(s.collapsedApps),
     viewport: s.viewportState,
     physics: {
@@ -67,6 +85,9 @@ export function importConfig(json: string): void {
     pinnedPositions: new Map(Object.entries(raw.pinnedPositions)),
     collapsedApps: new Set(raw.collapsedApps),
     viewportState: raw.viewport,
+    ...(raw.version === 2 && raw.activeLayout
+      ? { activeLayout: raw.activeLayout }
+      : {}),
   });
 
   if (raw.version === 2 && raw.physics) {
