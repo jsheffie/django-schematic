@@ -6,8 +6,6 @@ export default function Toolbar() {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setLayout = useSchemaStore((s) => s.setLayout);
 
-  const appMode = usePhysicsStore((s) => s.appMode);
-  const applyPreset = usePhysicsStore((s) => s.applyPreset);
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
@@ -19,35 +17,6 @@ export default function Toolbar() {
 
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
-      {/* Mode presets */}
-      <span className="text-xs text-gray-400 mr-0.5">Presets</span>
-      <div className="flex mr-1">
-        <button
-          className={`px-3 py-1 text-xs font-semibold rounded-l-md border transition-colors ${
-            appMode === "fun"
-              ? "bg-blue-600 text-white border-blue-600 z-10"
-              : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
-          }`}
-          onClick={() => applyPreset("fun")}
-          title="Force physics with floating edges and live drag"
-        >
-          Fun
-        </button>
-        <button
-          className={`px-3 py-1 text-xs font-semibold rounded-r-md border border-l-0 transition-colors ${
-            appMode === "normal"
-              ? "bg-blue-600 text-white border-blue-600 z-10"
-              : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
-          }`}
-          onClick={() => applyPreset("normal")}
-          title="Clean hierarchical layout with step edges"
-        >
-          Normal
-        </button>
-      </div>
-
-      <div className="w-px h-4 bg-gray-200 mx-0.5" />
-
       {/* Layout switcher */}
       <span className="text-xs text-gray-400 mr-0.5">Layout</span>
       <button
@@ -84,7 +53,7 @@ export default function Toolbar() {
             : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
         }`}
         onClick={() => setDrawerOpen(!drawerOpen)}
-        title="Appearance & Physics settings"
+        title="Settings"
       >
         ⚙
       </button>
