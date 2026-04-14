@@ -27,20 +27,23 @@ export default function HelpDialog() {
 
           {/* Presets */}
           <section>
-            <h3 className="font-semibold text-gray-900 mb-1.5">Presets — Normal / Fun</h3>
-            <p className="text-gray-500 mb-2">One-click presets that configure layout, edges, and physics together.</p>
+            <h3 className="font-semibold text-gray-900 mb-1.5">Presets — Stiff / Normal / Fun / Excitation</h3>
+            <p className="text-gray-500 mb-2">One-click presets that configure layout, edges, and physics together. Found in Settings → Physics.</p>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="pb-1 font-medium text-gray-400 w-1/3"></th>
+                  <th className="pb-1 font-medium text-gray-400 w-1/4"></th>
+                  <th className="pb-1 font-medium text-gray-500">Stiff</th>
                   <th className="pb-1 font-medium text-gray-500">Normal</th>
                   <th className="pb-1 font-medium text-gray-500">Fun</th>
+                  <th className="pb-1 font-medium text-gray-500">Excitation</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                <tr><td className="py-1 text-gray-400">Layout</td><td>Left → Right</td><td>Force</td></tr>
-                <tr><td className="py-1 text-gray-400">Edges</td><td>Step</td><td>Floating</td></tr>
-                <tr><td className="py-1 text-gray-400">Live drag</td><td>Off</td><td>On</td></tr>
+                <tr><td className="py-1 text-gray-400">Layout</td><td>Force</td><td>Force</td><td>Force</td><td>Force</td></tr>
+                <tr><td className="py-1 text-gray-400">Edges</td><td>Floating</td><td>Floating</td><td>Floating</td><td>Floating</td></tr>
+                <tr><td className="py-1 text-gray-400">Live drag</td><td>Off</td><td>Off</td><td>On</td><td>On</td></tr>
+                <tr><td className="py-1 text-gray-400">Feel</td><td>Snappy</td><td>Balanced</td><td>Bouncy</td><td>Chaotic</td></tr>
               </tbody>
             </table>
           </section>
@@ -88,9 +91,22 @@ export default function HelpDialog() {
             </dl>
           </section>
 
+          {/* Sidebar */}
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-1.5">Sidebar (Models)</h3>
+            <dl className="flex flex-col gap-1.5">
+              <div><dt className="font-medium inline">Show all / Hide all —</dt><dd className="inline text-gray-500"> toggle visibility of every model at once.</dd></div>
+              <div><dt className="font-medium inline">Expand all / Collapse all —</dt><dd className="inline text-gray-500"> expand or collapse fields on every visible model node.</dd></div>
+              <div><dt className="font-medium inline">App chevron or label —</dt><dd className="inline text-gray-500"> fold/unfold the list of models within that Django app.</dd></div>
+              <div><dt className="font-medium inline">show / hide (per app) —</dt><dd className="inline text-gray-500"> toggle visibility of all models in that app. Button dims when only some models are visible.</dd></div>
+              <div><dt className="font-medium inline">Model checkbox —</dt><dd className="inline text-gray-500"> toggle a single model's visibility on the canvas.</dd></div>
+            </dl>
+          </section>
+
           {/* Settings */}
           <section>
-            <h3 className="font-semibold text-gray-900 mb-1.5">⚙ Appearance & Physics</h3>
+            <h3 className="font-semibold text-gray-900 mb-1.5">⚙ Settings</h3>
+            <p className="text-gray-500 mb-2">Two tabs: <span className="font-medium text-gray-700">Appearance</span> (colors, background, edge style) and <span className="font-medium text-gray-700">Physics</span> (preset, live drag, force simulation sliders).</p>
 
             <h4 className="font-medium text-gray-800 mb-1">Edge Style</h4>
             <dl className="flex flex-col gap-1 mb-3">

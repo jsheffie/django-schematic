@@ -4,7 +4,7 @@ import type { ColorPalette } from "../lib/colors";
 
 export type { ColorPalette };
 export type EdgeStyle = "step" | "bezier" | "floating";
-export type AppMode = "normal" | "fun";
+export type AppMode = "stiff" | "normal" | "fun" | "excitation";
 export type BackgroundStyle = "dots" | "lines" | "none";
 
 export interface ForceParams {
@@ -16,6 +16,17 @@ export interface ForceParams {
   collisionRadius: number;
 }
 
+// Stiff: snappy settle, high friction, tighter spacing
+export const STIFF_FORCE_PARAMS: ForceParams = {
+  alphaDecay: 0.08,
+  alphaMin: 0.005,
+  velocityDecay: 0.7,
+  chargeStrength: -300,
+  linkDistance: 120,
+  collisionRadius: 60,
+};
+
+// Normal: balanced defaults
 export const DEFAULT_FORCE_PARAMS: ForceParams = {
   alphaDecay: 0.0228,
   alphaMin: 0.001,
@@ -25,14 +36,24 @@ export const DEFAULT_FORCE_PARAMS: ForceParams = {
   collisionRadius: 80,
 };
 
-// Tuned for a satisfying settle without nodes exploding off-screen
+// Fun: slow settle, bouncy, slightly looser spacing
 export const FUN_FORCE_PARAMS: ForceParams = {
-  alphaDecay: 0.005,   // slow settle = longer bouncy animation
+  alphaDecay: 0.005,
   alphaMin: 0.001,
-  velocityDecay: 0.45, // enough friction to keep nodes on screen
-  chargeStrength: -350, // moderate repulsion
-  linkDistance: 160,   // tighter springs keep cluster together
+  velocityDecay: 0.45,
+  chargeStrength: -350,
+  linkDistance: 160,
   collisionRadius: 90,
+};
+
+// Excitation: very slow decay, low friction, strong repulsion — nodes fly
+export const EXCITATION_FORCE_PARAMS: ForceParams = {
+  alphaDecay: 0.002,
+  alphaMin: 0.0005,
+  velocityDecay: 0.15,
+  chargeStrength: -900,
+  linkDistance: 280,
+  collisionRadius: 120,
 };
 
 interface PhysicsStore {
@@ -60,7 +81,7 @@ interface PhysicsStore {
 }
 
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
-  edgeStyle: "step",
+  edgeStyle: "floating",
   liveDragPhysics: false,
   forceParams: DEFAULT_FORCE_PARAMS,
   drawerOpen: false,
@@ -83,21 +104,34 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
 
   applyPreset: (mode) => {
-    if (mode === "fun") {
-      useSchemaStore.getState().setLayout("force");
+    useSchemaStore.getState().setLayout("force");
+    if (mode === "stiff") {
+      set({
+        appMode: "stiff",
+        edgeStyle: "floating",
+        liveDragPhysics: false,
+        forceParams: STIFF_FORCE_PARAMS,
+      });
+    } else if (mode === "normal") {
+      set({
+        appMode: "normal",
+        edgeStyle: "floating",
+        liveDragPhysics: false,
+        forceParams: DEFAULT_FORCE_PARAMS,
+      });
+    } else if (mode === "fun") {
       set({
         appMode: "fun",
         edgeStyle: "floating",
         liveDragPhysics: true,
         forceParams: FUN_FORCE_PARAMS,
       });
-    } else {
-      useSchemaStore.getState().setLayout("dagre-lr");
+    } else if (mode === "excitation") {
       set({
-        appMode: "normal",
-        edgeStyle: "step",
-        liveDragPhysics: false,
-        forceParams: DEFAULT_FORCE_PARAMS,
+        appMode: "excitation",
+        edgeStyle: "floating",
+        liveDragPhysics: true,
+        forceParams: EXCITATION_FORCE_PARAMS,
       });
     }
   },
