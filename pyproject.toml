@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django-schematic"
-version = "1.0.2"
+version = "1.0.3"
 description = "Interactive schema visualization for Django projects — React Flow + force-directed layout"
 readme = "README.md"
 license = { file = "LICENSE" }

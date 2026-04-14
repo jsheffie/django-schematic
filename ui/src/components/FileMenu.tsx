@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from "react";
+import { toPng } from "html-to-image";
 import { useReactFlow } from "@xyflow/react";
 import { exportConfig, importConfig } from "../lib/config";
+import { injectTextChunk, extractTextChunk } from "../lib/pngEmbed";
 import { useSchemaStore } from "../store/schemaStore";
 import type { Viewport } from "@xyflow/react";
 
@@ -64,6 +66,66 @@ export default function FileMenu() {
     input.click();
   }
 
+  async function handleExportPng() {
+    setOpen(false);
+    const positions: Record<string, { x: number; y: number }> = {};
+    getNodes().forEach((n) => {
+      positions[n.id] = n.position;
+    });
+    const json = exportConfig(positions);
+
+    const flowEl = document.querySelector(".react-flow") as HTMLElement | null;
+    if (!flowEl) return;
+
+    const dataUrl = await toPng(flowEl, { backgroundColor: "#ffffff" });
+
+    // Convert base64 dataURL → Uint8Array
+    const base64 = dataUrl.split(",")[1];
+    const binaryStr = atob(base64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+
+    const pngWithMeta = injectTextChunk(bytes, "schematic", json);
+    const blob = new Blob([pngWithMeta.buffer as ArrayBuffer], { type: "image/png" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "schematic.png";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportPng() {
+    setOpen(false);
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".png,image/png";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const buffer = ev.target?.result as ArrayBuffer;
+        const bytes = new Uint8Array(buffer);
+        const json = extractTextChunk(bytes, "schematic");
+        if (!json) {
+          alert("This PNG does not contain an embedded schematic config.");
+          return;
+        }
+        try {
+          const viewport = importConfig(json);
+          setViewport(viewport as Viewport);
+        } catch {
+          alert("Failed to restore config from PNG.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    input.click();
+  }
+
   function handleReset() {
     setOpen(false);
     resetConfig();
@@ -97,6 +159,18 @@ export default function FileMenu() {
             onClick={handleImport}
           >
             Import config
+          </button>
+          <button
+            className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+            onClick={handleExportPng}
+          >
+            Export PNG
+          </button>
+          <button
+            className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+            onClick={handleImportPng}
+          >
+            Import PNG
           </button>
           <div className="border-t border-gray-100 my-1" />
           <button

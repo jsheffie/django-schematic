@@ -89,8 +89,10 @@ export default function HelpDialog() {
           <section>
             <h3 className="font-semibold text-gray-900 mb-1.5">File menu</h3>
             <dl className="flex flex-col gap-1.5">
-              <div><dt className="font-medium inline">Export —</dt><dd className="inline text-gray-500"> saves all node positions, visible models, expanded fields, viewport, and physics settings to a JSON file.</dd></div>
-              <div><dt className="font-medium inline">Import —</dt><dd className="inline text-gray-500"> restores a previously exported config, including positions.</dd></div>
+              <div><dt className="font-medium inline">Export config —</dt><dd className="inline text-gray-500"> saves node positions, visible models, expanded fields, viewport, and physics settings to a JSON file.</dd></div>
+              <div><dt className="font-medium inline">Import config —</dt><dd className="inline text-gray-500"> restores a previously exported JSON config, including positions.</dd></div>
+              <div><dt className="font-medium inline">Export PNG —</dt><dd className="inline text-gray-500"> downloads the canvas as a PNG image with the full config embedded inside. The layout and settings can be restored later via Import PNG.</dd></div>
+              <div><dt className="font-medium inline">Import PNG —</dt><dd className="inline text-gray-500"> reads an exported PNG and restores the embedded config, including positions, visibility, and physics settings.</dd></div>
               <div><dt className="font-medium inline">Reset —</dt><dd className="inline text-gray-500"> clears pinned positions and collapses all expanded fields.</dd></div>
             </dl>
           </section>
