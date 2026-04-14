@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.views import View
 from django.shortcuts import render
 
@@ -8,19 +8,20 @@ from .schema import build_schema
 from .settings import get_setting
 
 
+def _is_visible(request: HttpRequest) -> bool:
+    visible = get_setting("visible")
+    if callable(visible):
+        return visible(request)
+    return bool(visible)
+
+
 class SchemaView(View):
     """Serves the React SPA shell."""
 
     def get(self, request: HttpRequest) -> HttpResponse:
-        if not self._is_visible(request):
-            return HttpResponse(status=403)
+        if not _is_visible(request):
+            raise Http404
         return render(request, "schematic/index.html")
-
-    def _is_visible(self, request: HttpRequest) -> bool:
-        visible = get_setting("visible")
-        if callable(visible):
-            return visible(request)
-        return bool(visible)
 
 
 class SchemaAPIView(View):
@@ -31,8 +32,8 @@ class SchemaAPIView(View):
     """
 
     def get(self, request: HttpRequest) -> JsonResponse:
-        if not self._is_visible(request):
-            return JsonResponse({"error": "forbidden"}, status=403)
+        if not _is_visible(request):
+            raise Http404
 
         filter_apps: list[str] | None = None
         if apps_param := request.GET.get("apps"):
@@ -40,9 +41,3 @@ class SchemaAPIView(View):
 
         schema = build_schema(filter_apps=filter_apps)
         return JsonResponse(schema.to_dict())
-
-    def _is_visible(self, request: HttpRequest) -> bool:
-        visible = get_setting("visible")
-        if callable(visible):
-            return visible(request)
-        return bool(visible)
