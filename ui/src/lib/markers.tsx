@@ -10,7 +10,7 @@ export const RELATION_MARKERS: Record<
   "fk" | "o2o" | "m2m" | "subclass" | "proxy",
   { markerStart?: string; markerEnd?: string }
 > = {
-  fk:       { markerStart: "crow-one-gray",    markerEnd: "crow-many-gray"      },
+  fk:       { markerStart: "crow-many-gray",   markerEnd: "crow-one-gray"       },
   o2o:      { markerStart: "bar-blue",         markerEnd: "bar-blue"            },
   m2m:      { markerStart: "crow-many-purple", markerEnd: "crow-many-purple"    },
   subclass: {                                   markerEnd: "triangle-open-green" },
@@ -43,7 +43,7 @@ export function MarkerDefs() {
         <marker
           id="crow-many-gray"
           {...MARKER_PROPS}
-          orient="auto"
+          orient="auto-start-reverse"
         >
           <line x1="0" y1="0"  x2="9" y2="5" stroke="#6b7280" strokeWidth="1.5" />
           <line x1="0" y1="5"  x2="9" y2="5" stroke="#6b7280" strokeWidth="1.5" />
