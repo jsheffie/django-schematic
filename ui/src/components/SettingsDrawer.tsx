@@ -16,6 +16,8 @@ export default function SettingsDrawer({ onReheat }: Props) {
   const setEdgeStyle = usePhysicsStore((s) => s.setEdgeStyle);
   const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
   const setLiveDragPhysics = usePhysicsStore((s) => s.setLiveDragPhysics);
+  const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
+  const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
   const forceParams = usePhysicsStore((s) => s.forceParams);
   const setForceParams = usePhysicsStore((s) => s.setForceParams);
   const activeLayout = useSchemaStore((s) => s.activeLayout);
@@ -239,6 +241,30 @@ export default function SettingsDrawer({ onReheat }: Props) {
                 </div>
               </section>
 
+              {/* Physics Simulation toggle */}
+              <section>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  Physics Simulation
+                </p>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs text-gray-700">Enable physics (Space)</span>
+                  <button
+                    role="switch"
+                    aria-checked={physicsEnabled}
+                    onClick={() => setPhysicsEnabled(!physicsEnabled)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      physicsEnabled ? "bg-blue-500" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                        physicsEnabled ? "translate-x-4" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </label>
+              </section>
+
               {/* Live Drag Physics */}
               <section>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -329,7 +355,13 @@ export default function SettingsDrawer({ onReheat }: Props) {
 
                 <button
                   onClick={() => onReheat(forceParams)}
-                  className="w-full mt-1 py-1.5 text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                  disabled={!physicsEnabled}
+                  title={!physicsEnabled ? "Resume physics to apply" : undefined}
+                  className={`w-full mt-1 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${
+                    physicsEnabled
+                      ? "bg-blue-500 hover:bg-blue-600"
+                      : "bg-blue-300 cursor-not-allowed"
+                  }`}
                 >
                   Apply to running sim
                 </button>
