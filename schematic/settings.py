@@ -1,7 +1,12 @@
 from django.conf import settings
 
+
+def _debug_default(request: object) -> bool:
+    return bool(settings.DEBUG)
+
+
 DEFAULTS: dict = {
-    "visible": True,
+    "visible": _debug_default,
     "include_apps": [],
     "exclude_apps": ["admin", "contenttypes", "sessions", "auth"],
     "exclude_models": {},

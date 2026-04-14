@@ -38,7 +38,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-Add to `urls.py` (behind a staff-only guard in production):
+Add to `urls.py`:
 
 ```python
 from django.urls import include, path
@@ -51,12 +51,24 @@ urlpatterns = [
 
 Visit `http://localhost:8000/schema/` — your model graph will be there.
 
+## Security
+
+The viewer is only accessible when `DEBUG = True`. In production (`DEBUG = False`) both the HTML view and the API return 404, making the URL appear non-existent.
+
+To expose the viewer in production behind your own auth layer, set the `visible` option to a callable:
+
+```python
+SCHEMATIC = {
+    "visible": lambda request: request.user.is_staff,
+}
+```
+
 ## Configuration
 
 ```python
 # settings.py (all optional — these are the defaults)
 SCHEMATIC = {
-    "visible": True,              # or callable(request) -> bool
+    "visible": lambda request: settings.DEBUG,  # or any callable, or True/False
     "include_apps": [],           # empty = all apps
     "exclude_apps": ["admin", "contenttypes", "sessions", "auth"],
     "exclude_models": {},         # {"myapp": ["InternalModel"]}
