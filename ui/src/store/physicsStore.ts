@@ -4,7 +4,7 @@ import type { ColorPalette } from "../lib/colors";
 
 export type { ColorPalette };
 export type EdgeStyle = "step" | "bezier" | "floating";
-export type AppMode = "stiff" | "normal" | "fun" | "excitation";
+export type AppMode = "stiff" | "normal" | "fun" | "excitation" | "auto-layout";
 export type BackgroundStyle = "dots" | "lines" | "none";
 
 export interface ForceParams {
@@ -104,6 +104,16 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
 
   applyPreset: (mode) => {
+    if (mode === "auto-layout") {
+      useSchemaStore.getState().setLayout("elk");
+      set({
+        appMode: "auto-layout",
+        edgeStyle: "floating",
+        liveDragPhysics: false,
+        forceParams: DEFAULT_FORCE_PARAMS,
+      });
+      return;
+    }
     useSchemaStore.getState().setLayout("force");
     if (mode === "stiff") {
       set({

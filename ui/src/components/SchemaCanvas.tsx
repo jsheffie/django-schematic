@@ -33,6 +33,7 @@ import { ModelNode, type ModelNodeData } from "./ModelNode";
 import { edgeTypes } from "./EdgeTypes";
 import { useForceLayout } from "../hooks/useForceLayout";
 import { runDagreLayout } from "../hooks/useLayout";
+import { runElkLayout } from "../hooks/useElkLayout";
 import SettingsDrawer from "./SettingsDrawer";
 
 const nodeTypes: NodeTypes = { model: ModelNode } as unknown as NodeTypes;
@@ -133,9 +134,13 @@ export default function SchemaCanvas({ schema }: Props) {
     forceParams,
   );
 
-  // Apply dagre layout whenever the layout mode or visible nodes/edges change
+  // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change
   useEffect(() => {
     if (activeLayout === "force") return;
+    if (activeLayout === "elk") {
+      runElkLayout(rfNodes, rfEdges).then((positioned) => setNodes(positioned));
+      return;
+    }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
     const positioned = runDagreLayout(rfNodes, rfEdges, direction);
     setNodes(positioned);

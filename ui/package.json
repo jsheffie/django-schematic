@@ -1,6 +1,6 @@
 {
   "name": "django-schematic-ui",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,15 +12,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
     "@xyflow/react": "^12.0.0",
     "d3-force": "^3.0.0",
     "dagre": "^0.8.5",
-    "@dagrejs/dagre": "^1.1.4",
-    "zustand": "^5.0.0",
+    "elkjs": "^0.11.1",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
     "@types/d3-force": "^3.0.10",
     "@types/dagre": "^0.7.52",
     "@types/react": "^18.3.0",
@@ -30,7 +32,6 @@
     "@vitejs/plugin-react": "^4.3.0",
     "eslint": "^9.0.0",
     "tailwindcss": "^4.0.0",
-    "@tailwindcss/vite": "^4.0.0",
     "typescript": "^5.6.0",
     "vite": "^6.0.0",
     "vitest": "^2.0.0"
