@@ -212,28 +212,29 @@ export default function SettingsDrawer({ onReheat }: Props) {
                   Preset
                 </p>
                 <div className="flex rounded-md overflow-hidden border border-gray-200">
-                  <button
-                    className={`flex-1 py-1.5 text-xs font-semibold transition-colors ${
-                      appMode === "normal"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                    }`}
-                    onClick={() => applyPreset("normal")}
-                    title="Clean hierarchical layout with step edges"
-                  >
-                    Normal
-                  </button>
-                  <button
-                    className={`flex-1 py-1.5 text-xs font-semibold border-l border-gray-200 transition-colors ${
-                      appMode === "fun"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                    }`}
-                    onClick={() => applyPreset("fun")}
-                    title="Force physics with floating edges and live drag"
-                  >
-                    Fun
-                  </button>
+                  {(
+                    [
+                      { mode: "stiff", label: "Stiff", title: "Snappy settle, high friction" },
+                      { mode: "normal", label: "Normal", title: "Balanced defaults" },
+                      { mode: "fun", label: "Fun", title: "Slow settle, bouncy, live drag" },
+                      { mode: "excitation", label: "Excitation", title: "Low friction, strong repulsion" },
+                    ] as const
+                  ).map(({ mode, label, title }, i) => (
+                    <button
+                      key={mode}
+                      className={`flex-1 py-1.5 text-xs font-semibold transition-colors ${
+                        i > 0 ? "border-l border-gray-200" : ""
+                      } ${
+                        appMode === mode
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                      onClick={() => applyPreset(mode)}
+                      title={title}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </section>
 

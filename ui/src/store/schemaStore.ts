@@ -48,7 +48,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   pinnedPositions: new Map(),
   collapsedApps: new Set(),
   viewportState: { x: 0, y: 0, zoom: 1 },
-  activeLayout: "dagre-lr",
+  activeLayout: "force",
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids) }),
 
@@ -117,6 +117,6 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       pinnedPositions: new Map(),
       collapsedApps: new Set(),
       viewportState: { x: 0, y: 0, zoom: 1 },
-      activeLayout: "dagre-lr",
+      activeLayout: "force",
     }),
 }));
