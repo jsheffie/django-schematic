@@ -6,8 +6,116 @@ import { injectTextChunk, extractTextChunk } from "../lib/pngEmbed";
 import { useSchemaStore } from "../store/schemaStore";
 import type { Viewport } from "@xyflow/react";
 
+interface FilenameDialogProps {
+  open: boolean;
+  defaultName: string;
+  extension: string;
+  title: string;
+  onConfirm: (basename: string) => void;
+  onCancel: () => void;
+}
+
+function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCancel }: FilenameDialogProps) {
+  const [name, setName] = useState(defaultName);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Reset + auto-select on open
+  useEffect(() => {
+    if (!open) return;
+    setName(defaultName);
+    const id = requestAnimationFrame(() => inputRef.current?.select());
+    return () => cancelAnimationFrame(id);
+  }, [open, defaultName]);
+
+  // Escape to dismiss
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onCancel(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onCancel]);
+
+  function confirm() {
+    const trimmed = name.trim() || defaultName;
+    onConfirm(trimmed);
+  }
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
+        </div>
+        <div className="px-5 py-4 flex flex-col gap-4">
+          <label className="text-xs text-gray-600 font-medium">Filename</label>
+          <div className="flex items-stretch text-sm border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+            <input
+              ref={inputRef}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirm(); } }}
+              className="flex-1 px-3 py-2 text-gray-800 bg-white outline-none min-w-0"
+              spellCheck={false}
+            />
+            <span className="flex items-center px-3 bg-gray-50 text-gray-400 text-xs border-l border-gray-300 select-none whitespace-nowrap">
+              {extension}
+            </span>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+            <button onClick={confirm} className="px-3 py-1.5 text-xs text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Export</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ErrorDialogProps {
+  message: string | null;
+  onClose: () => void;
+}
+
+function ErrorDialog({ message, onClose }: ErrorDialogProps) {
+  useEffect(() => {
+    if (!message) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape" || e.key === "Enter") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-800">Import error</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
+        </div>
+        <div className="px-5 py-4 flex flex-col gap-4">
+          <p className="text-xs text-gray-700">{message}</p>
+          <div className="flex justify-end">
+            <button onClick={onClose} className="px-3 py-1.5 text-xs text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type DialogState = { kind: "closed" } | { kind: "json" } | { kind: "png" };
+
 export default function FileMenu() {
   const [open, setOpen] = useState(false);
+  const [dialog, setDialog] = useState<DialogState>({ kind: "closed" });
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
   const { getNodes, setViewport } = useReactFlow();
@@ -26,8 +134,11 @@ export default function FileMenu() {
 
   function handleExport() {
     setOpen(false);
-    const name = window.prompt("Save config as:", "schematic-config");
-    if (name === null) return; // user cancelled
+    setDialog({ kind: "json" });
+  }
+
+  function confirmExportJson(basename: string) {
+    setDialog({ kind: "closed" });
     // Capture all current display positions, not just manually pinned ones
     const positions: Record<string, { x: number; y: number }> = {};
     getNodes().forEach((n) => {
@@ -38,7 +149,7 @@ export default function FileMenu() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${name.replace(/\.json$/i, "")}.json`;
+    a.download = `${basename}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -58,7 +169,7 @@ export default function FileMenu() {
           // Restore the exact viewport saved at export time
           setViewport(viewport as Viewport);
         } catch {
-          alert("Invalid config file");
+          setErrorMsg("Invalid config file.");
         }
       };
       reader.readAsText(file);
@@ -66,8 +177,13 @@ export default function FileMenu() {
     input.click();
   }
 
-  async function handleExportPng() {
+  function handleExportPng() {
     setOpen(false);
+    setDialog({ kind: "png" });
+  }
+
+  async function confirmExportPng(basename: string) {
+    setDialog({ kind: "closed" });
     const positions: Record<string, { x: number; y: number }> = {};
     getNodes().forEach((n) => {
       positions[n.id] = n.position;
@@ -92,7 +208,7 @@ export default function FileMenu() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "schematic.png";
+    a.download = `${basename}.png`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -111,14 +227,14 @@ export default function FileMenu() {
         const bytes = new Uint8Array(buffer);
         const json = extractTextChunk(bytes, "schematic");
         if (!json) {
-          alert("This PNG does not contain an embedded schematic config.");
+          setErrorMsg("This PNG does not contain an embedded schematic config.");
           return;
         }
         try {
           const viewport = importConfig(json);
           setViewport(viewport as Viewport);
         } catch {
-          alert("Failed to restore config from PNG.");
+          setErrorMsg("Failed to restore config from PNG.");
         }
       };
       reader.readAsArrayBuffer(file);
@@ -181,6 +297,27 @@ export default function FileMenu() {
           </button>
         </div>
       )}
+
+      <FilenameDialog
+        open={dialog.kind === "json"}
+        defaultName="schematic-config"
+        extension=".json"
+        title="Export config"
+        onConfirm={confirmExportJson}
+        onCancel={() => setDialog({ kind: "closed" })}
+      />
+      <FilenameDialog
+        open={dialog.kind === "png"}
+        defaultName="schematic"
+        extension=".png"
+        title="Export PNG"
+        onConfirm={confirmExportPng}
+        onCancel={() => setDialog({ kind: "closed" })}
+      />
+      <ErrorDialog
+        message={errorMsg}
+        onClose={() => setErrorMsg(null)}
+      />
     </div>
   );
 }
