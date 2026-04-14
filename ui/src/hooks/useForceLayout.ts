@@ -20,6 +20,7 @@ export function useForceLayout(
   edges: Edge[],
   enabled: boolean,
   params: ForceParams = DEFAULT_FORCE_PARAMS,
+  importId: number = 0,
 ) {
   const { setNodes } = useReactFlow();
   const simRef = useRef<d3.Simulation<SimNode, undefined> | null>(null);
@@ -82,7 +83,7 @@ export function useForceLayout(
     return () => {
       simulation.stop();
     };
-  }, [nodes.length, edges.length, setNodes, enabled]);
+  }, [nodes.length, edges.length, setNodes, enabled, importId]);
 
   /**
    * Pin a node at a position and reheat the simulation for remaining free nodes.

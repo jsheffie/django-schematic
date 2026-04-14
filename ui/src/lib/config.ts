@@ -17,6 +17,7 @@ interface PhysicsConfig {
   colorPalette?: ColorPalette;
   backgroundStyle?: BackgroundStyle;
   minimapVisible?: boolean;
+  sidebarOpen?: boolean;
 }
 
 export interface ViewConfig {
@@ -75,6 +76,7 @@ export function exportConfig(
       colorPalette: p.colorPalette,
       backgroundStyle: p.backgroundStyle,
       minimapVisible: p.minimapVisible,
+      sidebarOpen: p.sidebarOpen,
     },
   };
   return JSON.stringify(config, null, 2);
@@ -108,8 +110,10 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
       ...(raw.physics.colorPalette ? { colorPalette: raw.physics.colorPalette } : {}),
       ...(raw.physics.backgroundStyle ? { backgroundStyle: raw.physics.backgroundStyle } : {}),
       ...(raw.physics.minimapVisible !== undefined ? { minimapVisible: raw.physics.minimapVisible } : {}),
+      ...(raw.physics.sidebarOpen !== undefined ? { sidebarOpen: raw.physics.sidebarOpen } : {}),
     });
   }
 
+  useSchemaStore.getState().bumpImportId();
   return raw.viewport;
 }
