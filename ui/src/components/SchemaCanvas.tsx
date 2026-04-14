@@ -10,7 +10,7 @@
  * (it only calls the internal store setter in *uncontrolled* mode), so
  * every force-layout tick and every dagre call would be silently dropped.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -48,6 +48,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setViewport = useSchemaStore((s) => s.setViewport);
   const pinNode = useSchemaStore((s) => s.pinNode);
+  const importId = useSchemaStore((s) => s.importId);
 
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
   const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
@@ -106,17 +107,28 @@ export default function SchemaCanvas({ schema }: Props) {
   // It starts from rfNodes and is updated by layout algorithms and user drags.
   const [displayNodes, setDisplayNodes] = useState<ModelNodeData[]>(rfNodes);
 
+  // Track the last import we've applied so we can detect a fresh import.
+  const lastAppliedImportIdRef = useRef(importId);
+
   // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
   // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
+  // Exception: on a fresh import, apply the incoming rfNodes positions directly
+  // so that the imported layout is actually shown instead of the current one.
   useEffect(() => {
+    const isImport = importId !== lastAppliedImportIdRef.current;
+    if (isImport) lastAppliedImportIdRef.current = importId;
+
     setDisplayNodes((curr) => {
+      if (isImport) {
+        return rfNodes.map((n) => ({ ...n }));
+      }
       const posMap = new Map(curr.map((n) => [n.id, n.position]));
       return rfNodes.map((n) => ({
         ...n,
         position: posMap.get(n.id) ?? n.position,
       }));
     });
-  }, [rfNodes]);
+  }, [rfNodes, importId]);
 
   // Route React Flow position changes (drags, layout updates via setNodes) into
   // displayNodes so the controlled <ReactFlow nodes> prop stays current.
@@ -132,6 +144,7 @@ export default function SchemaCanvas({ schema }: Props) {
     rfEdges,
     activeLayout === "force",
     forceParams,
+    importId,
   );
 
   // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change

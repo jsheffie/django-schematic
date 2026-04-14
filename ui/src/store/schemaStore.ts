@@ -38,6 +38,10 @@ interface SchemaStore {
   // Layout
   setLayout: (layout: SchemaStore["activeLayout"]) => void;
 
+  // Import signal
+  importId: number;
+  bumpImportId: () => void;
+
   // Reset
   resetConfig: () => void;
 }
@@ -49,6 +53,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   collapsedApps: new Set(),
   viewportState: { x: 0, y: 0, zoom: 1 },
   activeLayout: "force",
+  importId: 0,
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids) }),
 
@@ -110,6 +115,8 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   setViewport: (v) => set({ viewportState: v }),
 
   setLayout: (layout) => set({ activeLayout: layout }),
+
+  bumpImportId: () => set((s) => ({ importId: s.importId + 1 })),
 
   resetConfig: () =>
     set({
