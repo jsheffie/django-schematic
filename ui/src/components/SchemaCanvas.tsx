@@ -53,6 +53,8 @@ export default function SchemaCanvas({ schema }: Props) {
 
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
   const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
+  const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
+  const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
   const forceParams = usePhysicsStore((s) => s.forceParams);
   const minimapVisible = usePhysicsStore((s) => s.minimapVisible);
   const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
@@ -147,6 +149,7 @@ export default function SchemaCanvas({ schema }: Props) {
     activeLayout === "force",
     forceParams,
     importId,
+    physicsEnabled,
   );
 
   // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change
@@ -161,23 +164,39 @@ export default function SchemaCanvas({ schema }: Props) {
     setNodes(positioned);
   }, [activeLayout, rfNodes, rfEdges, setNodes]);
 
-  // onNodeDragStop — always pins in Zustand + d3 sim
+  // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
     (_event, node) => {
       pinNode(node.id, node.position);
-      simPinNode(node.id, node.position.x, node.position.y);
+      if (physicsEnabled) simPinNode(node.id, node.position.x, node.position.y);
     },
-    [pinNode, simPinNode],
+    [pinNode, simPinNode, physicsEnabled],
   );
 
   // onNodeDrag — live physics: track dragged node in sim each frame
   const onNodeDrag: OnNodeDrag<ModelNodeData> = useCallback(
     (_event, node) => {
-      if (!liveDragPhysics) return;
+      if (!liveDragPhysics || !physicsEnabled) return;
       simPinNode(node.id, node.position.x, node.position.y);
     },
-    [liveDragPhysics, simPinNode],
+    [liveDragPhysics, physicsEnabled, simPinNode],
   );
+
+  // Spacebar toggles physics pause/resume when force layout is active
+  // and focus is not in a form element.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeLayout !== "force") return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        setPhysicsEnabled(!physicsEnabled);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeLayout, physicsEnabled, setPhysicsEnabled]);
 
   const onMoveEnd = useCallback(() => {
     setViewport(getViewport());

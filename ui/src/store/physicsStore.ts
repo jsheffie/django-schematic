@@ -59,6 +59,7 @@ export const EXCITATION_FORCE_PARAMS: ForceParams = {
 interface PhysicsStore {
   edgeStyle: EdgeStyle;
   liveDragPhysics: boolean;
+  physicsEnabled: boolean;
   forceParams: ForceParams;
   drawerOpen: boolean;
   helpOpen: boolean;
@@ -70,6 +71,7 @@ interface PhysicsStore {
 
   setEdgeStyle: (s: EdgeStyle) => void;
   setLiveDragPhysics: (v: boolean) => void;
+  setPhysicsEnabled: (v: boolean) => void;
   setForceParams: (p: Partial<ForceParams>) => void;
   setDrawerOpen: (v: boolean) => void;
   setHelpOpen: (v: boolean) => void;
@@ -83,6 +85,7 @@ interface PhysicsStore {
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
   edgeStyle: "floating",
   liveDragPhysics: false,
+  physicsEnabled: true,
   forceParams: DEFAULT_FORCE_PARAMS,
   drawerOpen: false,
   helpOpen: false,
@@ -94,6 +97,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
   setLiveDragPhysics: (liveDragPhysics) => set({ liveDragPhysics }),
+  setPhysicsEnabled: (physicsEnabled) => set({ physicsEnabled }),
   setForceParams: (p) =>
     set((s) => ({ forceParams: { ...s.forceParams, ...p } })),
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
@@ -120,6 +124,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "stiff",
         edgeStyle: "floating",
         liveDragPhysics: false,
+        physicsEnabled: true,
         forceParams: STIFF_FORCE_PARAMS,
       });
     } else if (mode === "normal") {
@@ -127,6 +132,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "normal",
         edgeStyle: "floating",
         liveDragPhysics: false,
+        physicsEnabled: true,
         forceParams: DEFAULT_FORCE_PARAMS,
       });
     } else if (mode === "fun") {
@@ -134,6 +140,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "fun",
         edgeStyle: "floating",
         liveDragPhysics: true,
+        physicsEnabled: true,
         forceParams: FUN_FORCE_PARAMS,
       });
     } else if (mode === "excitation") {
@@ -141,6 +148,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "excitation",
         edgeStyle: "floating",
         liveDragPhysics: true,
+        physicsEnabled: true,
         forceParams: EXCITATION_FORCE_PARAMS,
       });
     }

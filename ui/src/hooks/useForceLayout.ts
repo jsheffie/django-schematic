@@ -21,9 +21,16 @@ export function useForceLayout(
   enabled: boolean,
   params: ForceParams = DEFAULT_FORCE_PARAMS,
   importId: number = 0,
+  physicsEnabled: boolean = true,
 ) {
   const { setNodes } = useReactFlow();
   const simRef = useRef<d3.Simulation<SimNode, undefined> | null>(null);
+  const physicsEnabledRef = useRef(physicsEnabled);
+
+  // Keep ref in sync so callbacks don't go stale
+  useEffect(() => {
+    physicsEnabledRef.current = physicsEnabled;
+  }, [physicsEnabled]);
 
   useEffect(() => {
     if (!enabled || nodes.length === 0) {
@@ -85,6 +92,18 @@ export function useForceLayout(
     };
   }, [nodes.length, edges.length, setNodes, enabled, importId]);
 
+  // Stop or restart the simulation when physicsEnabled changes.
+  // Declared after the setup effect so it runs second on the same render.
+  useEffect(() => {
+    const sim = simRef.current;
+    if (!sim) return;
+    if (physicsEnabled) {
+      sim.restart(); // resume from current alpha — no reheat, no explosion
+    } else {
+      sim.stop();
+    }
+  }, [physicsEnabled, enabled]);
+
   /**
    * Pin a node at a position and reheat the simulation for remaining free nodes.
    * Used by onNodeDragStop (permanent pin) and onNodeDrag (live tracking).
@@ -96,7 +115,9 @@ export function useForceLayout(
     if (simNode) {
       simNode.fx = x;
       simNode.fy = y;
-      sim.alpha(0.3).restart();
+      if (physicsEnabledRef.current) {
+        sim.alpha(0.3).restart();
+      }
     }
   }, []);
 
@@ -107,7 +128,9 @@ export function useForceLayout(
     if (simNode) {
       simNode.fx = undefined;
       simNode.fy = undefined;
-      sim.alpha(0.3).restart();
+      if (physicsEnabledRef.current) {
+        sim.alpha(0.3).restart();
+      }
     }
   }, []);
 
@@ -126,9 +149,10 @@ export function useForceLayout(
     sim
       .alphaDecay(newParams.alphaDecay)
       .alphaMin(newParams.alphaMin)
-      .velocityDecay(newParams.velocityDecay)
-      .alpha(0.5)
-      .restart();
+      .velocityDecay(newParams.velocityDecay);
+    if (physicsEnabledRef.current) {
+      sim.alpha(0.5).restart();
+    }
   }, []);
 
   return { pinNode, unpinNode, reheat };

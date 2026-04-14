@@ -9,6 +9,8 @@ export default function Toolbar() {
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
+  const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
+  const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
 
   const btnClass =
     "px-2 py-1 rounded text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-700";
@@ -43,6 +45,20 @@ export default function Toolbar() {
       >
         Auto-Layout
       </button>
+
+      {/* Physics pause/resume — only shown for force layout */}
+      {activeLayout === "force" && (
+        <>
+          <div className="w-px h-4 bg-gray-200 mx-0.5" />
+          <button
+            className={physicsEnabled ? activeBtnClass : btnClass}
+            onClick={() => setPhysicsEnabled(!physicsEnabled)}
+            title={physicsEnabled ? "Pause physics (Space)" : "Resume physics (Space)"}
+          >
+            {physicsEnabled ? "⏸" : "▶"}
+          </button>
+        </>
+      )}
 
       <div className="w-px h-4 bg-gray-200 mx-0.5" />
 
