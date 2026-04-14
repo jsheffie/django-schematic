@@ -37,6 +37,12 @@ export default function Toolbar() {
       >
         Top → Bottom
       </button>
+      <button
+        className={activeLayout === "elk" ? activeBtnClass : btnClass}
+        onClick={() => setLayout("elk")}
+      >
+        Auto-Layout
+      </button>
 
       <div className="w-px h-4 bg-gray-200 mx-0.5" />
 

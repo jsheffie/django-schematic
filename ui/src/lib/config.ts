@@ -21,7 +21,7 @@ interface PhysicsConfig {
 
 export interface ViewConfig {
   version: 2;
-  activeLayout: "force" | "dagre-lr" | "dagre-tb";
+  activeLayout: "force" | "dagre-lr" | "dagre-tb" | "elk";
   visibleNodeIds: string[];
   expandedNodeIds: string[];
   pinnedPositions: Record<string, { x: number; y: number }>;

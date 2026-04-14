@@ -12,7 +12,7 @@ interface SchemaStore {
   pinnedPositions: Map<string, { x: number; y: number }>;
   collapsedApps: Set<string>;
   viewportState: ViewportState;
-  activeLayout: "force" | "dagre-lr" | "dagre-tb";
+  activeLayout: "force" | "dagre-lr" | "dagre-tb" | "elk";
 
   // Node visibility
   setAllVisible: (ids: string[]) => void;

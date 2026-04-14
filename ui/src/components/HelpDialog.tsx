@@ -28,7 +28,7 @@ export default function HelpDialog() {
           {/* Presets */}
           <section>
             <h3 className="font-semibold text-gray-900 mb-1.5">Presets — Stiff / Normal / Fun / Excitation</h3>
-            <p className="text-gray-500 mb-2">One-click presets that configure layout, edges, and physics together. Found in Settings → Physics.</p>
+            <p className="text-gray-500 mb-2">One-click presets that configure layout, edges, and physics together. Found in Settings → Physics. The <span className="font-medium text-gray-700">Auto-Layout</span> preset triggers the ELK hierarchical algorithm — see Layout section below.</p>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100">
@@ -63,6 +63,10 @@ export default function HelpDialog() {
               <div>
                 <dt className="font-medium inline">Top → Bottom —</dt>
                 <dd className="inline text-gray-500"> dagre hierarchical layout, top to bottom.</dd>
+              </div>
+              <div>
+                <dt className="font-medium inline">Auto-Layout (ELK) —</dt>
+                <dd className="inline text-gray-500"> ELK layered algorithm; automatically positions nodes in a clean left-to-right hierarchy. Best for large schemas. Available in the toolbar or via the Auto-Layout preset in Settings → Physics.</dd>
               </div>
             </dl>
           </section>

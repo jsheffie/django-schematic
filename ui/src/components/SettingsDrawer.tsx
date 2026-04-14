@@ -218,6 +218,7 @@ export default function SettingsDrawer({ onReheat }: Props) {
                       { mode: "normal", label: "Normal", title: "Balanced defaults" },
                       { mode: "fun", label: "Fun", title: "Slow settle, bouncy, live drag" },
                       { mode: "excitation", label: "Excitation", title: "Low friction, strong repulsion" },
+                      { mode: "auto-layout", label: "Auto-Layout", title: "ELK hierarchical layout, floating edges" },
                     ] as const
                   ).map(({ mode, label, title }, i) => (
                     <button
