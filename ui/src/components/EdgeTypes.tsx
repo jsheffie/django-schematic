@@ -48,6 +48,7 @@ export function SchemaEdge({
   targetPosition,
   data,
   markerEnd,
+  markerStart,
 }: EdgeProps<SchemaEdgeData>) {
   const [hovered, setHovered] = useState(false);
 
@@ -101,6 +102,7 @@ export function SchemaEdge({
         id={id}
         path={edgePath}
         markerEnd={markerEnd}
+        markerStart={markerStart}
         style={{
           stroke: color,
           strokeWidth: relType === "subclass" || relType === "proxy" ? 2 : 1.5,

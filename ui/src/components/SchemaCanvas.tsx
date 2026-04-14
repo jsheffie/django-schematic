@@ -31,6 +31,7 @@ import { usePhysicsStore } from "../store/physicsStore";
 import { appColor } from "../lib/colors";
 import { ModelNode, type ModelNodeData } from "./ModelNode";
 import { edgeTypes } from "./EdgeTypes";
+import { RELATION_MARKERS, MarkerDefs } from "../lib/markers";
 import { useForceLayout } from "../hooks/useForceLayout";
 import { runDagreLayout } from "../hooks/useLayout";
 import { runElkLayout } from "../hooks/useElkLayout";
@@ -99,7 +100,8 @@ export default function SchemaCanvas({ schema }: Props) {
           related_name: e.related_name,
           edgeStyle,
         },
-        markerEnd: { type: "arrowclosed" as const, color: "#6b7280" },
+        markerEnd:   RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerEnd,
+        markerStart: RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerStart,
       }));
   }, [schema.edges, visibleNodeIds, edgeStyle]);
 
@@ -197,6 +199,8 @@ export default function SchemaCanvas({ schema }: Props) {
         minZoom={0.05}
         maxZoom={2}
       >
+        <MarkerDefs />
+
         {backgroundStyle !== "none" && (
           <Background
             variant={backgroundStyle === "lines" ? BackgroundVariant.Lines : BackgroundVariant.Dots}
