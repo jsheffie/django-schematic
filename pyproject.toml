@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django-schematic"
-version = "1.0.8"
+version = "1.0.9"
 description = "Interactive schema visualization for Django projects — React Flow + force-directed layout"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -14,7 +14,7 @@ dependencies = [
 ]
 keywords = ["django", "schema", "visualization", "graph", "models"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Django",
     "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Environment :: Web Environment",
 ]
 
 [project.optional-dependencies]
