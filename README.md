@@ -16,11 +16,12 @@ See all your models, fields, and relationships as an interactive, force-directed
 - Clean JSON API endpoint (`GET /schema/api/`)
 - Django 5.x + Python 3.12+ only
 
-## Screenshots
+## Exported PNG file with embeded SVG data
 
-<img width="1712" height="943" alt="Screenshot 2026-04-12 at 11 13 05 PM" src="https://github.com/user-attachments/assets/7048a332-fec1-420f-b331-52b6da2eb5ef" />
-<img width="1337" height="928" alt="Screenshot 2026-04-12 at 11 13 46 PM" src="https://github.com/user-attachments/assets/5f8776c2-e62c-4154-8a49-c77282d4857e" />
-<img width="996" height="865" alt="Screenshot 2026-04-12 at 11 15 06 PM" src="https://github.com/user-attachments/assets/9feb182b-921d-4765-88eb-cf0a5f845400" />
+This is an example output PNG file, that can be re-imported into djang-schematic
+
+<img width="1200" height="898" alt="DailyGrindStatus-Blog-schematic" src="https://github.com/user-attachments/assets/3fbeae62-68c1-45fe-9ae6-7b52ed77585e" />
+
 
 
 ## Quick Start
