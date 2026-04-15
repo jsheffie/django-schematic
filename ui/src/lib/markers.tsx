@@ -39,15 +39,15 @@ export function MarkerDefs() {
       aria-hidden="true"
     >
       <defs>
-        {/* Crow's foot "many" — three lines fanning to tip — gray (FK target) */}
+        {/* Crow's foot "many" — three prongs fanning from stem — gray (FK source/many end) */}
         <marker
           id="crow-many-gray"
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <line x1="0" y1="0"  x2="9" y2="5" stroke="#6b7280" strokeWidth="1.5" />
-          <line x1="0" y1="5"  x2="9" y2="5" stroke="#6b7280" strokeWidth="1.5" />
-          <line x1="0" y1="10" x2="9" y2="5" stroke="#6b7280" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="0"  stroke="#6b7280" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="5"  stroke="#6b7280" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="10" stroke="#6b7280" strokeWidth="1.5" />
         </marker>
 
         {/* Double-bar "one" — two vertical bars — gray (FK source) */}
@@ -69,15 +69,15 @@ export function MarkerDefs() {
           <line x1="9" y1="0" x2="9" y2="10" stroke="#2563eb" strokeWidth="1.5" />
         </marker>
 
-        {/* Crow's foot "many" — purple (M2M both ends) */}
+        {/* Crow's foot "many" — three prongs fanning from stem — purple (M2M both ends) */}
         <marker
           id="crow-many-purple"
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <line x1="0" y1="0"  x2="9" y2="5" stroke="#7c3aed" strokeWidth="1.5" />
-          <line x1="0" y1="5"  x2="9" y2="5" stroke="#7c3aed" strokeWidth="1.5" />
-          <line x1="0" y1="10" x2="9" y2="5" stroke="#7c3aed" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="0"  stroke="#7c3aed" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="5"  stroke="#7c3aed" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="10" stroke="#7c3aed" strokeWidth="1.5" />
         </marker>
 
         {/* Hollow triangle — green (subclass / UML inheritance at target) */}
