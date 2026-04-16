@@ -120,6 +120,9 @@ export default function SchemaCanvas({ schema }: Props) {
   // Track the last import we've applied so we can detect a fresh import.
   const lastAppliedImportIdRef = useRef(importId);
 
+  // Skip fitView on the very first layout application (initial page load).
+  const isFirstLayoutRef = useRef(true);
+
   // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
   // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
   // Exception: on a fresh import, apply the incoming rfNodes positions directly
@@ -153,7 +156,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const { pinNode: simPinNode, reheat } = useForceLayout(
     displayNodes,
     rfEdges,
-    activeLayout === "force",
+    activeLayout === "organic",
     forceParams,
     importId,
     physicsEnabled,
@@ -175,27 +178,30 @@ export default function SchemaCanvas({ schema }: Props) {
   // slider or SettingsDrawer sliders). Debounced 150ms so rapid slider drags don't
   // fire a reheat on every tick.
   useEffect(() => {
-    if (activeLayout !== "force") return;
+    if (activeLayout !== "organic") return;
     const timer = setTimeout(() => reheat(forceParams), 150);
     return () => clearTimeout(timer);
   }, [forceParams, activeLayout, reheat]);
 
   // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change.
-  // After positioning, schedule a fitView so the viewport adjusts to the new layout.
+  // After positioning, fitView — but skip on the very first application (initial page load).
   useEffect(() => {
-    if (activeLayout === "force") return;
+    if (activeLayout === "organic") return;
     const sizeMap = buildSizeMap();
+    const shouldFit = !isFirstLayoutRef.current;
+    isFirstLayoutRef.current = false;
+
     if (activeLayout === "elk") {
       runElkLayout(rfNodes, rfEdges, sizeMap).then((positioned) => {
         setNodes(positioned);
-        setTimeout(() => fitView({ duration: 300 }), 0);
+        if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
       });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
     const positioned = runDagreLayout(rfNodes, rfEdges, direction, sizeMap);
     setNodes(positioned);
-    setTimeout(() => fitView({ duration: 300 }), 0);
+    if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
   }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
@@ -220,7 +226,7 @@ export default function SchemaCanvas({ schema }: Props) {
   // and focus is not in a form element.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeLayout !== "force") return;
+      if (activeLayout !== "organic") return;
       const tag = (e.target as HTMLElement).tagName;
       if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
       if (e.code === "Space") {

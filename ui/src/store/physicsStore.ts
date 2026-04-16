@@ -1,10 +1,9 @@
 import { create } from "zustand";
-import { useSchemaStore } from "./schemaStore";
 import type { ColorPalette } from "../lib/colors";
 
 export type { ColorPalette };
 export type EdgeStyle = "step" | "bezier" | "floating";
-export type AppMode = "stiff" | "normal" | "fun" | "excitation" | "auto-layout";
+export type AppMode = "stiff" | "normal" | "fun" | "excitation";
 export type BackgroundStyle = "dots" | "lines" | "none";
 
 export interface ForceParams {
@@ -66,6 +65,7 @@ interface PhysicsStore {
   sidebarOpen: boolean;
   minimapVisible: boolean;
   appMode: AppMode;
+  settingsTab: "appearance" | "physics";
   colorPalette: ColorPalette;
   backgroundStyle: BackgroundStyle;
 
@@ -77,6 +77,7 @@ interface PhysicsStore {
   setHelpOpen: (v: boolean) => void;
   setSidebarOpen: (v: boolean) => void;
   setMinimapVisible: (v: boolean) => void;
+  setSettingsTab: (tab: "appearance" | "physics") => void;
   setColorPalette: (p: ColorPalette) => void;
   setBackgroundStyle: (s: BackgroundStyle) => void;
   applyPreset: (mode: AppMode) => void;
@@ -85,13 +86,14 @@ interface PhysicsStore {
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
   edgeStyle: "floating",
   liveDragPhysics: false,
-  physicsEnabled: true,
+  physicsEnabled: false,
   forceParams: DEFAULT_FORCE_PARAMS,
   drawerOpen: false,
   helpOpen: false,
   sidebarOpen: true,
   minimapVisible: true,
   appMode: "normal",
+  settingsTab: "appearance",
   colorPalette: "pastel",
   backgroundStyle: "dots",
 
@@ -104,27 +106,16 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   setMinimapVisible: (minimapVisible) => set({ minimapVisible }),
+  setSettingsTab: (settingsTab) => set({ settingsTab }),
   setColorPalette: (colorPalette) => set({ colorPalette }),
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
 
   applyPreset: (mode) => {
-    if (mode === "auto-layout") {
-      useSchemaStore.getState().setLayout("elk");
-      set({
-        appMode: "auto-layout",
-        edgeStyle: "floating",
-        liveDragPhysics: false,
-        forceParams: DEFAULT_FORCE_PARAMS,
-      });
-      return;
-    }
-    useSchemaStore.getState().setLayout("force");
     if (mode === "stiff") {
       set({
         appMode: "stiff",
         edgeStyle: "floating",
         liveDragPhysics: false,
-        physicsEnabled: true,
         forceParams: STIFF_FORCE_PARAMS,
       });
     } else if (mode === "normal") {
@@ -132,7 +123,6 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "normal",
         edgeStyle: "floating",
         liveDragPhysics: false,
-        physicsEnabled: true,
         forceParams: DEFAULT_FORCE_PARAMS,
       });
     } else if (mode === "fun") {
@@ -140,7 +130,6 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "fun",
         edgeStyle: "floating",
         liveDragPhysics: true,
-        physicsEnabled: true,
         forceParams: FUN_FORCE_PARAMS,
       });
     } else if (mode === "excitation") {
@@ -148,7 +137,6 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         appMode: "excitation",
         edgeStyle: "floating",
         liveDragPhysics: true,
-        physicsEnabled: true,
         forceParams: EXCITATION_FORCE_PARAMS,
       });
     }

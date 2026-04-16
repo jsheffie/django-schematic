@@ -2,6 +2,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import SchemaCanvas from "./components/SchemaCanvas";
 import SidebarDrawer from "./components/SidebarDrawer";
 import Toolbar from "./components/Toolbar";
+import SettingsHandle from "./components/SettingsHandle";
 import HelpDialog from "./components/HelpDialog";
 import { useSchema } from "./hooks/useSchema";
 
@@ -30,6 +31,7 @@ export default function App() {
     <ReactFlowProvider>
       <div className="relative h-full w-full overflow-hidden">
         <SidebarDrawer schema={schema} />
+        <SettingsHandle />
         <Toolbar />
         <SchemaCanvas schema={schema} />
       </div>

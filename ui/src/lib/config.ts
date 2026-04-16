@@ -22,7 +22,7 @@ interface PhysicsConfig {
 
 export interface ViewConfig {
   version: 2;
-  activeLayout: "force" | "dagre-lr" | "dagre-tb" | "elk";
+  activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
   visibleNodeIds: string[];
   expandedNodeIds: string[];
   pinnedPositions: Record<string, { x: number; y: number }>;
@@ -90,23 +90,26 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
     throw new Error("Unknown config version");
   }
 
+  const rawLayout = raw.version === 2 ? (raw.activeLayout as string) : undefined;
+  const activeLayout = rawLayout === "force" ? "organic" : (rawLayout as "organic" | "dagre-lr" | "dagre-tb" | "elk" | undefined);
+
   useSchemaStore.setState({
     visibleNodeIds: new Set(raw.visibleNodeIds),
     expandedNodeIds: new Set(raw.expandedNodeIds),
     pinnedPositions: new Map(Object.entries(raw.pinnedPositions)),
     collapsedApps: new Set(raw.collapsedApps),
     viewportState: raw.viewport,
-    ...(raw.version === 2 && raw.activeLayout
-      ? { activeLayout: raw.activeLayout }
-      : {}),
+    ...(activeLayout ? { activeLayout } : {}),
   });
 
   if (raw.version === 2 && raw.physics) {
+    const importedAppMode: AppMode =
+      (raw.physics.appMode as string) === "auto-layout" ? "normal" : raw.physics.appMode;
     usePhysicsStore.setState({
       edgeStyle: raw.physics.edgeStyle,
       liveDragPhysics: raw.physics.liveDragPhysics,
       forceParams: { ...DEFAULT_FORCE_PARAMS, ...raw.physics.forceParams },
-      appMode: raw.physics.appMode,
+      appMode: importedAppMode,
       ...(raw.physics.colorPalette ? { colorPalette: raw.physics.colorPalette } : {}),
       ...(raw.physics.backgroundStyle ? { backgroundStyle: raw.physics.backgroundStyle } : {}),
       ...(raw.physics.minimapVisible !== undefined ? { minimapVisible: raw.physics.minimapVisible } : {}),
