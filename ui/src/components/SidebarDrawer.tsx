@@ -6,8 +6,8 @@ interface Props {
   schema: SchemaGraph;
 }
 
-// Must match the w-56 class on <aside> inside Sidebar.tsx
-const DRAWER_WIDTH = 224;
+// Must match the w-72 class on <aside> inside Sidebar.tsx
+const DRAWER_WIDTH = 288;
 
 export default function SidebarDrawer({ schema }: Props) {
   const sidebarOpen = usePhysicsStore((s) => s.sidebarOpen);

@@ -59,7 +59,10 @@ export function useForceLayout(
       fy: n.dragging === false && n.position.y ? n.position.y : undefined,
     }));
 
-    const simLinks = edges.map((e) => ({ source: e.source, target: e.target }));
+    const simNodeIds = new Set(simNodes.map((n) => n.id));
+    const simLinks = edges
+      .filter((e) => simNodeIds.has(e.source as string) && simNodeIds.has(e.target as string))
+      .map((e) => ({ source: e.source, target: e.target }));
 
     // If nodes already have spread-out positions (e.g. switching from dagre),
     // start the simulation cool so nodes stay roughly where they are instead

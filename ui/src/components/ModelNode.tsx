@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
@@ -30,8 +30,11 @@ function FieldRow({ field }: { field: FieldInfo }) {
 export const ModelNode = memo(function ModelNode({
   data,
 }: NodeProps<ModelNodeData>) {
+  const [showHidePrompt, setShowHidePrompt] = useState(false);
+
   const isExpanded = useSchemaStore((s) => s.expandedNodeIds.has(data.nodeId));
   const toggleFieldExpansion = useSchemaStore((s) => s.toggleFieldExpansion);
+  const toggleNodeVisibility = useSchemaStore((s) => s.toggleNodeVisibility);
   const colorPalette = usePhysicsStore((s) => s.colorPalette);
 
   const { border: borderColor, bg: bgColor } = appColors(data.appLabel, colorPalette);
@@ -41,7 +44,7 @@ export const ModelNode = memo(function ModelNode({
 
   return (
     <div
-      className="rounded shadow-sm min-w-36 text-sm"
+      className="relative rounded shadow-sm min-w-36 text-sm"
       style={{
         border: `2px solid ${borderColor}`,
         borderStyle: isAbstract ? "dashed" : "solid",
@@ -50,11 +53,33 @@ export const ModelNode = memo(function ModelNode({
     >
       <Handle type="target" position={Position.Left} />
 
+      {/* Double-click hide confirmation */}
+      {showHidePrompt && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded bg-white/95 p-2">
+          <span className="text-xs font-medium text-gray-700">Hide this model?</span>
+          <div className="flex gap-1.5">
+            <button
+              className="rounded bg-gray-700 px-2.5 py-1 text-xs text-white hover:bg-gray-900"
+              onClick={() => { toggleNodeVisibility(data.nodeId); setShowHidePrompt(false); }}
+            >
+              Hide
+            </button>
+            <button
+              className="rounded bg-gray-100 px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-200"
+              onClick={() => setShowHidePrompt(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div
         className="flex items-center gap-1 px-2 py-1 cursor-pointer select-none"
         style={{ borderBottom: isExpanded ? `1px solid ${borderColor}` : "none" }}
         onClick={() => toggleFieldExpansion(data.nodeId)}
+        onDoubleClick={(e) => { e.stopPropagation(); setShowHidePrompt(true); }}
       >
         <span className="font-semibold flex-1 truncate">{data.name}</span>
         {isAbstract && (

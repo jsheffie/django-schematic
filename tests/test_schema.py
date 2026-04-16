@@ -30,6 +30,22 @@ def test_build_schema_m2m_edge():
 
 
 @pytest.mark.django_db
+def test_node_has_app_name():
+    schema = build_schema(filter_apps=["testapp"])
+    author = next(n for n in schema.nodes if n.name == "Author")
+    # app_label is the short label; app_name is the full dotted module path
+    assert author.app_label == "testapp"
+    assert "testapp" in author.app_name
+
+
+@pytest.mark.django_db
+def test_schema_has_app_names_mapping():
+    schema = build_schema(filter_apps=["testapp"])
+    assert "testapp" in schema.app_names
+    assert "testapp" in schema.app_names["testapp"]
+
+
+@pytest.mark.django_db
 def test_to_json_is_valid():
     import json
 
@@ -38,3 +54,5 @@ def test_to_json_is_valid():
     assert "nodes" in data
     assert "edges" in data
     assert "app_labels" in data
+    assert "app_names" in data
+    assert isinstance(data["app_names"], dict)

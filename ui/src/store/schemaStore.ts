@@ -24,9 +24,13 @@ interface SchemaStore {
   toggleFieldExpansion: (id: string) => void;
   expandAll: (ids: string[]) => void;
   collapseAll: () => void;
+  expandNodes: (ids: string[]) => void;   // add these ids without touching others
+  collapseNodes: (ids: string[]) => void; // remove these ids without touching others
 
   // App collapse (group node)
   toggleAppCollapse: (appLabel: string) => void;
+  collapseAllApps: (labels: string[]) => void;
+  expandAllApps: () => void;
 
   // Pinning
   pinNode: (id: string, pos: { x: number; y: number }) => void;
@@ -90,6 +94,20 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   expandAll: (ids) => set({ expandedNodeIds: new Set(ids) }),
   collapseAll: () => set({ expandedNodeIds: new Set() }),
 
+  expandNodes: (ids) =>
+    set((s) => {
+      const next = new Set(s.expandedNodeIds);
+      ids.forEach((id) => next.add(id));
+      return { expandedNodeIds: next };
+    }),
+
+  collapseNodes: (ids) =>
+    set((s) => {
+      const next = new Set(s.expandedNodeIds);
+      ids.forEach((id) => next.delete(id));
+      return { expandedNodeIds: next };
+    }),
+
   toggleAppCollapse: (appLabel) =>
     set((s) => {
       const next = new Set(s.collapsedApps);
@@ -97,6 +115,9 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       else next.add(appLabel);
       return { collapsedApps: next };
     }),
+
+  collapseAllApps: (labels) => set({ collapsedApps: new Set(labels) }),
+  expandAllApps: () => set({ collapsedApps: new Set() }),
 
   pinNode: (id, pos) =>
     set((s) => {
