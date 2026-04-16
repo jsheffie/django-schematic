@@ -22,10 +22,17 @@ export function useForceLayout(
   params: ForceParams = DEFAULT_FORCE_PARAMS,
   importId: number = 0,
   physicsEnabled: boolean = true,
+  onReadyToFit?: () => void,
 ) {
   const { setNodes } = useReactFlow();
   const simRef = useRef<d3.Simulation<SimNode, undefined> | null>(null);
   const physicsEnabledRef = useRef(physicsEnabled);
+  const onReadyToFitRef = useRef(onReadyToFit);
+
+  // Keep ref in sync so the callback can be swapped without restarting the sim
+  useEffect(() => {
+    onReadyToFitRef.current = onReadyToFit;
+  }, [onReadyToFit]);
 
   // Keep ref in sync so callbacks don't go stale
   useEffect(() => {
@@ -75,7 +82,12 @@ export function useForceLayout(
       .force("center", d3.forceCenter(400, 300))
       .force("collide", d3.forceCollide<SimNode>(params.collisionRadius));
 
+    let firedFit = false;
     simulation.on("tick", () => {
+      if (!firedFit && onReadyToFitRef.current && simulation.alpha() < 0.3) {
+        firedFit = true;
+        onReadyToFitRef.current();
+      }
       setNodes((prev) =>
         prev.map((n) => {
           const sim = simNodes.find((s) => s.id === n.id);
