@@ -13,6 +13,7 @@ build/
 venv/
 env/
 .env
+.env.deploy
 .claude
 
 # Hatch
