@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run --passWithNoTests",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:fast": "vite build",
+    "watch": "vite build --watch"
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
