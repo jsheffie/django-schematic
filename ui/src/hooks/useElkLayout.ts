@@ -1,12 +1,22 @@
+/**
+ * ELK-based hierarchical layout.
+ *
+ * Pass `nodeSizes` (built from `node.measured` in SchemaCanvas) so the layout
+ * uses each node's actual rendered dimensions rather than a hardcoded constant.
+ */
 import ELK from "elkjs/lib/elk.bundled.js";
 import type { Edge, Node } from "@xyflow/react";
 
 const elk = new ELK();
 
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 80;
+const DEFAULT_WIDTH = 220;
+const DEFAULT_HEIGHT = 60;
 
-export async function runElkLayout(nodes: Node[], edges: Edge[]): Promise<Node[]> {
+export async function runElkLayout(
+  nodes: Node[],
+  edges: Edge[],
+  nodeSizes: Map<string, { width: number; height: number }>
+): Promise<Node[]> {
   if (nodes.length === 0) return nodes;
 
   const elkGraph = {
@@ -17,11 +27,14 @@ export async function runElkLayout(nodes: Node[], edges: Edge[]): Promise<Node[]
       "elk.layered.spacing.nodeNodeBetweenLayers": "80",
       "elk.spacing.nodeNode": "40",
     },
-    children: nodes.map((n) => ({
-      id: n.id,
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-    })),
+    children: nodes.map((n) => {
+      const s = nodeSizes.get(n.id);
+      return {
+        id: n.id,
+        width: s?.width ?? DEFAULT_WIDTH,
+        height: s?.height ?? DEFAULT_HEIGHT,
+      };
+    }),
     edges: edges.map((e) => ({
       id: e.id,
       sources: [e.source],

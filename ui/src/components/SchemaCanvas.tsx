@@ -111,6 +111,12 @@ export default function SchemaCanvas({ schema }: Props) {
   // It starts from rfNodes and is updated by layout algorithms and user drags.
   const [displayNodes, setDisplayNodes] = useState<ModelNodeData[]>(rfNodes);
 
+  // Keep a ref to displayNodes so the layout effect can read current measured
+  // node sizes without adding displayNodes to the effect's dependency array
+  // (which would cause runaway re-layouts on every position tick).
+  const displayNodesRef = useRef(displayNodes);
+  useEffect(() => { displayNodesRef.current = displayNodes; }, [displayNodes]);
+
   // Track the last import we've applied so we can detect a fresh import.
   const lastAppliedImportIdRef = useRef(importId);
 
@@ -142,9 +148,10 @@ export default function SchemaCanvas({ schema }: Props) {
     [],
   );
 
-  // Force layout — only active when force layout is selected
+  // Force layout — only active when force layout is selected.
+  // Pass displayNodes (not rfNodes) so the hook can read node.measured dimensions.
   const { pinNode: simPinNode, reheat } = useForceLayout(
-    rfNodes,
+    displayNodes,
     rfEdges,
     activeLayout === "force",
     forceParams,
@@ -153,22 +160,43 @@ export default function SchemaCanvas({ schema }: Props) {
     () => fitView({ duration: 300 }),
   );
 
+  // Build a size map from the current displayNodes using React Flow's post-paint
+  // measurements. Falls back to 220×60 for any node not yet measured (first paint).
+  const buildSizeMap = useCallback(() => {
+    return new Map(
+      displayNodesRef.current.map((n) => [
+        n.id,
+        { width: n.measured?.width ?? 220, height: n.measured?.height ?? 60 },
+      ])
+    );
+  }, []);
+
+  // Auto-reheat the force simulation when forceParams change (e.g. toolbar spacing
+  // slider or SettingsDrawer sliders). Debounced 150ms so rapid slider drags don't
+  // fire a reheat on every tick.
+  useEffect(() => {
+    if (activeLayout !== "force") return;
+    const timer = setTimeout(() => reheat(forceParams), 150);
+    return () => clearTimeout(timer);
+  }, [forceParams, activeLayout, reheat]);
+
   // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change.
   // After positioning, schedule a fitView so the viewport adjusts to the new layout.
   useEffect(() => {
     if (activeLayout === "force") return;
+    const sizeMap = buildSizeMap();
     if (activeLayout === "elk") {
-      runElkLayout(rfNodes, rfEdges).then((positioned) => {
+      runElkLayout(rfNodes, rfEdges, sizeMap).then((positioned) => {
         setNodes(positioned);
         setTimeout(() => fitView({ duration: 300 }), 0);
       });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
-    const positioned = runDagreLayout(rfNodes, rfEdges, direction);
+    const positioned = runDagreLayout(rfNodes, rfEdges, direction, sizeMap);
     setNodes(positioned);
     setTimeout(() => fitView({ duration: 300 }), 0);
-  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView]);
+  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
