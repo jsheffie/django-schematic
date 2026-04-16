@@ -11,6 +11,8 @@ export default function Toolbar() {
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
   const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
   const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
+  const forceParams = usePhysicsStore((s) => s.forceParams);
+  const setForceParams = usePhysicsStore((s) => s.setForceParams);
 
   const btnClass =
     "px-2 py-1 rounded text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-700";
@@ -46,7 +48,7 @@ export default function Toolbar() {
         Auto-Layout
       </button>
 
-      {/* Physics pause/resume — only shown for force layout */}
+      {/* Force-layout controls — only shown when force is active */}
       {activeLayout === "force" && (
         <>
           <div className="w-px h-4 bg-gray-200 mx-0.5" />
@@ -57,6 +59,22 @@ export default function Toolbar() {
           >
             {physicsEnabled ? "⏸" : "▶"}
           </button>
+          <div className="flex items-center gap-1.5 ml-0.5">
+            <span className="text-xs text-gray-400 select-none">Spacing</span>
+            <input
+              type="range"
+              min={50}
+              max={500}
+              step={10}
+              value={forceParams.linkDistance}
+              onChange={(e) => setForceParams({ linkDistance: Number(e.target.value) })}
+              className="w-24 accent-blue-500 cursor-pointer"
+              title="Link distance between connected models"
+            />
+            <span className="text-xs text-gray-500 w-8 text-right tabular-nums select-none">
+              {forceParams.linkDistance}
+            </span>
+          </div>
         </>
       )}
 

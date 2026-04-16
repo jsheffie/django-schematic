@@ -13,6 +13,8 @@ import { DEFAULT_FORCE_PARAMS, type ForceParams } from "../store/physicsStore";
 
 interface SimNode extends d3.SimulationNodeDatum {
   id: string;
+  width: number;
+  height: number;
 }
 
 export function useForceLayout(
@@ -49,6 +51,8 @@ export function useForceLayout(
 
     const simNodes: SimNode[] = nodes.map((n) => ({
       id: n.id,
+      width:  (n as { measured?: { width?: number } }).measured?.width  ?? 220,
+      height: (n as { measured?: { height?: number } }).measured?.height ?? 60,
       x: n.position.x || Math.random() * 800,
       y: n.position.y || Math.random() * 600,
       fx: n.dragging === false && n.position.x ? n.position.x : undefined,
@@ -80,7 +84,9 @@ export function useForceLayout(
       )
       .force("charge", d3.forceManyBody<SimNode>().strength(params.chargeStrength))
       .force("center", d3.forceCenter(400, 300))
-      .force("collide", d3.forceCollide<SimNode>(params.collisionRadius));
+      .force("collide", d3.forceCollide<SimNode>((d) =>
+        Math.sqrt((d.width / 2) ** 2 + (d.height / 2) ** 2) + 8
+      ));
 
     let firedFit = false;
     simulation.on("tick", () => {
@@ -154,7 +160,9 @@ export function useForceLayout(
     const sim = simRef.current;
     if (!sim) return;
     (sim.force("charge") as d3.ForceManyBody<SimNode>)?.strength(newParams.chargeStrength);
-    (sim.force("collide") as d3.ForceCollide<SimNode>)?.radius(newParams.collisionRadius);
+    (sim.force("collide") as d3.ForceCollide<SimNode>)?.radius(
+      (d: SimNode) => Math.sqrt((d.width / 2) ** 2 + (d.height / 2) ** 2) + 8
+    );
     (sim.force("link") as d3.ForceLink<SimNode, d3.SimulationLinkDatum<SimNode>>)?.distance(
       newParams.linkDistance,
     );
