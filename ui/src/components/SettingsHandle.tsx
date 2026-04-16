@@ -39,7 +39,7 @@ export default function SettingsHandle() {
 
       {/* Right-edge handle — rides with the settings drawer */}
       <button
-        className="fixed top-1/2 -translate-y-1/2 z-30 flex items-center justify-center bg-white border border-r-0 border-gray-200 shadow-md hover:bg-gray-50 rounded-l-md text-gray-400 hover:text-gray-600 text-sm select-none"
+        className="fixed top-16 z-30 flex items-center justify-center bg-white border border-r-0 border-gray-200 shadow-md hover:bg-gray-50 rounded-l-md text-gray-400 hover:text-gray-600 text-sm select-none"
         style={{
           right: drawerOpen ? DRAWER_WIDTH : 0,
           width: 20,
