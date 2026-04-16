@@ -35,6 +35,7 @@ class NodeInfo:
     id: str          # e.g. "myapp.Order"
     name: str        # e.g. "Order"
     app_label: str   # e.g. "myapp"
+    app_name: str    # e.g. "django.contrib.auth" (full dotted module path)
     tags: tuple[str, ...]   # "abstract", "proxy"
     fields: tuple[FieldInfo, ...]
 
@@ -53,6 +54,7 @@ class SchemaGraph:
     nodes: tuple[NodeInfo, ...]
     edges: tuple[EdgeInfo, ...]
     app_labels: tuple[str, ...]
+    app_names: dict[str, str]   # app_label → full dotted name, e.g. {"auth": "django.contrib.auth"}
 
     def to_dict(self) -> dict:
         return dataclasses.asdict(self)
@@ -180,6 +182,9 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
         and (not filter_apps or ac.label in filter_apps)
     ]
 
+    # Build app_name lookup: label → full dotted module path
+    app_name_map: dict[str, str] = {ac.label: ac.name for ac in app_configs}
+
     # Collect all models
     all_models: list[type[django_models.Model]] = []
     for ac in app_configs:
@@ -201,6 +206,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
                 id=_node_id(m),
                 name=m.__name__,
                 app_label=m._meta.app_label,
+                app_name=app_name_map.get(m._meta.app_label, m._meta.app_label),
                 tags=_tags(m),
                 fields=_extract_fields(m),
             )
@@ -213,5 +219,6 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
         edges.extend(_extract_edges(m, all_model_ids))
 
     app_labels = tuple(sorted({n.app_label for n in nodes}))
+    app_names = {label: app_name_map.get(label, label) for label in app_labels}
 
-    return SchemaGraph(nodes=nodes, edges=tuple(edges), app_labels=app_labels)
+    return SchemaGraph(nodes=nodes, edges=tuple(edges), app_labels=app_labels, app_names=app_names)

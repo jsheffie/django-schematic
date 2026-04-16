@@ -16,14 +16,14 @@
 
 SRC_DIR := schematic/static/schematic
 
-.PHONY: ui-build ui-deploy ui-watch _do-copy
+.PHONY: ui-build ui-deploy ui-watch _do-copy _do-copy-python
 
 ## Build the UI without type-checking (fast).
 ui-build:
 	cd ui && npm run build:fast
 
-## Build and copy main.js + main.css to DEPLOY_TARGET.
-ui-deploy: ui-build _do-copy
+## Build and copy main.js + main.css to DEPLOY_TARGET, and copy Python source files.
+ui-deploy: ui-build _do-copy _do-copy-python
 
 ## Validate DEPLOY_TARGET and copy the built assets.
 _do-copy:
@@ -41,6 +41,17 @@ _do-copy:
 	cp $(SRC_DIR)/main.css $(DEPLOY_TARGET)/main.css
 	@echo "Copied -> $(DEPLOY_TARGET)"
 
+## Copy Python source files to PYTHON_DEPLOY_TARGET.
+## For Docker-based test projects, point this at the schematic_py_src/ directory
+## that is volume-mounted into the container (see local.yml in the test project).
+_do-copy-python:
+	@if [ -z "$(PYTHON_DEPLOY_TARGET)" ]; then \
+		echo "Skipping Python deploy (PYTHON_DEPLOY_TARGET not set)."; \
+	else \
+		cp schematic/*.py $(PYTHON_DEPLOY_TARGET)/; \
+		echo "Copied Python -> $(PYTHON_DEPLOY_TARGET)"; \
+	fi
+
 ## Continuous rebuild + auto-copy on each output change.
 ## Requires fswatch (brew install fswatch). Falls back to a polling loop.
 ui-watch:
@@ -52,7 +63,7 @@ ui-watch:
 	cd ui && npm run watch &
 	@if command -v fswatch >/dev/null 2>&1; then \
 		echo "Watching $(SRC_DIR)/main.js with fswatch. Copy target: $(DEPLOY_TARGET)"; \
-		fswatch -o $(SRC_DIR)/main.js | xargs -n1 -I{} $(MAKE) _do-copy; \
+		fswatch -o $(SRC_DIR)/main.js | xargs -n1 -I{} $(MAKE) _do-copy _do-copy-python; \
 	else \
 		echo "WARNING: fswatch not found. Install it for better performance:"; \
 		echo "  brew install fswatch"; \
@@ -61,7 +72,7 @@ ui-watch:
 		while true; do \
 			current=$$(stat -f "%m" $(SRC_DIR)/main.js 2>/dev/null || stat -c "%Y" $(SRC_DIR)/main.js 2>/dev/null); \
 			if [ "$$current" != "$$last" ] && [ -n "$$last" ]; then \
-				$(MAKE) _do-copy; \
+				$(MAKE) _do-copy _do-copy-python; \
 			fi; \
 			last="$$current"; \
 			sleep 2; \

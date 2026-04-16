@@ -100,12 +100,26 @@ export default function HelpDialog() {
           {/* Sidebar */}
           <section>
             <h3 className="font-semibold text-gray-900 mb-1.5">Sidebar (Models)</h3>
-            <dl className="flex flex-col gap-1.5">
-              <div><dt className="font-medium inline">Show all / Hide all —</dt><dd className="inline text-gray-500"> toggle visibility of every model at once.</dd></div>
-              <div><dt className="font-medium inline">Expand all / Collapse all —</dt><dd className="inline text-gray-500"> expand or collapse fields on every visible model node.</dd></div>
-              <div><dt className="font-medium inline">App chevron or label —</dt><dd className="inline text-gray-500"> fold/unfold the list of models within that Django app.</dd></div>
-              <div><dt className="font-medium inline">show / hide (per app) —</dt><dd className="inline text-gray-500"> toggle visibility of all models in that app. Button dims when only some models are visible.</dd></div>
-              <div><dt className="font-medium inline">Model checkbox —</dt><dd className="inline text-gray-500"> toggle a single model's visibility on the canvas.</dd></div>
+            <p className="text-gray-500 mb-2">Open with the › tab on the left edge. App names show as full dotted paths (e.g. <span className="font-medium text-gray-700">django.contrib.auth</span>).</p>
+
+            <h4 className="font-medium text-gray-800 mb-1">Toolbar icons (top of sidebar)</h4>
+            <dl className="flex flex-col gap-1 mb-3">
+              <div><dt className="font-medium inline">Eye-slash / Eye —</dt><dd className="inline text-gray-500"> hide all or show all models at once.</dd></div>
+              <div><dt className="font-medium inline">Compress / Expand —</dt><dd className="inline text-gray-500"> collapse or expand all app sections in the list.</dd></div>
+              <div><dt className="font-medium inline">∧ / ∨ —</dt><dd className="inline text-gray-500"> close or open field details on every model node on the canvas.</dd></div>
+            </dl>
+
+            <h4 className="font-medium text-gray-800 mb-1">Per-app row</h4>
+            <dl className="flex flex-col gap-1 mb-3">
+              <div><dt className="font-medium inline">Chevron or app name —</dt><dd className="inline text-gray-500"> fold/unfold the model list for that app.</dd></div>
+              <div><dt className="font-medium inline">⟨◇⟩ (expand icon) —</dt><dd className="inline text-gray-500"> open or close field details for only the models in that app.</dd></div>
+              <div><dt className="font-medium inline">Eye icon —</dt><dd className="inline text-gray-500"> show or hide all models in that app.</dd></div>
+            </dl>
+
+            <h4 className="font-medium text-gray-800 mb-1">Per-model row</h4>
+            <dl className="flex flex-col gap-1">
+              <div><dt className="font-medium inline">Eye icon —</dt><dd className="inline text-gray-500"> toggle a single model's visibility on the canvas. Open eye = visible; crossed eye = hidden.</dd></div>
+              <div><dt className="font-medium inline">A / P badge —</dt><dd className="inline text-gray-500"> marks abstract or proxy models.</dd></div>
             </dl>
           </section>
 
@@ -142,8 +156,9 @@ export default function HelpDialog() {
             <dl className="flex flex-col gap-1">
               <div><dt className="font-medium inline">Scroll —</dt><dd className="inline text-gray-500"> zoom.</dd></div>
               <div><dt className="font-medium inline">Drag canvas —</dt><dd className="inline text-gray-500"> pan.</dd></div>
-              <div><dt className="font-medium inline">Drag node —</dt><dd className="inline text-gray-500"> move and pin.</dd></div>
-              <div><dt className="font-medium inline">Click node header —</dt><dd className="inline text-gray-500"> expand / collapse fields.</dd></div>
+              <div><dt className="font-medium inline">Drag node —</dt><dd className="inline text-gray-500"> move and pin in place.</dd></div>
+              <div><dt className="font-medium inline">Click node header —</dt><dd className="inline text-gray-500"> expand / collapse field list.</dd></div>
+              <div><dt className="font-medium inline">Double-click node header —</dt><dd className="inline text-gray-500"> prompt to hide the model from the canvas.</dd></div>
               <div><dt className="font-medium inline">Hover connector —</dt><dd className="inline text-gray-500"> show relation type, field name, and reverse lookup.</dd></div>
             </dl>
           </section>
