@@ -61,7 +61,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const colorPalette = usePhysicsStore((s) => s.colorPalette);
   const backgroundStyle = usePhysicsStore((s) => s.backgroundStyle);
 
-  const { getViewport, setNodes } = useReactFlow();
+  const { getViewport, setNodes, fitView } = useReactFlow();
 
   // Build React Flow nodes from API data, filtered to visible set.
   // Positions here are only the initial/pinned values; the layout hooks
@@ -150,19 +150,25 @@ export default function SchemaCanvas({ schema }: Props) {
     forceParams,
     importId,
     physicsEnabled,
+    () => fitView({ duration: 300 }),
   );
 
-  // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change
+  // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change.
+  // After positioning, schedule a fitView so the viewport adjusts to the new layout.
   useEffect(() => {
     if (activeLayout === "force") return;
     if (activeLayout === "elk") {
-      runElkLayout(rfNodes, rfEdges).then((positioned) => setNodes(positioned));
+      runElkLayout(rfNodes, rfEdges).then((positioned) => {
+        setNodes(positioned);
+        setTimeout(() => fitView({ duration: 300 }), 0);
+      });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
     const positioned = runDagreLayout(rfNodes, rfEdges, direction);
     setNodes(positioned);
-  }, [activeLayout, rfNodes, rfEdges, setNodes]);
+    setTimeout(() => fitView({ duration: 300 }), 0);
+  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
@@ -214,7 +220,6 @@ export default function SchemaCanvas({ schema }: Props) {
         onNodeDrag={onNodeDrag}
         onMoveEnd={onMoveEnd}
         proOptions={{ hideAttribution: true }}
-        fitView
         minZoom={0.05}
         maxZoom={2}
       >
