@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore, type EdgeStyle, type ForceParams, type ColorPalette, type BackgroundStyle } from "../store/physicsStore";
 import SliderInput from "./SliderInput";
@@ -8,8 +7,6 @@ interface Props {
 }
 
 export default function SettingsDrawer({ onReheat }: Props) {
-  const [activeTab, setActiveTab] = useState<"appearance" | "physics">("appearance");
-
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
@@ -27,8 +24,10 @@ export default function SettingsDrawer({ onReheat }: Props) {
   const setBackgroundStyle = usePhysicsStore((s) => s.setBackgroundStyle);
   const appMode = usePhysicsStore((s) => s.appMode);
   const applyPreset = usePhysicsStore((s) => s.applyPreset);
+  const activeTab = usePhysicsStore((s) => s.settingsTab);
+  const setActiveTab = usePhysicsStore((s) => s.setSettingsTab);
 
-  const forceActive = activeLayout === "force";
+  const forceActive = activeLayout === "organic";
 
   return (
     <div
@@ -220,7 +219,6 @@ export default function SettingsDrawer({ onReheat }: Props) {
                       { mode: "normal", label: "Normal", title: "Balanced defaults" },
                       { mode: "fun", label: "Fun", title: "Slow settle, bouncy, live drag" },
                       { mode: "excitation", label: "Excitation", title: "Low friction, strong repulsion" },
-                      { mode: "auto-layout", label: "Auto-Layout", title: "ELK hierarchical layout, floating edges" },
                     ] as const
                   ).map(({ mode, label, title }, i) => (
                     <button
@@ -295,7 +293,7 @@ export default function SettingsDrawer({ onReheat }: Props) {
                   Force Simulation
                 </p>
                 {!forceActive && (
-                  <p className="text-[10px] text-gray-400 mb-2">Switch to Force layout to enable</p>
+                  <p className="text-[10px] text-gray-400 mb-2">Switch to Organic layout to enable</p>
                 )}
 
                 <SliderInput

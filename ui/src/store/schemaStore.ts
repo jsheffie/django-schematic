@@ -12,7 +12,7 @@ interface SchemaStore {
   pinnedPositions: Map<string, { x: number; y: number }>;
   collapsedApps: Set<string>;
   viewportState: ViewportState;
-  activeLayout: "force" | "dagre-lr" | "dagre-tb" | "elk";
+  activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
 
   // Node visibility
   setAllVisible: (ids: string[]) => void;
@@ -56,7 +56,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   pinnedPositions: new Map(),
   collapsedApps: new Set(),
   viewportState: { x: 0, y: 0, zoom: 1 },
-  activeLayout: "force",
+  activeLayout: "elk",
   importId: 0,
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids) }),
@@ -145,6 +145,6 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       pinnedPositions: new Map(),
       collapsedApps: new Set(),
       viewportState: { x: 0, y: 0, zoom: 1 },
-      activeLayout: "force",
+      activeLayout: "elk",
     }),
 }));
