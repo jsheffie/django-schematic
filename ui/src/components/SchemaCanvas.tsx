@@ -119,6 +119,8 @@ export default function SchemaCanvas({ schema }: Props) {
 
   // Track the last import we've applied so we can detect a fresh import.
   const lastAppliedImportIdRef = useRef(importId);
+  // Separate ref for the layout effect — prevents dagre/elk from overwriting imported positions.
+  const lastLayoutImportIdRef = useRef(importId);
 
   // Skip fitView on the very first layout application (initial page load).
   const isFirstLayoutRef = useRef(true);
@@ -185,8 +187,17 @@ export default function SchemaCanvas({ schema }: Props) {
 
   // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change.
   // After positioning, fitView — but skip on the very first application (initial page load).
+  // Also skip on a fresh import: imported positions already encode the saved layout, so
+  // rerunning the algorithm would overwrite them.
   useEffect(() => {
     if (activeLayout === "organic") return;
+
+    if (importId !== lastLayoutImportIdRef.current) {
+      lastLayoutImportIdRef.current = importId;
+      isFirstLayoutRef.current = false;
+      return;
+    }
+
     const sizeMap = buildSizeMap();
     const shouldFit = !isFirstLayoutRef.current;
     isFirstLayoutRef.current = false;
@@ -202,7 +213,7 @@ export default function SchemaCanvas({ schema }: Props) {
     const positioned = runDagreLayout(rfNodes, rfEdges, direction, sizeMap);
     setNodes(positioned);
     if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
-  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap]);
+  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap, importId]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
