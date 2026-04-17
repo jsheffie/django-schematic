@@ -1,5 +1,20 @@
 # django-schematic
 
+[![Latest on Django Packages](https://img.shields.io/badge/Django%20Packages-django--schematic-8c3c26.svg)](https://djangopackages.org/packages/p/django-schematic/)
+[![PyPI version](https://img.shields.io/pypi/v/django-schematic)](https://pypi.org/project/django-schematic/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/django-schematic)](https://pypi.org/project/django-schematic/)
+[![Python versions](https://img.shields.io/pypi/pyversions/django-schematic)](https://pypi.org/project/django-schematic/)
+[![License](https://img.shields.io/pypi/l/django-schematic)](https://github.com/jsheffie/django-schematic/blob/main/LICENSE)
+[![Python Tests](https://github.com/jsheffie/django-schematic/actions/workflows/tests.yml/badge.svg)](https://github.com/jsheffie/django-schematic/actions/workflows/tests.yml)
+[![UI Tests](https://github.com/jsheffie/django-schematic/actions/workflows/ui-tests.yml/badge.svg)](https://github.com/jsheffie/django-schematic/actions/workflows/ui-tests.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![React Flow](https://img.shields.io/badge/@xyflow%2Freact-React%20Flow-ff0072)](https://reactflow.dev/)
+[![d3-force](https://img.shields.io/badge/layout-d3--force-F9A03C?logo=d3dotjs&logoColor=white)](https://d3js.org/d3-force)
+[![dagre](https://img.shields.io/badge/layout-dagre-4A90D9)](https://github.com/dagrejs/dagre)
+[![ELK](https://img.shields.io/badge/layout-ELK-5C9E4A)](https://eclipse.dev/elk/)
+
 Interactive schema visualization for Django projects.
 
 See all your models, fields, and relationships as an interactive, force-directed graph — directly in your browser. Zero Node.js required at runtime.
@@ -16,9 +31,25 @@ See all your models, fields, and relationships as an interactive, force-directed
 - Clean JSON API endpoint (`GET /schema/api/`)
 - Django 5.x + Python 3.12+ only
 
-## Exported PNG file with embeded SVG data
+## Frontend Stack
 
-This is an example output PNG file, that can be re-imported into djang-schematic
+| Aspect | Technology |
+|---|---|
+| Framework | React 18 |
+| Language | TypeScript |
+| Graph Visualization | React Flow (`@xyflow/react` 12) |
+| Layout Engines | d3-force + dagre + ELK (3 options) |
+| UI / Styling | TailwindCSS 4 |
+| State Management | Zustand 5 |
+| Bundler | Vite 6 |
+| Type Safety | Full TypeScript |
+| Testing | Vitest + ESLint |
+| CDN Dependencies | None (all bundled) |
+| Package Manager | npm |
+
+## Exported PNG file with embedded config data
+
+This is an example output PNG file, that can be re-imported into django-schematic
 
 <img width="1200" height="898" alt="DailyGrindStatus-Blog-schematic" src="https://github.com/user-attachments/assets/3fbeae62-68c1-45fe-9ae6-7b52ed77585e" />
 
