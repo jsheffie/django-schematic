@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
+import { Handle, Position, useReactFlow, type Node, type NodeProps } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { appColors } from "../lib/colors";
@@ -34,8 +34,9 @@ export const ModelNode = memo(function ModelNode({
 
   const isExpanded = useSchemaStore((s) => s.expandedNodeIds.has(data.nodeId));
   const toggleFieldExpansion = useSchemaStore((s) => s.toggleFieldExpansion);
-  const toggleNodeVisibility = useSchemaStore((s) => s.toggleNodeVisibility);
+  const hideNodeFromCanvas = useSchemaStore((s) => s.hideNodeFromCanvas);
   const colorPalette = usePhysicsStore((s) => s.colorPalette);
+  const { getNode } = useReactFlow();
 
   const { border: borderColor, bg: bgColor } = appColors(data.appLabel, colorPalette);
 
@@ -60,7 +61,11 @@ export const ModelNode = memo(function ModelNode({
           <div className="flex gap-1.5">
             <button
               className="rounded bg-gray-700 px-2.5 py-1 text-xs text-white hover:bg-gray-900"
-              onClick={() => { toggleNodeVisibility(data.nodeId); setShowHidePrompt(false); }}
+              onClick={() => {
+              const pos = getNode(data.nodeId)?.position ?? { x: 0, y: 0 };
+              hideNodeFromCanvas(data.nodeId, pos);
+              setShowHidePrompt(false);
+            }}
             >
               Hide
             </button>

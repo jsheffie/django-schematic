@@ -29,6 +29,7 @@ export interface ViewConfig {
   collapsedApps: string[];
   viewport: { x: number; y: number; zoom: number };
   physics: PhysicsConfig;
+  canvasHidePositions?: Record<string, { x: number; y: number }>;
 }
 
 // Legacy v1 format (no physics or activeLayout)
@@ -68,6 +69,7 @@ export function exportConfig(
     pinnedPositions: allPositions,
     collapsedApps: Array.from(s.collapsedApps),
     viewport: s.viewportState,
+    canvasHidePositions: Object.fromEntries(s.canvasHidePositions),
     physics: {
       edgeStyle: p.edgeStyle,
       liveDragPhysics: p.liveDragPhysics,
@@ -99,6 +101,9 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
     pinnedPositions: new Map(Object.entries(raw.pinnedPositions)),
     collapsedApps: new Set(raw.collapsedApps),
     viewportState: raw.viewport,
+    canvasHidePositions: raw.version === 2 && raw.canvasHidePositions
+      ? new Map(Object.entries(raw.canvasHidePositions))
+      : new Map(),
     ...(activeLayout ? { activeLayout } : {}),
   });
 
