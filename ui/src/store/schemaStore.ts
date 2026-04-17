@@ -14,11 +14,19 @@ interface SchemaStore {
   viewportState: ViewportState;
   activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
 
+  // Canvas-initiated hide positions — nodes hidden via double-click store their
+  // last position here so they can be restored without triggering layout recalc.
+  canvasHidePositions: Map<string, { x: number; y: number }>;
+  // Increments on every canvas hide/restore so SchemaCanvas can detect and skip layout.
+  canvasLayoutSuppressVersion: number;
+
   // Node visibility
   setAllVisible: (ids: string[]) => void;
   toggleNodeVisibility: (id: string) => void;
   showApp: (appLabel: string, nodeIds: string[]) => void;
   hideApp: (appLabel: string, nodeIds: string[]) => void;
+  hideNodeFromCanvas: (id: string, position: { x: number; y: number }) => void;
+  restoreCanvasHiddenNode: (id: string) => void;
 
   // Field expansion
   toggleFieldExpansion: (id: string) => void;
@@ -58,6 +66,8 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   viewportState: { x: 0, y: 0, zoom: 1 },
   activeLayout: "elk",
   importId: 0,
+  canvasHidePositions: new Map(),
+  canvasLayoutSuppressVersion: 0,
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids) }),
 
@@ -81,6 +91,36 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       const next = new Set(s.visibleNodeIds);
       nodeIds.forEach((id) => next.delete(id));
       return { visibleNodeIds: next };
+    }),
+
+  hideNodeFromCanvas: (id, position) =>
+    set((s) => {
+      const nextVisible = new Set(s.visibleNodeIds);
+      nextVisible.delete(id);
+      const nextHidePositions = new Map(s.canvasHidePositions);
+      nextHidePositions.set(id, position);
+      return {
+        visibleNodeIds: nextVisible,
+        canvasHidePositions: nextHidePositions,
+        canvasLayoutSuppressVersion: s.canvasLayoutSuppressVersion + 1,
+      };
+    }),
+
+  restoreCanvasHiddenNode: (id) =>
+    set((s) => {
+      const nextVisible = new Set(s.visibleNodeIds);
+      nextVisible.add(id);
+      const nextHidePositions = new Map(s.canvasHidePositions);
+      const savedPos = nextHidePositions.get(id);
+      nextHidePositions.delete(id);
+      const nextPinned = new Map(s.pinnedPositions);
+      if (savedPos) nextPinned.set(id, savedPos);
+      return {
+        visibleNodeIds: nextVisible,
+        canvasHidePositions: nextHidePositions,
+        pinnedPositions: nextPinned,
+        canvasLayoutSuppressVersion: s.canvasLayoutSuppressVersion + 1,
+      };
     }),
 
   toggleFieldExpansion: (id) =>
@@ -146,5 +186,6 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       collapsedApps: new Set(),
       viewportState: { x: 0, y: 0, zoom: 1 },
       activeLayout: "elk",
+      canvasHidePositions: new Map(),
     }),
 }));

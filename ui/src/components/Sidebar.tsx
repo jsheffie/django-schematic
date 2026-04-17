@@ -111,6 +111,8 @@ export default function Sidebar({ schema }: Props) {
   const visibleNodeIds = useSchemaStore((s) => s.visibleNodeIds);
   const expandedNodeIds = useSchemaStore((s) => s.expandedNodeIds);
   const toggleNodeVisibility = useSchemaStore((s) => s.toggleNodeVisibility);
+  const canvasHidePositions = useSchemaStore((s) => s.canvasHidePositions);
+  const restoreCanvasHiddenNode = useSchemaStore((s) => s.restoreCanvasHiddenNode);
   const showApp = useSchemaStore((s) => s.showApp);
   const hideApp = useSchemaStore((s) => s.hideApp);
   const expandAll = useSchemaStore((s) => s.expandAll);
@@ -307,8 +309,12 @@ export default function Sidebar({ schema }: Props) {
                       {/* Visibility toggle — always visible when hidden, fades in on row hover when visible */}
                       <button
                         className="flex items-center justify-center w-6 h-6 rounded shrink-0 transition-colors hover:bg-gray-100 hover:text-gray-700 text-gray-400"
-                        onClick={() => toggleNodeVisibility(node.id)}
-                        title={isVisible ? "Hide model" : "Show model"}
+                        onClick={() =>
+                          canvasHidePositions.has(node.id)
+                            ? restoreCanvasHiddenNode(node.id)
+                            : toggleNodeVisibility(node.id)
+                        }
+                        title={isVisible ? "Hide model" : canvasHidePositions.has(node.id) ? "Restore to canvas" : "Show model"}
                       >
                         {isVisible ? <IconEye /> : <IconEyeSlash />}
                       </button>

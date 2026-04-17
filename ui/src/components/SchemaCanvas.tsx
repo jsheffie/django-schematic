@@ -50,6 +50,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const setViewport = useSchemaStore((s) => s.setViewport);
   const pinNode = useSchemaStore((s) => s.pinNode);
   const importId = useSchemaStore((s) => s.importId);
+  const canvasLayoutSuppressVersion = useSchemaStore((s) => s.canvasLayoutSuppressVersion);
 
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
   const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
@@ -124,6 +125,8 @@ export default function SchemaCanvas({ schema }: Props) {
 
   // Skip fitView on the very first layout application (initial page load).
   const isFirstLayoutRef = useRef(true);
+  // Track canvas-initiated suppress version so layout effect can skip recalc.
+  const lastSuppressVersionRef = useRef(canvasLayoutSuppressVersion);
 
   // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
   // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
@@ -198,6 +201,11 @@ export default function SchemaCanvas({ schema }: Props) {
       return;
     }
 
+    if (canvasLayoutSuppressVersion !== lastSuppressVersionRef.current) {
+      lastSuppressVersionRef.current = canvasLayoutSuppressVersion;
+      return;
+    }
+
     const sizeMap = buildSizeMap();
     const shouldFit = !isFirstLayoutRef.current;
     isFirstLayoutRef.current = false;
@@ -213,7 +221,7 @@ export default function SchemaCanvas({ schema }: Props) {
     const positioned = runDagreLayout(rfNodes, rfEdges, direction, sizeMap);
     setNodes(positioned);
     if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
-  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap, importId]);
+  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap, importId, canvasLayoutSuppressVersion]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
