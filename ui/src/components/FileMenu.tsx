@@ -193,7 +193,12 @@ export default function FileMenu() {
     const flowEl = document.querySelector(".react-flow") as HTMLElement | null;
     if (!flowEl) return;
 
-    const dataUrl = await toPng(flowEl, { backgroundColor: "#ffffff" });
+    const dataUrl = await toPng(flowEl, {
+      backgroundColor: "#ffffff",
+      filter: (node: Element) =>
+        !node.classList?.contains("react-flow__minimap") &&
+        !node.classList?.contains("minimap-close"),
+    });
 
     // Convert base64 dataURL → Uint8Array
     const base64 = dataUrl.split(",")[1];
