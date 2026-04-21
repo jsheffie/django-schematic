@@ -47,6 +47,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const visibleNodeIds = useSchemaStore((s) => s.visibleNodeIds);
   const pinnedPositions = useSchemaStore((s) => s.pinnedPositions);
   const activeLayout = useSchemaStore((s) => s.activeLayout);
+  const layoutVersion = useSchemaStore((s) => s.layoutVersion);
   const setViewport = useSchemaStore((s) => s.setViewport);
   const pinNode = useSchemaStore((s) => s.pinNode);
   const importId = useSchemaStore((s) => s.importId);
@@ -117,6 +118,14 @@ export default function SchemaCanvas({ schema }: Props) {
   // (which would cause runaway re-layouts on every position tick).
   const displayNodesRef = useRef(displayNodes);
   useEffect(() => { displayNodesRef.current = displayNodes; }, [displayNodes]);
+
+  // Refs for rfNodes/rfEdges so the dagre/ELK layout effect can read their
+  // current values without having them as dependencies. This prevents visibility
+  // toggles from re-triggering a full layout recalc (which would snap dragged nodes back).
+  const rfNodesRef = useRef(rfNodes);
+  useEffect(() => { rfNodesRef.current = rfNodes; }, [rfNodes]);
+  const rfEdgesRef = useRef(rfEdges);
+  useEffect(() => { rfEdgesRef.current = rfEdges; }, [rfEdges]);
 
   // Track the last import we've applied so we can detect a fresh import.
   const lastAppliedImportIdRef = useRef(importId);
@@ -211,17 +220,17 @@ export default function SchemaCanvas({ schema }: Props) {
     isFirstLayoutRef.current = false;
 
     if (activeLayout === "elk") {
-      runElkLayout(rfNodes, rfEdges, sizeMap).then((positioned) => {
+      runElkLayout(rfNodesRef.current, rfEdgesRef.current, sizeMap).then((positioned) => {
         setNodes(positioned);
         if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
       });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
-    const positioned = runDagreLayout(rfNodes, rfEdges, direction, sizeMap);
+    const positioned = runDagreLayout(rfNodesRef.current, rfEdgesRef.current, direction, sizeMap);
     setNodes(positioned);
     if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
-  }, [activeLayout, rfNodes, rfEdges, setNodes, fitView, buildSizeMap, importId, canvasLayoutSuppressVersion]);
+  }, [activeLayout, layoutVersion, importId, canvasLayoutSuppressVersion, setNodes, fitView, buildSizeMap]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(

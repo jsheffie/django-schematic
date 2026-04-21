@@ -13,6 +13,7 @@ interface SchemaStore {
   collapsedApps: Set<string>;
   viewportState: ViewportState;
   activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
+  layoutVersion: number;
 
   // Canvas-initiated hide positions — nodes hidden via double-click store their
   // last position here so they can be restored without triggering layout recalc.
@@ -65,6 +66,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   collapsedApps: new Set(),
   viewportState: { x: 0, y: 0, zoom: 1 },
   activeLayout: "elk",
+  layoutVersion: 0,
   importId: 0,
   canvasHidePositions: new Map(),
   canvasLayoutSuppressVersion: 0,
@@ -175,7 +177,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
 
   setViewport: (v) => set({ viewportState: v }),
 
-  setLayout: (layout) => set({ activeLayout: layout }),
+  setLayout: (layout) => set((s) => ({ activeLayout: layout, layoutVersion: s.layoutVersion + 1 })),
 
   bumpImportId: () => set((s) => ({ importId: s.importId + 1 })),
 
@@ -186,6 +188,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       collapsedApps: new Set(),
       viewportState: { x: 0, y: 0, zoom: 1 },
       activeLayout: "elk",
+      layoutVersion: 0,
       canvasHidePositions: new Map(),
     }),
 }));
