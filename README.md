@@ -31,6 +31,9 @@ See all your models, fields, and relationships as an interactive, force-directed
 - Clean JSON API endpoint (`GET /schema/api/`)
 - Django 5.x + Python 3.12+ only
 
+## Live Demo
+- [Live Demo](https://jeffield.net/schema/)
+
 ## Visualize
 
 <img width="800" height="450" alt="output" src="https://github.com/user-attachments/assets/f93c55d0-5e25-4e8e-8581-e281c4ed91e6" />
