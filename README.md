@@ -1,4 +1,3 @@
-<img width="800" height="450" alt="output" src="https://github.com/user-attachments/assets/f93c55d0-5e25-4e8e-8581-e281c4ed91e6" />
 # django-schematic
 
 [![Latest on Django Packages](https://img.shields.io/badge/Django%20Packages-django--schematic-8c3c26.svg)](https://djangopackages.org/packages/p/django-schematic/)
@@ -34,7 +33,7 @@ See all your models, fields, and relationships as an interactive, force-directed
 
 ## Visualize
 
-<img width="800" height="497" alt="output" src="https://github.com/user-attachments/assets/6da57bd5-c0b5-45a8-b087-bdf4ff7661d1" />
+<img width="800" height="450" alt="output" src="https://github.com/user-attachments/assets/f93c55d0-5e25-4e8e-8581-e281c4ed91e6" />
 
 
 ## Frontend Stack
