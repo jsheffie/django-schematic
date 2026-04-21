@@ -21,14 +21,14 @@ See all your models, fields, and relationships as an interactive, force-directed
 
 ## Features
 
+- Export/Import view state as a PNG with location/canvas placement data.
+- Export/Import view state as JSON
+- Clean JSON API endpoint (`GET /schema/api/`)
 - Force-directed layout with physics settle animation (drag-to-pin support)
 - Hierarchical layout via dagre
 - Click to expand/collapse field lists per model
 - App-based color coding
 - Show/hide models and apps via sidebar
-- Export/import view state as JSON
-- Export diagram as PNG
-- Clean JSON API endpoint (`GET /schema/api/`)
 - Django 5.x + Python 3.12+ only
 
 ## Live Demo
