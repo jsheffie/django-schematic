@@ -330,7 +330,7 @@ export default function SchemaCanvas({ schema }: Props) {
         <button
           onClick={() => setMinimapVisible(false)}
           title="Hide minimap"
-          className="absolute z-10 bg-white/90 border border-gray-200 rounded text-gray-400 hover:text-gray-600 hover:bg-white leading-none"
+          className="minimap-close absolute z-10 bg-white/90 border border-gray-200 rounded text-gray-400 hover:text-gray-600 hover:bg-white leading-none"
           style={{ bottom: 150, right: 10, width: 16, height: 16, fontSize: 11, padding: 0 }}
         >
           ×
