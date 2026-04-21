@@ -1,3 +1,4 @@
+<img width="800" height="450" alt="output" src="https://github.com/user-attachments/assets/f93c55d0-5e25-4e8e-8581-e281c4ed91e6" />
 # django-schematic
 
 [![Latest on Django Packages](https://img.shields.io/badge/Django%20Packages-django--schematic-8c3c26.svg)](https://djangopackages.org/packages/p/django-schematic/)
@@ -56,8 +57,8 @@ See all your models, fields, and relationships as an interactive, force-directed
 
 This is an example output PNG file, that can be re-imported into django-schematic
 
-<img width="1200" height="898" alt="DailyGrindStatus-Blog-schematic" src="https://github.com/user-attachments/assets/3fbeae62-68c1-45fe-9ae6-7b52ed77585e" />
 
+<img width="800" height="450" alt="output" src="https://github.com/user-attachments/assets/4dfcf069-d602-4715-8337-748db83d5dbe" />
 
 
 ## Quick Start
