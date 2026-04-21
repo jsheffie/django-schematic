@@ -60,7 +60,7 @@ See all your models, fields, and relationships as an interactive, force-directed
 This is an example output PNG file, that can be re-imported into django-schematic
 
 
-<img width="800" height="450" alt="output" src="https://github.com/user-attachments/assets/4dfcf069-d602-4715-8337-748db83d5dbe" />
+<img width="3424" height="1884" alt="schematic2" src="https://github.com/user-attachments/assets/83cd3eb5-413d-4f81-ab4c-f1589c8e2b68" />
 
 
 ## Quick Start
