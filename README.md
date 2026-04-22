@@ -15,6 +15,8 @@
 [![dagre](https://img.shields.io/badge/layout-dagre-4A90D9)](https://github.com/dagrejs/dagre)
 [![ELK](https://img.shields.io/badge/layout-ELK-5C9E4A)](https://eclipse.dev/elk/)
 
+*If this is useful to you, a star helps others find it.*
+
 Interactive schema visualization for Django projects.
 
 See all your models, fields, and relationships as an interactive, force-directed graph — directly in your browser. Zero Node.js required at runtime.
