@@ -38,6 +38,9 @@ dev = [
     "mypy",
     "django-stubs",
 ]
+ci = [
+    "playwright",
+]
 
 [project.urls]
 Homepage = "https://github.com/jsheffie/django-schematic"
