@@ -55,6 +55,9 @@ interface SchemaStore {
   importId: number;
   bumpImportId: () => void;
 
+  // True once visibleNodeIds has been intentionally populated (by setAllVisible or importConfig)
+  schemaInitialized: boolean;
+
   // Reset
   resetConfig: () => void;
 }
@@ -68,10 +71,11 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   activeLayout: "elk",
   layoutVersion: 0,
   importId: 0,
+  schemaInitialized: false,
   canvasHidePositions: new Map(),
   canvasLayoutSuppressVersion: 0,
 
-  setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids) }),
+  setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids), schemaInitialized: true }),
 
   toggleNodeVisibility: (id) =>
     set((s) => {
@@ -179,7 +183,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
 
   setLayout: (layout) => set((s) => ({ activeLayout: layout, layoutVersion: s.layoutVersion + 1 })),
 
-  bumpImportId: () => set((s) => ({ importId: s.importId + 1 })),
+  bumpImportId: () => set((s) => ({ importId: s.importId + 1, schemaInitialized: true })),
 
   resetConfig: () =>
     set({

@@ -136,7 +136,7 @@ def wait_for_server(port: int, timeout: int = 15) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def render_png(schema_url: str, config_json: str, render_timeout: int, boot_timeout: int = 15000) -> bytes:
+def render_png(schema_url: str, config_json: str, render_timeout: int, boot_timeout: int = 15000, layout_override: str | None = None) -> bytes:
     """Use Playwright to load the schema page, import config, export PNG bytes."""
     try:
         from playwright.sync_api import sync_playwright
@@ -154,6 +154,8 @@ def render_png(schema_url: str, config_json: str, render_timeout: int, boot_time
         canvas_size = page.evaluate(f"window.__schematic.importConfig({json.dumps(config_json)})")
         if canvas_size and canvas_size.get("width") and canvas_size.get("height"):
             page.set_viewport_size({"width": canvas_size["width"], "height": canvas_size["height"]})
+        if layout_override:
+            page.evaluate(f"window.__schematic.applyLayout({json.dumps(layout_override)})")
         page.wait_for_timeout(render_timeout)
         b64: str = page.evaluate("window.__schematic.exportPngBytes()")
         browser.close()
@@ -186,6 +188,17 @@ class Command(BaseCommand):
             action="store_true",
             help="Detect and report stale PNGs without re-rendering",
         )
+        parser.add_argument(
+            "--layout",
+            choices=["elk", "auto", "organic", "dagre-lr", "left-to-right", "dagre-tb", "top-to-bottom"],
+            default=None,
+            metavar="LAYOUT",
+            help=(
+                "Override the layout engine for all re-rendered diagrams. "
+                "elk/auto, organic, dagre-lr/left-to-right, dagre-tb/top-to-bottom. "
+                "Omit to use the positions stored in each PNG."
+            ),
+        )
 
     def handle(self, *args, **options):  # type: ignore[override]
         diagrams_dir_raw = options["diagrams_dir"] or get_setting("diagrams_dir")
@@ -202,6 +215,8 @@ class Command(BaseCommand):
         boot_timeout = get_setting("diagram_boot_timeout")
         base_branch = options["base_branch"]
         dry_run = options["dry_run"]
+        _layout_aliases = {"auto": "elk", "left-to-right": "dagre-lr", "top-to-bottom": "dagre-tb"}
+        layout_override = _layout_aliases.get(options["layout"], options["layout"])
 
         # Phase 1: detect
         self.stdout.write(f"Diffing against {base_branch}...")
@@ -242,7 +257,7 @@ class Command(BaseCommand):
                     continue
                 self.stdout.write(f"Rendering {png_path.name}...")
                 try:
-                    png_bytes = render_png(schema_url, config_json, render_timeout, boot_timeout)
+                    png_bytes = render_png(schema_url, config_json, render_timeout, boot_timeout, layout_override)
                 except Exception as exc:
                     self.stderr.write(f"Warning: render failed for {png_path.name}: {exc}")
                     continue

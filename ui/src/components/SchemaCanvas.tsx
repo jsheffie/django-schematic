@@ -45,6 +45,7 @@ interface Props {
 
 export default function SchemaCanvas({ schema }: Props) {
   const visibleNodeIds = useSchemaStore((s) => s.visibleNodeIds);
+  const schemaInitialized = useSchemaStore((s) => s.schemaInitialized);
   const pinnedPositions = useSchemaStore((s) => s.pinnedPositions);
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const layoutVersion = useSchemaStore((s) => s.layoutVersion);
@@ -65,12 +66,19 @@ export default function SchemaCanvas({ schema }: Props) {
 
   const { getViewport, setNodes, fitView } = useReactFlow();
 
+  // Until the store is intentionally populated (by schema load or config import),
+  // treat all schema nodes as visible so the default browser experience is unchanged.
+  const effectiveVisibleIds = useMemo(
+    () => schemaInitialized ? visibleNodeIds : new Set(schema.nodes.map((n) => n.id)),
+    [schemaInitialized, visibleNodeIds, schema.nodes],
+  );
+
   // Build React Flow nodes from API data, filtered to visible set.
   // Positions here are only the initial/pinned values; the layout hooks
   // will override them via setNodes → onNodesChange → displayNodes.
   const rfNodes: ModelNodeData[] = useMemo(() => {
     return schema.nodes
-      .filter((n) => visibleNodeIds.has(n.id))
+      .filter((n) => effectiveVisibleIds.has(n.id))
       .map((n) => {
         const pinned = pinnedPositions.get(n.id);
         return {
@@ -86,13 +94,12 @@ export default function SchemaCanvas({ schema }: Props) {
           },
         };
       });
-  }, [schema.nodes, visibleNodeIds, pinnedPositions]);
+  }, [schema.nodes, effectiveVisibleIds, pinnedPositions]);
 
   // Build React Flow edges, passing edgeStyle and related_name through data
   const rfEdges: Edge[] = useMemo(() => {
-    const visibleSet = visibleNodeIds;
     return schema.edges
-      .filter((e) => visibleSet.has(e.source) && visibleSet.has(e.target))
+      .filter((e) => effectiveVisibleIds.has(e.source) && effectiveVisibleIds.has(e.target))
       .map((e) => ({
         id: `${e.source}->${e.target}:${e.field_name}`,
         source: e.source,
@@ -107,7 +114,7 @@ export default function SchemaCanvas({ schema }: Props) {
         markerEnd:   RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerEnd,
         markerStart: RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerStart,
       }));
-  }, [schema.edges, visibleNodeIds, edgeStyle]);
+  }, [schema.edges, effectiveVisibleIds, edgeStyle]);
 
   // displayNodes is the authoritative node list passed to <ReactFlow>.
   // It starts from rfNodes and is updated by layout algorithms and user drags.

@@ -109,6 +109,11 @@ function IconButton({ onClick, title, disabled = false, children }: IconButtonPr
 
 export default function Sidebar({ schema }: Props) {
   const visibleNodeIds = useSchemaStore((s) => s.visibleNodeIds);
+  const schemaInitialized = useSchemaStore((s) => s.schemaInitialized);
+  const effectiveVisibleIds = useMemo(
+    () => schemaInitialized ? visibleNodeIds : new Set(schema.nodes.map((n) => n.id)),
+    [schemaInitialized, visibleNodeIds, schema.nodes],
+  );
   const expandedNodeIds = useSchemaStore((s) => s.expandedNodeIds);
   const toggleNodeVisibility = useSchemaStore((s) => s.toggleNodeVisibility);
   const canvasHidePositions = useSchemaStore((s) => s.canvasHidePositions);
@@ -140,9 +145,9 @@ export default function Sidebar({ schema }: Props) {
   const allAppLabels = Array.from(byApp.keys());
 
   const allVisible =
-    allNodeIds.length > 0 && allNodeIds.every((id) => visibleNodeIds.has(id));
+    allNodeIds.length > 0 && allNodeIds.every((id) => effectiveVisibleIds.has(id));
   const noneVisible =
-    allNodeIds.length > 0 && allNodeIds.every((id) => !visibleNodeIds.has(id));
+    allNodeIds.length > 0 && allNodeIds.every((id) => !effectiveVisibleIds.has(id));
 
   return (
     <aside className="flex flex-col w-72 shrink-0 border-r border-gray-200 bg-white text-sm h-full">
@@ -209,7 +214,7 @@ export default function Sidebar({ schema }: Props) {
       <div className="flex-1 overflow-y-auto">
         {Array.from(byApp.entries()).map(([appLabel, nodes]) => {
           const nodeIds = nodes.map((n) => n.id);
-          const noneAppVisible = nodeIds.every((id) => !visibleNodeIds.has(id));
+          const noneAppVisible = nodeIds.every((id) => !effectiveVisibleIds.has(id));
           const allAppExpanded = nodeIds.every((id) => expandedNodeIds.has(id));
           const isCollapsed = collapsedApps.has(appLabel);
           const color = appColor(appLabel);
@@ -273,7 +278,7 @@ export default function Sidebar({ schema }: Props) {
               {/* ── Model list — hidden when app is collapsed ───────────────── */}
               {!isCollapsed &&
                 nodes.map((node) => {
-                  const isVisible = visibleNodeIds.has(node.id);
+                  const isVisible = effectiveVisibleIds.has(node.id);
                   return (
                     <div
                       key={node.id}
