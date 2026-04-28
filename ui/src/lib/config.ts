@@ -28,6 +28,7 @@ export interface ViewConfig {
   pinnedPositions: Record<string, { x: number; y: number }>;
   collapsedApps: string[];
   viewport: { x: number; y: number; zoom: number };
+  canvasSize?: { width: number; height: number };
   physics: PhysicsConfig;
   canvasHidePositions?: Record<string, { x: number; y: number }>;
 }
@@ -69,6 +70,7 @@ export function exportConfig(
     pinnedPositions: allPositions,
     collapsedApps: Array.from(s.collapsedApps),
     viewport: s.viewportState,
+    canvasSize: { width: window.innerWidth, height: window.innerHeight },
     canvasHidePositions: Object.fromEntries(s.canvasHidePositions),
     physics: {
       edgeStyle: p.edgeStyle,
@@ -84,8 +86,8 @@ export function exportConfig(
   return JSON.stringify(config, null, 2);
 }
 
-/** Returns the viewport from the config so the caller can apply it to React Flow. */
-export function importConfig(json: string): { x: number; y: number; zoom: number } {
+/** Returns the viewport and original canvas size from the config so the caller can apply them. */
+export function importConfig(json: string): { x: number; y: number; zoom: number; canvasSize?: { width: number; height: number } } {
   const raw = JSON.parse(json) as ViewConfig | ViewConfigV1;
 
   if (raw.version !== 1 && raw.version !== 2) {
@@ -123,5 +125,8 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
   }
 
   useSchemaStore.getState().bumpImportId();
-  return raw.viewport;
+  return {
+    ...raw.viewport,
+    canvasSize: raw.version === 2 ? raw.canvasSize : undefined,
+  };
 }

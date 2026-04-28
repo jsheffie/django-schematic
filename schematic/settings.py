@@ -14,6 +14,7 @@ DEFAULTS: dict = {
     "include_proxy": True,
     "diagrams_dir": None,
     "diagram_render_timeout": 3000,
+    "diagram_boot_timeout": 15000,
 }
 
 

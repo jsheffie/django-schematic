@@ -11,16 +11,18 @@ import { exportConfig, importConfig } from "../lib/config";
 import { injectTextChunk } from "../lib/pngEmbed";
 
 export default function AutomationBridge() {
-  const { getNodes, setViewport } = useReactFlow();
+  const { getNodes, setViewport, fitView } = useReactFlow();
 
   useEffect(() => {
     (window as unknown as Record<string, unknown>).__schematic = {
       importConfig(json: string) {
-        const viewport = importConfig(json);
-        setViewport(viewport as Viewport);
+        const result = importConfig(json);
+        setViewport({ x: result.x, y: result.y, zoom: result.zoom } as Viewport);
+        return result.canvasSize ?? null;
       },
 
       async exportPngBytes(): Promise<string> {
+        await fitView({ padding: 0.1, duration: 0 });
         const positions: Record<string, { x: number; y: number }> = {};
         getNodes().forEach((n) => {
           positions[n.id] = n.position;
