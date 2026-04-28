@@ -4,6 +4,7 @@ import SidebarDrawer from "./components/SidebarDrawer";
 import Toolbar from "./components/Toolbar";
 import SettingsHandle from "./components/SettingsHandle";
 import HelpDialog from "./components/HelpDialog";
+import AutomationBridge from "./components/AutomationBridge";
 import { useSchema } from "./hooks/useSchema";
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <SchemaCanvas schema={schema} />
       </div>
       <HelpDialog />
+      <AutomationBridge />
     </ReactFlowProvider>
   );
 }

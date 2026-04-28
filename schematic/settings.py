@@ -12,6 +12,8 @@ DEFAULTS: dict = {
     "exclude_models": {},
     "include_abstract": False,
     "include_proxy": True,
+    "diagrams_dir": None,
+    "diagram_render_timeout": 3000,
 }
 
 
