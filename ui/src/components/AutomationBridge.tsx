@@ -9,18 +9,26 @@ import { toPng } from "html-to-image";
 import type { Viewport } from "@xyflow/react";
 import { exportConfig, importConfig } from "../lib/config";
 import { injectTextChunk } from "../lib/pngEmbed";
+import { useSchemaStore } from "../store/schemaStore";
 
 export default function AutomationBridge() {
-  const { getNodes, setViewport } = useReactFlow();
+  const { getNodes, setViewport, fitView } = useReactFlow();
+  const setLayout = useSchemaStore((s) => s.setLayout);
 
   useEffect(() => {
     (window as unknown as Record<string, unknown>).__schematic = {
       importConfig(json: string) {
-        const viewport = importConfig(json);
-        setViewport(viewport as Viewport);
+        const result = importConfig(json);
+        setViewport({ x: result.x, y: result.y, zoom: result.zoom } as Viewport);
+        return result.canvasSize ?? null;
+      },
+
+      applyLayout(layout: "organic" | "dagre-lr" | "dagre-tb" | "elk") {
+        setLayout(layout);
       },
 
       async exportPngBytes(): Promise<string> {
+        await fitView({ padding: 0.1, duration: 0 });
         const positions: Record<string, { x: number; y: number }> = {};
         getNodes().forEach((n) => {
           positions[n.id] = n.position;
@@ -52,7 +60,7 @@ export default function AutomationBridge() {
         return btoa(result);
       },
     };
-  }, [getNodes, setViewport]);
+  }, [getNodes, setViewport, setLayout]);
 
   return null;
 }

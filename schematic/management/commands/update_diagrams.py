@@ -46,14 +46,31 @@ def find_stale_pngs(diagrams_dir: Path, changed_model_ids: set[str]) -> list[Pat
 
 
 def get_changed_files(base_branch: str) -> list[str]:
-    """Return list of .py file paths changed relative to base_branch."""
-    result = subprocess.run(
+    """Return list of .py file paths changed relative to base_branch, including unstaged and untracked files."""
+    committed = subprocess.run(
         ["git", "diff", "--name-only", f"{base_branch}...HEAD"],
         capture_output=True,
         text=True,
         check=True,
     )
-    return [f for f in result.stdout.splitlines() if f.endswith(".py")]
+    unstaged = subprocess.run(
+        ["git", "diff", "--name-only"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    all_files = (
+        committed.stdout.splitlines()
+        + unstaged.stdout.splitlines()
+        + untracked.stdout.splitlines()
+    )
+    return list({f for f in all_files if f.endswith(".py")})
 
 
 def changed_model_ids_from_files(changed_files: list[str]) -> set[str]:
@@ -119,7 +136,7 @@ def wait_for_server(port: int, timeout: int = 15) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def render_png(schema_url: str, config_json: str, render_timeout: int) -> bytes:
+def render_png(schema_url: str, config_json: str, render_timeout: int, boot_timeout: int = 15000, layout_override: str | None = None) -> bytes:
     """Use Playwright to load the schema page, import config, export PNG bytes."""
     try:
         from playwright.sync_api import sync_playwright
@@ -131,9 +148,14 @@ def render_png(schema_url: str, config_json: str, render_timeout: int) -> bytes:
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page()
+        page = browser.new_page(viewport={"width": 1920, "height": 1080})
         page.goto(schema_url)
-        page.evaluate(f"window.__schematic.importConfig({json.dumps(config_json)})")
+        page.wait_for_function("() => typeof window.__schematic !== 'undefined'", timeout=boot_timeout)
+        canvas_size = page.evaluate(f"window.__schematic.importConfig({json.dumps(config_json)})")
+        if canvas_size and canvas_size.get("width") and canvas_size.get("height"):
+            page.set_viewport_size({"width": canvas_size["width"], "height": canvas_size["height"]})
+        if layout_override:
+            page.evaluate(f"window.__schematic.applyLayout({json.dumps(layout_override)})")
         page.wait_for_timeout(render_timeout)
         b64: str = page.evaluate("window.__schematic.exportPngBytes()")
         browser.close()
@@ -166,6 +188,17 @@ class Command(BaseCommand):
             action="store_true",
             help="Detect and report stale PNGs without re-rendering",
         )
+        parser.add_argument(
+            "--layout",
+            choices=["elk", "auto", "organic", "dagre-lr", "left-to-right", "dagre-tb", "top-to-bottom"],
+            default=None,
+            metavar="LAYOUT",
+            help=(
+                "Override the layout engine for all re-rendered diagrams. "
+                "elk/auto, organic, dagre-lr/left-to-right, dagre-tb/top-to-bottom. "
+                "Omit to use the positions stored in each PNG."
+            ),
+        )
 
     def handle(self, *args, **options):  # type: ignore[override]
         diagrams_dir_raw = options["diagrams_dir"] or get_setting("diagrams_dir")
@@ -179,8 +212,11 @@ class Command(BaseCommand):
             raise CommandError(f"diagrams_dir does not exist: {diagrams_dir}")
 
         render_timeout = get_setting("diagram_render_timeout")
+        boot_timeout = get_setting("diagram_boot_timeout")
         base_branch = options["base_branch"]
         dry_run = options["dry_run"]
+        _layout_aliases = {"auto": "elk", "left-to-right": "dagre-lr", "top-to-bottom": "dagre-tb"}
+        layout_override = _layout_aliases.get(options["layout"], options["layout"])
 
         # Phase 1: detect
         self.stdout.write(f"Diffing against {base_branch}...")
@@ -221,12 +257,12 @@ class Command(BaseCommand):
                     continue
                 self.stdout.write(f"Rendering {png_path.name}...")
                 try:
-                    png_bytes = render_png(schema_url, config_json, render_timeout)
+                    png_bytes = render_png(schema_url, config_json, render_timeout, boot_timeout, layout_override)
                 except Exception as exc:
                     self.stderr.write(f"Warning: render failed for {png_path.name}: {exc}")
                     continue
 
-                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=png_path.parent) as tmp:
                     tmp.write(png_bytes)
                     tmp_path = Path(tmp.name)
                 tmp_path.replace(png_path)

@@ -49,6 +49,10 @@ _do-copy-python:
 		echo "Skipping Python deploy (PYTHON_DEPLOY_TARGET not set)."; \
 	else \
 		cp schematic/*.py $(PYTHON_DEPLOY_TARGET)/; \
+		mkdir -p $(PYTHON_DEPLOY_TARGET)/management/commands; \
+		cp schematic/management/__init__.py $(PYTHON_DEPLOY_TARGET)/management/; \
+		cp schematic/management/commands/__init__.py $(PYTHON_DEPLOY_TARGET)/management/commands/; \
+		cp schematic/management/commands/*.py $(PYTHON_DEPLOY_TARGET)/management/commands/; \
 		echo "Copied Python -> $(PYTHON_DEPLOY_TARGET)"; \
 	fi
 

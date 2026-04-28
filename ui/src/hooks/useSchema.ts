@@ -12,7 +12,6 @@ export function useSchema() {
   const [schema, setSchema] = useState<SchemaGraph | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const setAllVisible = useSchemaStore((s) => s.setAllVisible);
 
   useEffect(() => {
     const url = window.__SCHEMA_API_URL__ ?? "/schema/api/";
@@ -23,15 +22,17 @@ export function useSchema() {
       })
       .then((data) => {
         setSchema(data);
-        // All nodes visible by default
-        setAllVisible(data.nodes.map((n) => n.id));
+        // Only set the default if a config hasn't already been imported
+        if (!useSchemaStore.getState().schemaInitialized) {
+          useSchemaStore.getState().setAllVisible(data.nodes.map((n) => n.id));
+        }
         setLoading(false);
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : String(err));
         setLoading(false);
       });
-  }, [setAllVisible]);
+  }, []);
 
   return { schema, loading, error };
 }
