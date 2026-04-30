@@ -45,8 +45,8 @@ def find_stale_pngs(diagrams_dir: Path, changed_model_ids: set[str]) -> list[Pat
     return stale
 
 
-def get_changed_files(base_branch: str) -> list[str]:
-    """Return list of .py file paths changed relative to base_branch, including unstaged and untracked files."""
+def get_changed_files(base_branch: str) -> tuple[list[str], dict[str, str]]:
+    """Return changed .py file paths and raw git output for each source."""
     committed = subprocess.run(
         ["git", "diff", "--name-only", f"{base_branch}...HEAD"],
         capture_output=True,
@@ -70,7 +70,12 @@ def get_changed_files(base_branch: str) -> list[str]:
         + unstaged.stdout.splitlines()
         + untracked.stdout.splitlines()
     )
-    return list({f for f in all_files if f.endswith(".py")})
+    git_output = {
+        "committed": committed.stdout,
+        "unstaged": unstaged.stdout,
+        "untracked": untracked.stdout,
+    }
+    return list({f for f in all_files if f.endswith(".py")}), git_output
 
 
 def changed_model_ids_from_files(changed_files: list[str]) -> set[str]:
@@ -149,13 +154,16 @@ def render_png(schema_url: str, config_json: str, render_timeout: int, boot_time
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1920, "height": 1080})
+        config = json.loads(config_json)
+        active_layout = config.get("activeLayout", "elk")
+
         page.goto(schema_url)
         page.wait_for_function("() => typeof window.__schematic !== 'undefined'", timeout=boot_timeout)
-        canvas_size = page.evaluate(f"window.__schematic.importConfig({json.dumps(config_json)})")
-        if canvas_size and canvas_size.get("width") and canvas_size.get("height"):
-            page.set_viewport_size({"width": canvas_size["width"], "height": canvas_size["height"]})
-        if layout_override:
-            page.evaluate(f"window.__schematic.applyLayout({json.dumps(layout_override)})")
+        page.evaluate(f"window.__schematic.importConfig({json.dumps(config_json)})")
+        page.evaluate("() => window.__schematic.waitForRender()")
+        layout_to_apply = layout_override or active_layout
+        page.evaluate(f"window.__schematic.applyLayout({json.dumps(layout_to_apply)})")
+        page.evaluate("() => window.__schematic.waitForRender()")
         page.wait_for_timeout(render_timeout)
         b64: str = page.evaluate("window.__schematic.exportPngBytes()")
         browser.close()
@@ -218,12 +226,19 @@ class Command(BaseCommand):
         _layout_aliases = {"auto": "elk", "left-to-right": "dagre-lr", "top-to-bottom": "dagre-tb"}
         layout_override = _layout_aliases.get(options["layout"], options["layout"])
 
+        verbosity = options["verbosity"]
+
         # Phase 1: detect
         self.stdout.write(f"Diffing against {base_branch}...")
         try:
-            changed_files = get_changed_files(base_branch)
+            changed_files, git_output = get_changed_files(base_branch)
         except subprocess.CalledProcessError as exc:
             raise CommandError(f"git diff failed: {exc}") from exc
+
+        if verbosity >= 2:
+            self.stdout.write(f"Committed changes:\n{git_output['committed']}")
+            self.stdout.write(f"Unstaged changes:\n{git_output['unstaged']}")
+            self.stdout.write(f"Untracked files:\n{git_output['untracked']}")
 
         changed_ids = changed_model_ids_from_files(changed_files)
         self.stdout.write(f"Changed model candidates: {sorted(changed_ids) or 'none'}")

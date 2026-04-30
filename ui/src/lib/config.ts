@@ -106,6 +106,7 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
     canvasHidePositions: raw.version === 2 && raw.canvasHidePositions
       ? new Map(Object.entries(raw.canvasHidePositions))
       : new Map(),
+    schemaInitialized: true,
     ...(activeLayout ? { activeLayout } : {}),
   });
 
