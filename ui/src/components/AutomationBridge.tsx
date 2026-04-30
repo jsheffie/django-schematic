@@ -27,6 +27,12 @@ export default function AutomationBridge() {
         setLayout(layout);
       },
 
+      waitForRender(): Promise<void> {
+        return new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+      },
+
       async exportPngBytes(): Promise<string> {
         await fitView({ padding: 0.1, duration: 0 });
         const positions: Record<string, { x: number; y: number }> = {};
