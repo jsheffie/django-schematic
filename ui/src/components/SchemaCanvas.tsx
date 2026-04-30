@@ -120,6 +120,10 @@ export default function SchemaCanvas({ schema }: Props) {
   // It starts from rfNodes and is updated by layout algorithms and user drags.
   const [displayNodes, setDisplayNodes] = useState<ModelNodeData[]>(rfNodes);
 
+  // True once React Flow has measured at least one node after the first paint.
+  // Used to defer the initial layout until node heights are known.
+  const [nodesMeasured, setNodesMeasured] = useState(false);
+
   // Keep a ref to displayNodes so the layout effect can read current measured
   // node sizes without adding displayNodes to the effect's dependency array
   // (which would cause runaway re-layouts on every position tick).
@@ -166,10 +170,18 @@ export default function SchemaCanvas({ schema }: Props) {
 
   // Route React Flow position changes (drags, layout updates via setNodes) into
   // displayNodes so the controlled <ReactFlow nodes> prop stays current.
+  // Also detect when React Flow has measured node dimensions after the first paint.
   const onNodesChange = useCallback(
-    (changes: NodeChange<ModelNodeData>[]) =>
-      setDisplayNodes((nds) => applyNodeChanges(changes, nds)),
-    [],
+    (changes: NodeChange<ModelNodeData>[]) => {
+      setDisplayNodes((nds) => {
+        const next = applyNodeChanges(changes, nds);
+        if (!nodesMeasured && next.some((n) => n.measured?.height)) {
+          setNodesMeasured(true);
+        }
+        return next;
+      });
+    },
+    [nodesMeasured],
   );
 
   // Force layout — only active when force layout is selected.
@@ -205,11 +217,14 @@ export default function SchemaCanvas({ schema }: Props) {
   }, [forceParams, activeLayout, reheat]);
 
   // Apply dagre or elk layout whenever the layout mode or visible nodes/edges change.
-  // After positioning, fitView — but skip on the very first application (initial page load).
-  // Also skip on a fresh import: imported positions already encode the saved layout, so
+  // After positioning, always fitView so all nodes are visible.
+  // Skip on a fresh import: imported positions already encode the saved layout, so
   // rerunning the algorithm would overwrite them.
+  // Wait for nodesMeasured before running the initial layout so ELK/dagre receive
+  // actual node heights rather than the 220×60 fallback (avoids zooming too far out).
   useEffect(() => {
     if (activeLayout === "organic") return;
+    if (!nodesMeasured) return;
 
     if (importId !== lastLayoutImportIdRef.current) {
       lastLayoutImportIdRef.current = importId;
@@ -223,21 +238,20 @@ export default function SchemaCanvas({ schema }: Props) {
     }
 
     const sizeMap = buildSizeMap();
-    const shouldFit = !isFirstLayoutRef.current;
     isFirstLayoutRef.current = false;
 
     if (activeLayout === "elk") {
       runElkLayout(rfNodesRef.current, rfEdgesRef.current, sizeMap).then((positioned) => {
         setNodes(positioned);
-        if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
+        setTimeout(() => fitView({ duration: 300 }), 0);
       });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
     const positioned = runDagreLayout(rfNodesRef.current, rfEdgesRef.current, direction, sizeMap);
     setNodes(positioned);
-    if (shouldFit) setTimeout(() => fitView({ duration: 300 }), 0);
-  }, [activeLayout, layoutVersion, importId, canvasLayoutSuppressVersion, setNodes, fitView, buildSizeMap]);
+    setTimeout(() => fitView({ duration: 300 }), 0);
+  }, [activeLayout, layoutVersion, importId, canvasLayoutSuppressVersion, nodesMeasured, setNodes, fitView, buildSizeMap]);
 
   // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
   const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
