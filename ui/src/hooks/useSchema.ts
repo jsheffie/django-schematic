@@ -24,7 +24,9 @@ export function useSchema() {
         setSchema(data);
         // Only set the default if a config hasn't already been imported
         if (!useSchemaStore.getState().schemaInitialized) {
-          useSchemaStore.getState().setAllVisible(data.nodes.map((n) => n.id));
+          const ids = data.nodes.map((n) => n.id);
+          useSchemaStore.getState().setAllVisible(ids);
+          useSchemaStore.getState().expandAll(ids);
         }
         setLoading(false);
       })
