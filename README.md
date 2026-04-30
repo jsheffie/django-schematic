@@ -35,6 +35,7 @@ See all your models, fields, and relationships as an interactive, force-directed
 
 ## Live Demo
 - [Live Demo](https://jeffield.net/schema/)
+- [CI/CD Pipeline Demo (YouTube)](https://www.youtube.com/watch?v=KzHT0PHu2cc) — auto-regenerating schema PNGs when models change
 
 ## Visualize
 
@@ -127,6 +128,10 @@ The schema is also available as JSON:
 GET /schema/api/
 GET /schema/api/?apps=myapp,otherapp
 ```
+
+## CI/CD Pipeline (optional)
+
+`update_diagrams` is a management command that re-renders your PNG schema diagrams automatically when models change. See [README.setting-up-CI.md](README.setting-up-CI.md) for setup instructions.
 
 ## Development
 
