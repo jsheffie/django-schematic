@@ -1,52 +1,141 @@
+# Setting Up the CI/CD Pipeline for Auto-Updating Schema Diagrams
 
-What the command needs
+django-schematic includes an optional `update_diagrams` management command that automatically re-renders your PNG schema diagrams when your Django models change. This is useful in CI/CD pipelines to keep committed diagram PNGs in sync with the codebase.
 
-  1. A diagrams_dir — a directory containing your PNG file, so the command can scan it
-  2. The PNG in that directory — copied from ~/Downloads/schematic_library.png
-  3. diagrams_dir in settings — so the command knows where to look
-  4. playwright installed with its browser — required for the render phase (already pulled in via [ci] extra, but browser needs a separate install step)
+Watch the [CI/CD Pipeline Demo on YouTube](https://www.youtube.com/watch?v=KzHT0PHu2cc) to see it in action.
 
-  ---
-  Step 1 — Create the diagrams directory and copy the PNG
+A working reference implementation is available at [django_schematic_many_megan_testbed](https://github.com/jsheffie/django_schematic_many_megan_testbed).
 
-  Run this in the project root:
+---
 
-  mkdir -p docs/diagrams
-  cp ~/Downloads/schematic_library.png docs/diagrams/
+## How It Works
 
-  ---
-  Step 2 — Add diagrams_dir to your local settings
+1. You commit one or more PNG schema diagrams to your repo (exported from the django-schematic UI, which embeds model metadata in the file).
+2. On each run, `update_diagrams` diffs against `main` to find changed model files, checks which PNGs reference those models, and re-renders only the affected diagrams using a headless Chromium browser.
+3. The updated PNGs can be committed back to the repo automatically in CI.
 
-  The command reads from SCHEMATIC['diagrams_dir']. For local testing, add it to your local Django settings. Open .envs/.local/.django or wherever you want — but the
-  cleanest place is config/settings/local.py. Add to the SCHEMATIC block there (or create one if it doesn't exist):
+---
 
-  SCHEMATIC = {
-      "diagrams_dir": BASE_DIR / "docs/diagrams",
-      "diagram_render_timeout": 5000,
-  }
+## Prerequisites
 
-  Can you show me what's currently in config/settings/local.py so I can tell you exactly what to add/change without stomping anything?
+- `django-schematic[ci]` installed (pulls in `playwright`)
+- Playwright's Chromium browser binary installed
+- A `diagrams_dir` setting pointing to the directory containing your PNG diagrams
+- At least one seed PNG exported from the django-schematic UI
 
-  ---
-  Step 3 — Install Playwright's browser (one-time, inside Docker)
+---
 
-  After the container builds with the new [ci] requirement, you'll need to install the Chromium browser binary:
+## Local Setup
 
-  docker compose -f local.yml run --rm django playwright install chromium
-  Note: this does not work well, I set it up in my Docker steps.
-  
-  ---
-  Step 4 — Run the command
+### 1. Install with the CI extra
 
-  First try --dry-run to confirm it finds your PNG without actually rendering:
+```bash
+pip install "django-schematic[ci]"
+playwright install chromium
+```
 
-  docker compose -f local.yml run --rm django python manage.py update_diagrams --dry-run
+### 2. Create a diagrams directory and add a seed PNG
 
-  The command diffs against main to find changed model IDs, then checks which PNGs contain those model IDs in their schematic tEXt chunk. Your PNG has visibleNodeIds
-  embedded in it — I confirmed that above.
+Export a PNG from the django-schematic UI (use the export button), then place it in your diagrams directory:
 
-  Then run for real:
+```bash
+mkdir -p docs/diagrams
+cp ~/Downloads/my_schema.png docs/diagrams/
+```
 
-  docker compose -f local.yml run --rm django python manage.py update_diagrams
+### 3. Configure `diagrams_dir` in settings
 
-  
+```python
+# settings.py
+SCHEMATIC = {
+    "diagrams_dir": BASE_DIR / "docs/diagrams",
+}
+```
+
+### 4. Test with a dry run
+
+```bash
+python manage.py update_diagrams --dry-run
+```
+
+This confirms the command finds your PNG without rendering anything. Then run for real:
+
+```bash
+python manage.py update_diagrams
+```
+
+Pass `-v 2` to see the git diff of changed model files:
+
+```bash
+python manage.py update_diagrams -v 2
+```
+
+---
+
+## Docker Setup
+
+Playwright requires several system libraries for headless Chromium. Add these to your Dockerfile before running `playwright install chromium`:
+
+```dockerfile
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libnss3 \
+    libnspr4 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxcb1 \
+    libxkbcommon0 \
+    libatspi2.0-0 \
+    libx11-6 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN playwright install chromium
+```
+
+---
+
+## GitHub Actions Example
+
+Add a step after migrations to re-render diagrams and commit the result:
+
+```yaml
+- name: Update schema diagrams
+  run: |
+    python manage.py update_diagrams -v 2
+
+- name: Commit updated diagrams
+  run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+    git add docs/diagrams/
+    git diff --cached --quiet || git commit -m "chore: update schema diagrams"
+    git push
+```
+
+---
+
+## Google Cloud Build Example
+
+The testbed repo uses Cloud Build to build and deploy the app, then run `update_diagrams` as part of the deploy step. See [many_megan_deploy/cloudbuild.yaml](https://github.com/jsheffie/django_schematic_many_megan_testbed/blob/main/many_megan_deploy/cloudbuild.yaml) for the full configuration.
+
+---
+
+## Troubleshooting
+
+**`playwright install chromium` fails inside Docker** — Install the system dependencies listed above *before* running the playwright install step.
+
+**`update_diagrams` finds no PNGs** — Confirm `SCHEMATIC["diagrams_dir"]` points to the correct directory and that the PNG was exported from the django-schematic UI (not a plain screenshot — it must contain embedded metadata).
+
+**Diagrams re-render all models instead of only the changed ones** — Make sure you are on a branch with a clean `main` to diff against. The command uses `git diff main` to detect changed model files.
