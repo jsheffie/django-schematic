@@ -42,6 +42,7 @@ export const ModelNode = memo(function ModelNode({
 
   const isAbstract = data.tags.includes("abstract");
   const isProxy = data.tags.includes("proxy");
+  const isThrough = data.tags.includes("through");
 
   return (
     <div
@@ -92,6 +93,9 @@ export const ModelNode = memo(function ModelNode({
         )}
         {isProxy && (
           <span className="text-xs text-gray-400 shrink-0">proxy</span>
+        )}
+        {isThrough && (
+          <span className="text-xs text-gray-400 shrink-0">through</span>
         )}
         <span className="text-xs shrink-0" style={{ color: borderColor }}>
           {data.appLabel}

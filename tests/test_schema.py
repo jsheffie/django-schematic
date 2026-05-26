@@ -62,6 +62,20 @@ def test_suppress_through_m2m_keeps_implicit_m2m(settings):
 
 
 @pytest.mark.django_db
+def test_through_table_node_tagged():
+    schema = build_schema(filter_apps=["testapp"])
+    through_node = next(n for n in schema.nodes if n.name == "BookTagLink")
+    assert "through" in through_node.tags
+
+
+@pytest.mark.django_db
+def test_non_through_table_not_tagged():
+    schema = build_schema(filter_apps=["testapp"])
+    book_node = next(n for n in schema.nodes if n.name == "Book")
+    assert "through" not in book_node.tags
+
+
+@pytest.mark.django_db
 def test_suppress_through_m2m_default_keeps_all_edges():
     schema = build_schema(filter_apps=["testapp"])
     m2m_edges = {(e.source, e.target) for e in schema.edges if e.relation_type == "m2m"}

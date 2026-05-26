@@ -90,12 +90,14 @@ def _extract_fields(model: type[django_models.Model]) -> tuple[FieldInfo, ...]:
     return tuple(sorted(fields))
 
 
-def _tags(model: type[django_models.Model]) -> tuple[str, ...]:
+def _tags(model: type[django_models.Model], *, is_through: bool = False) -> tuple[str, ...]:
     tags = []
     if model._meta.abstract:
         tags.append("abstract")
     if model._meta.proxy:
         tags.append("proxy")
+    if is_through:
+        tags.append("through")
     return tuple(tags)
 
 
@@ -204,6 +206,14 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
 
     all_model_ids = {_node_id(m) for m in all_models}
 
+    from django.db.models import ManyToManyField
+
+    through_models: set[type] = set()
+    for m in all_models:
+        for f in m._meta.get_fields():
+            if isinstance(f, ManyToManyField) and not f.remote_field.through._meta.auto_created:
+                through_models.add(f.remote_field.through)
+
     nodes = tuple(
         sorted(
             NodeInfo(
@@ -211,7 +221,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
                 name=m.__name__,
                 app_label=m._meta.app_label,
                 app_name=app_name_map.get(m._meta.app_label, m._meta.app_label),
-                tags=_tags(m),
+                tags=_tags(m, is_through=(m in through_models)),
                 fields=_extract_fields(m),
             )
             for m in all_models
