@@ -117,8 +117,17 @@ SCHEMATIC = {
     "exclude_models": {},         # {"myapp": ["InternalModel"]}
     "include_abstract": False,
     "include_proxy": True,
+    "suppress_through_m2m": False,
 }
 ```
+
+### `suppress_through_m2m`
+
+When a `ManyToManyField` uses an explicit `through` model, Django draws two layers of relationships: the FK edges from the through table to each side, and a direct logical M2M edge on the model that declares the field. With `suppress_through_m2m = False` (the default) both are shown.
+
+Set `suppress_through_m2m = True` to hide the redundant logical M2M edge and keep only the FK edges through the junction table — useful when the through model carries extra fields and you want the graph to reflect the true database structure.
+
+Explicit through models are also tagged `through` in the graph and shown with a `through` badge in the node header, making them easy to identify regardless of this setting.
 
 ## API
 
