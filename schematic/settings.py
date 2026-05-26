@@ -15,6 +15,7 @@ DEFAULTS: dict = {
     "diagrams_dir": None,
     "diagram_render_timeout": 3000,
     "diagram_boot_timeout": 15000,
+    "suppress_through_m2m": False,
 }
 
 

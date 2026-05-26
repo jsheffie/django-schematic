@@ -23,3 +23,19 @@ class Tag(models.Model):
 
     class Meta:
         app_label = "testapp"
+
+
+class BookTagLink(models.Model):
+    book = models.ForeignKey("Book", on_delete=models.CASCADE)
+    tag = models.ForeignKey("Tag", on_delete=models.CASCADE)
+
+    class Meta:
+        app_label = "testapp"
+
+
+class BookWithThrough(models.Model):
+    title = models.CharField(max_length=200)
+    tags = models.ManyToManyField("Tag", through="BookTagLink", blank=True)
+
+    class Meta:
+        app_label = "testapp"

@@ -46,6 +46,29 @@ def test_schema_has_app_names_mapping():
 
 
 @pytest.mark.django_db
+def test_suppress_through_m2m_suppresses_logical_edge(settings):
+    settings.SCHEMATIC = {"suppress_through_m2m": True}
+    schema = build_schema(filter_apps=["testapp"])
+    m2m_edges = {(e.source, e.target) for e in schema.edges if e.relation_type == "m2m"}
+    assert ("testapp.BookWithThrough", "testapp.Tag") not in m2m_edges
+
+
+@pytest.mark.django_db
+def test_suppress_through_m2m_keeps_implicit_m2m(settings):
+    settings.SCHEMATIC = {"suppress_through_m2m": True}
+    schema = build_schema(filter_apps=["testapp"])
+    m2m_edges = {(e.source, e.target) for e in schema.edges if e.relation_type == "m2m"}
+    assert ("testapp.Book", "testapp.Tag") in m2m_edges
+
+
+@pytest.mark.django_db
+def test_suppress_through_m2m_default_keeps_all_edges():
+    schema = build_schema(filter_apps=["testapp"])
+    m2m_edges = {(e.source, e.target) for e in schema.edges if e.relation_type == "m2m"}
+    assert ("testapp.BookWithThrough", "testapp.Tag") in m2m_edges
+
+
+@pytest.mark.django_db
 def test_to_json_is_valid():
     import json
 

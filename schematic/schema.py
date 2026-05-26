@@ -102,6 +102,7 @@ def _tags(model: type[django_models.Model]) -> tuple[str, ...]:
 def _extract_edges(
     model: type[django_models.Model],
     all_model_ids: set[str],
+    suppress_through_m2m: bool = False,
 ) -> list[EdgeInfo]:
     edges: list[EdgeInfo] = []
     source = _node_id(model)
@@ -126,6 +127,8 @@ def _extract_edges(
         elif isinstance(f, ForeignKey):
             rel = "fk"
         elif isinstance(f, ManyToManyField):
+            if suppress_through_m2m and not f.remote_field.through._meta.auto_created:
+                continue
             rel = "m2m"
         else:
             rel = "fk"
@@ -172,6 +175,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
     include_abstract: bool = get_setting("include_abstract")
     include_proxy: bool = get_setting("include_proxy")
     include_apps: list[str] = get_setting("include_apps")
+    suppress_through_m2m: bool = get_setting("suppress_through_m2m")
 
     # Determine which apps to include
     all_app_configs = django_apps.get_app_configs()
@@ -216,7 +220,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
 
     edges: list[EdgeInfo] = []
     for m in all_models:
-        edges.extend(_extract_edges(m, all_model_ids))
+        edges.extend(_extract_edges(m, all_model_ids, suppress_through_m2m))
 
     app_labels = tuple(sorted({n.app_label for n in nodes}))
     app_names = {label: app_name_map.get(label, label) for label in app_labels}
