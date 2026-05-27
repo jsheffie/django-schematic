@@ -53,6 +53,8 @@ _do-copy-python:
 		cp schematic/management/__init__.py $(PYTHON_DEPLOY_TARGET)/management/; \
 		cp schematic/management/commands/__init__.py $(PYTHON_DEPLOY_TARGET)/management/commands/; \
 		cp schematic/management/commands/*.py $(PYTHON_DEPLOY_TARGET)/management/commands/; \
+		mkdir -p $(PYTHON_DEPLOY_TARGET)/templates/schematic; \
+		cp schematic/templates/schematic/index.html $(PYTHON_DEPLOY_TARGET)/templates/schematic/; \
 		echo "Copied Python -> $(PYTHON_DEPLOY_TARGET)"; \
 	fi
 

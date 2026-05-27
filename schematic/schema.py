@@ -90,18 +90,21 @@ def _extract_fields(model: type[django_models.Model]) -> tuple[FieldInfo, ...]:
     return tuple(sorted(fields))
 
 
-def _tags(model: type[django_models.Model]) -> tuple[str, ...]:
+def _tags(model: type[django_models.Model], *, is_through: bool = False) -> tuple[str, ...]:
     tags = []
     if model._meta.abstract:
         tags.append("abstract")
     if model._meta.proxy:
         tags.append("proxy")
+    if is_through:
+        tags.append("through")
     return tuple(tags)
 
 
 def _extract_edges(
     model: type[django_models.Model],
     all_model_ids: set[str],
+    suppress_through_m2m: bool = False,
 ) -> list[EdgeInfo]:
     edges: list[EdgeInfo] = []
     source = _node_id(model)
@@ -126,6 +129,8 @@ def _extract_edges(
         elif isinstance(f, ForeignKey):
             rel = "fk"
         elif isinstance(f, ManyToManyField):
+            if suppress_through_m2m and not f.remote_field.through._meta.auto_created:
+                continue
             rel = "m2m"
         else:
             rel = "fk"
@@ -172,6 +177,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
     include_abstract: bool = get_setting("include_abstract")
     include_proxy: bool = get_setting("include_proxy")
     include_apps: list[str] = get_setting("include_apps")
+    suppress_through_m2m: bool = get_setting("suppress_through_m2m")
 
     # Determine which apps to include
     all_app_configs = django_apps.get_app_configs()
@@ -200,6 +206,14 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
 
     all_model_ids = {_node_id(m) for m in all_models}
 
+    from django.db.models import ManyToManyField
+
+    through_models: set[type] = set()
+    for m in all_models:
+        for f in m._meta.get_fields():
+            if isinstance(f, ManyToManyField) and not f.remote_field.through._meta.auto_created:
+                through_models.add(f.remote_field.through)
+
     nodes = tuple(
         sorted(
             NodeInfo(
@@ -207,7 +221,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
                 name=m.__name__,
                 app_label=m._meta.app_label,
                 app_name=app_name_map.get(m._meta.app_label, m._meta.app_label),
-                tags=_tags(m),
+                tags=_tags(m, is_through=(m in through_models)),
                 fields=_extract_fields(m),
             )
             for m in all_models
@@ -216,7 +230,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
 
     edges: list[EdgeInfo] = []
     for m in all_models:
-        edges.extend(_extract_edges(m, all_model_ids))
+        edges.extend(_extract_edges(m, all_model_ids, suppress_through_m2m))
 
     app_labels = tuple(sorted({n.app_label for n in nodes}))
     app_names = {label: app_name_map.get(label, label) for label in app_labels}
