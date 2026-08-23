@@ -124,6 +124,11 @@ export default function SchemaCanvas({ schema }: Props) {
   // Used to defer the initial layout until node heights are known.
   const [nodesMeasured, setNodesMeasured] = useState(false);
 
+  // When the canvas empties (hide-all), re-arm the measurement gate.
+  useEffect(() => {
+    if (rfNodes.length === 0) setNodesMeasured(false);
+  }, [rfNodes.length]);
+
   // Keep a ref to displayNodes so the layout effect can read current measured
   // node sizes without adding displayNodes to the effect's dependency array
   // (which would cause runaway re-layouts on every position tick).
@@ -223,7 +228,6 @@ export default function SchemaCanvas({ schema }: Props) {
   // Wait for nodesMeasured before running the initial layout so ELK/dagre receive
   // actual node heights rather than the 220×60 fallback (avoids zooming too far out).
   useEffect(() => {
-    if (activeLayout === "organic") return;
     if (!nodesMeasured) return;
 
     if (importId !== lastLayoutImportIdRef.current) {
@@ -234,6 +238,12 @@ export default function SchemaCanvas({ schema }: Props) {
 
     if (canvasLayoutSuppressVersion !== lastSuppressVersionRef.current) {
       lastSuppressVersionRef.current = canvasLayoutSuppressVersion;
+      return;
+    }
+
+    // schedules viewport re-fit - "zoom/pan so all visible nodes fit on screen"
+    if (activeLayout === "organic") {
+      setTimeout(() => fitView({ duration: 300 }), 0);
       return;
     }
 
