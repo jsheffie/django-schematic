@@ -3,6 +3,7 @@ import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
 import type { FieldInfo } from "../lib/types";
+import { IconEye, IconEyeSlash } from "./icons";
 
 function SwatchPopover({
   current,
@@ -133,15 +134,7 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
               className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
                 f.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
               } ${hidden ? "opacity-40" : ""} ${isDragging ? "bg-blue-50 shadow-sm" : ""}`}
-              style={
-                color
-                  ? {
-                      backgroundColor: `${color}4D`,
-                      boxShadow: `inset 0 0 0 1px ${color}`,
-                      borderRadius: 3,
-                    }
-                  : undefined
-              }
+              style={color ? { backgroundColor: `${color}4D` } : undefined}
             >
               <span
                 className="cursor-grab touch-none select-none px-0.5 text-gray-400 active:cursor-grabbing"
@@ -154,12 +147,12 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
                 ≡
               </span>
               <button
-                className="shrink-0 select-none"
+                className="shrink-0 select-none text-gray-500 hover:text-gray-800"
                 onClick={() => toggleFieldHidden(nodeId, name)}
                 title={hidden ? "Show field" : "Hide field"}
                 aria-label={hidden ? "Show field" : "Hide field"}
               >
-                {hidden ? "🚫" : "👁"}
+                {hidden ? <IconEyeSlash className="w-3.5 h-3.5" /> : <IconEye className="w-3.5 h-3.5" />}
               </button>
               <button
                 data-swatch-toggle

@@ -21,17 +21,7 @@ function FieldRow({ field, color }: { field: FieldInfo; color?: string }) {
       className={`flex items-center gap-2 px-2 py-0.5 text-xs ${
         field.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
       }`}
-      style={
-        color
-          ? {
-              // Translucent fill + full-strength inset ring; background-only so
-              // row height doesn't change when a color is applied.
-              backgroundColor: `${color}4D`,
-              boxShadow: `inset 0 0 0 1px ${color}`,
-              borderRadius: 3,
-            }
-          : undefined
-      }
+      style={color ? { backgroundColor: `${color}4D` } : undefined}
     >
       <span className="flex-1 truncate">{field.name}</span>
       <span className="text-gray-400 shrink-0">{field.field_type}</span>
