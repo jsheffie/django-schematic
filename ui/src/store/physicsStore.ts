@@ -69,6 +69,9 @@ interface PhysicsStore {
   colorPalette: ColorPalette;
   backgroundStyle: BackgroundStyle;
 
+  // Node currently in field-edit mode (at most one at a time; null = none).
+  editingNodeId: string | null;
+
   setEdgeStyle: (s: EdgeStyle) => void;
   setLiveDragPhysics: (v: boolean) => void;
   setPhysicsEnabled: (v: boolean) => void;
@@ -80,6 +83,7 @@ interface PhysicsStore {
   setSettingsTab: (tab: "appearance" | "physics") => void;
   setColorPalette: (p: ColorPalette) => void;
   setBackgroundStyle: (s: BackgroundStyle) => void;
+  setEditingNode: (id: string | null) => void;
   applyPreset: (mode: AppMode) => void;
 }
 
@@ -96,6 +100,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   settingsTab: "appearance",
   colorPalette: "pastel",
   backgroundStyle: "dots",
+  editingNodeId: null,
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
   setLiveDragPhysics: (liveDragPhysics) => set({ liveDragPhysics }),
@@ -109,6 +114,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setSettingsTab: (settingsTab) => set({ settingsTab }),
   setColorPalette: (colorPalette) => set({ colorPalette }),
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
+  setEditingNode: (editingNodeId) => set({ editingNodeId }),
 
   applyPreset: (mode) => {
     if (mode === "stiff") {

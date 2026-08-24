@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { EMPTY_FIELD_EDITS, isEmptyEdits, type FieldEdits } from "../lib/fieldEdits";
 
 interface ViewportState {
   x: number;
@@ -21,6 +22,10 @@ interface SchemaStore {
   // Increments on every canvas hide/restore so SchemaCanvas can detect and skip layout.
   canvasLayoutSuppressVersion: number;
 
+  // Per-node field presentation edits (issue #93). Sparse: only edited nodes
+  // have entries; an entry whose edits are all cleared is removed.
+  fieldEdits: Map<string, FieldEdits>;
+
   // Node visibility
   setAllVisible: (ids: string[]) => void;
   toggleNodeVisibility: (id: string) => void;
@@ -35,6 +40,12 @@ interface SchemaStore {
   collapseAll: () => void;
   expandNodes: (ids: string[]) => void;   // add these ids without touching others
   collapseNodes: (ids: string[]) => void; // remove these ids without touching others
+
+  // Field editing
+  toggleFieldHidden: (nodeId: string, fieldName: string) => void;
+  setFieldOrder: (nodeId: string, order: string[], naturalOrder: string[]) => void;
+  setFieldColor: (nodeId: string, fieldName: string, color: string | null) => void;
+  resetFieldEdits: (nodeId: string) => void;
 
   // App collapse (group node)
   toggleAppCollapse: (appLabel: string) => void;
@@ -62,6 +73,19 @@ interface SchemaStore {
   resetConfig: () => void;
 }
 
+// Returns a new map with `edits` stored under `nodeId`, or the entry removed
+// if the edits are all cleared — keeps the map sparse.
+function commitFieldEdits(
+  map: Map<string, FieldEdits>,
+  nodeId: string,
+  edits: FieldEdits,
+): Map<string, FieldEdits> {
+  const next = new Map(map);
+  if (isEmptyEdits(edits)) next.delete(nodeId);
+  else next.set(nodeId, edits);
+  return next;
+}
+
 export const useSchemaStore = create<SchemaStore>((set) => ({
   visibleNodeIds: new Set(),
   expandedNodeIds: new Set(),
@@ -74,6 +98,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   schemaInitialized: false,
   canvasHidePositions: new Map(),
   canvasLayoutSuppressVersion: 0,
+  fieldEdits: new Map(),
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids), schemaInitialized: true }),
 
@@ -154,6 +179,41 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       return { expandedNodeIds: next };
     }),
 
+  toggleFieldHidden: (nodeId, fieldName) =>
+    set((s) => {
+      const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
+      const hiddenFields = cur.hiddenFields.includes(fieldName)
+        ? cur.hiddenFields.filter((n) => n !== fieldName)
+        : [...cur.hiddenFields, fieldName];
+      return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, hiddenFields }) };
+    }),
+
+  setFieldOrder: (nodeId, order, naturalOrder) =>
+    set((s) => {
+      const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
+      const isNatural =
+        order.length === naturalOrder.length &&
+        order.every((name, i) => name === naturalOrder[i]);
+      const fieldOrder = isNatural ? null : [...order];
+      return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldOrder }) };
+    }),
+
+  setFieldColor: (nodeId, fieldName, color) =>
+    set((s) => {
+      const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
+      const fieldColors = { ...cur.fieldColors };
+      if (color === null) delete fieldColors[fieldName];
+      else fieldColors[fieldName] = color;
+      return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldColors }) };
+    }),
+
+  resetFieldEdits: (nodeId) =>
+    set((s) => {
+      const next = new Map(s.fieldEdits);
+      next.delete(nodeId);
+      return { fieldEdits: next };
+    }),
+
   toggleAppCollapse: (appLabel) =>
     set((s) => {
       const next = new Set(s.collapsedApps);
@@ -194,5 +254,6 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       activeLayout: "elk",
       layoutVersion: 0,
       canvasHidePositions: new Map(),
+      fieldEdits: new Map(),
     }),
 }));

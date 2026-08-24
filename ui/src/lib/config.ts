@@ -8,6 +8,7 @@ import {
   type ColorPalette,
   type BackgroundStyle,
 } from "../store/physicsStore";
+import type { FieldEdits } from "./fieldEdits";
 
 interface PhysicsConfig {
   edgeStyle: EdgeStyle;
@@ -21,6 +22,21 @@ interface PhysicsConfig {
 }
 
 export interface ViewConfig {
+  version: 3;
+  activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
+  visibleNodeIds: string[];
+  expandedNodeIds: string[];
+  pinnedPositions: Record<string, { x: number; y: number }>;
+  collapsedApps: string[];
+  viewport: { x: number; y: number; zoom: number };
+  canvasSize?: { width: number; height: number };
+  physics: PhysicsConfig;
+  canvasHidePositions?: Record<string, { x: number; y: number }>;
+  fieldEdits?: Record<string, FieldEdits>;
+}
+
+// Legacy v2 format (no fieldEdits)
+interface ViewConfigV2 {
   version: 2;
   activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
   visibleNodeIds: string[];
@@ -63,7 +79,7 @@ export function exportConfig(
   };
 
   const config: ViewConfig = {
-    version: 2,
+    version: 3,
     activeLayout: s.activeLayout,
     visibleNodeIds: Array.from(s.visibleNodeIds),
     expandedNodeIds: Array.from(s.expandedNodeIds),
@@ -72,6 +88,7 @@ export function exportConfig(
     viewport: s.viewportState,
     canvasSize: { width: window.innerWidth, height: window.innerHeight },
     canvasHidePositions: Object.fromEntries(s.canvasHidePositions),
+    fieldEdits: Object.fromEntries(s.fieldEdits),
     physics: {
       edgeStyle: p.edgeStyle,
       liveDragPhysics: p.liveDragPhysics,
@@ -88,14 +105,18 @@ export function exportConfig(
 
 /** Returns the viewport and original canvas size from the config so the caller can apply them. */
 export function importConfig(json: string): { x: number; y: number; zoom: number; canvasSize?: { width: number; height: number } } {
-  const raw = JSON.parse(json) as ViewConfig | ViewConfigV1;
+  const raw = JSON.parse(json) as ViewConfig | ViewConfigV2 | ViewConfigV1;
 
-  if (raw.version !== 1 && raw.version !== 2) {
+  if (raw.version !== 1 && raw.version !== 2 && raw.version !== 3) {
     throw new Error("Unknown config version");
   }
 
-  const rawLayout = raw.version === 2 ? (raw.activeLayout as string) : undefined;
+  const isV2OrHigher = raw.version >= 2;
+  const rawLayout = isV2OrHigher ? ((raw as ViewConfigV2 | ViewConfig).activeLayout as string) : undefined;
   const activeLayout = rawLayout === "force" ? "organic" : (rawLayout as "organic" | "dagre-lr" | "dagre-tb" | "elk" | undefined);
+
+  const v2OrHigher = isV2OrHigher ? (raw as ViewConfigV2 | ViewConfig) : null;
+  const v3 = raw.version === 3 ? (raw as ViewConfig) : null;
 
   useSchemaStore.setState({
     visibleNodeIds: new Set(raw.visibleNodeIds),
@@ -103,31 +124,36 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
     pinnedPositions: new Map(Object.entries(raw.pinnedPositions)),
     collapsedApps: new Set(raw.collapsedApps),
     viewportState: raw.viewport,
-    canvasHidePositions: raw.version === 2 && raw.canvasHidePositions
-      ? new Map(Object.entries(raw.canvasHidePositions))
+    canvasHidePositions: v2OrHigher && v2OrHigher.canvasHidePositions
+      ? new Map(Object.entries(v2OrHigher.canvasHidePositions))
       : new Map(),
+    fieldEdits:
+      v3 && v3.fieldEdits
+        ? new Map(Object.entries(v3.fieldEdits))
+        : new Map(),
     schemaInitialized: true,
     ...(activeLayout ? { activeLayout } : {}),
   });
 
-  if (raw.version === 2 && raw.physics) {
+  if (isV2OrHigher && (raw as ViewConfigV2 | ViewConfig).physics) {
+    const physics = (raw as ViewConfigV2 | ViewConfig).physics;
     const importedAppMode: AppMode =
-      (raw.physics.appMode as string) === "auto-layout" ? "normal" : raw.physics.appMode;
+      (physics.appMode as string) === "auto-layout" ? "normal" : physics.appMode;
     usePhysicsStore.setState({
-      edgeStyle: raw.physics.edgeStyle,
-      liveDragPhysics: raw.physics.liveDragPhysics,
-      forceParams: { ...DEFAULT_FORCE_PARAMS, ...raw.physics.forceParams },
+      edgeStyle: physics.edgeStyle,
+      liveDragPhysics: physics.liveDragPhysics,
+      forceParams: { ...DEFAULT_FORCE_PARAMS, ...physics.forceParams },
       appMode: importedAppMode,
-      ...(raw.physics.colorPalette ? { colorPalette: raw.physics.colorPalette } : {}),
-      ...(raw.physics.backgroundStyle ? { backgroundStyle: raw.physics.backgroundStyle } : {}),
-      ...(raw.physics.minimapVisible !== undefined ? { minimapVisible: raw.physics.minimapVisible } : {}),
-      ...(raw.physics.sidebarOpen !== undefined ? { sidebarOpen: raw.physics.sidebarOpen } : {}),
+      ...(physics.colorPalette ? { colorPalette: physics.colorPalette } : {}),
+      ...(physics.backgroundStyle ? { backgroundStyle: physics.backgroundStyle } : {}),
+      ...(physics.minimapVisible !== undefined ? { minimapVisible: physics.minimapVisible } : {}),
+      ...(physics.sidebarOpen !== undefined ? { sidebarOpen: physics.sidebarOpen } : {}),
     });
   }
 
   useSchemaStore.getState().bumpImportId();
   return {
     ...raw.viewport,
-    canvasSize: raw.version === 2 ? raw.canvasSize : undefined,
+    canvasSize: isV2OrHigher ? (raw as ViewConfigV2 | ViewConfig).canvasSize : undefined,
   };
 }
