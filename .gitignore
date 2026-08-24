@@ -51,3 +51,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# Local design docs (Claude superpowers workflow) — kept locally, not committed
+docs/superpowers/
