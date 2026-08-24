@@ -122,6 +122,7 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
                 onPointerDown={(e) => onHandleDown(e, name)}
                 onPointerMove={onHandleMove}
                 onPointerUp={onHandleUp}
+                onPointerCancel={onHandleUp}
               >
                 ≡
               </span>
