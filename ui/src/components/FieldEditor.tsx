@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
@@ -12,7 +12,10 @@ function SwatchPopover({
   onPick: (color: string | null) => void;
 }) {
   return (
-    <div className="absolute left-10 top-full z-20 mt-0.5 flex items-center gap-1 rounded border border-gray-200 bg-white p-1 shadow-md">
+    <div
+      data-swatch-popover
+      className="absolute left-10 top-full z-20 mt-0.5 flex items-center gap-1 rounded border border-gray-200 bg-white p-1 shadow-md"
+    >
       {FIELD_COLOR_SWATCHES.map((c) => (
         <button
           key={c}
@@ -52,8 +55,28 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
   // Pointer-drag reorder: rows are uniform height, so target index is
   // derived from vertical distance travelled since pointerdown.
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
+  // dragInfo is a ref (mutating it doesn't trigger a re-render); isDragging below
+  // only reflects its current value correctly because every handler that sets/clears
+  // dragInfo.current also calls setDragOrder in the same call, which forces the render.
   const dragInfo = useRef<{ name: string; startY: number; rowH: number } | null>(null);
   const startOrder = useRef<string[]>([]);
+
+  // Close the swatch popover on any pointerdown outside it (and outside the
+  // toggle buttons, so clicking a different row's ▣ can still open that one).
+  useEffect(() => {
+    if (swatchFor === null) return;
+    const onPointerDownOutside = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (target?.closest("[data-swatch-popover]")) return;
+      if (target?.closest("[data-swatch-toggle]")) return;
+      setSwatchFor(null);
+    };
+    // Capture phase: React Flow's d3-drag/d3-zoom handlers call stopImmediatePropagation
+    // on pointerdown at the bubble phase, so a bubble listener here could miss clicks on
+    // the node body or canvas pane. Capture runs before that.
+    document.addEventListener("pointerdown", onPointerDownOutside, true);
+    return () => document.removeEventListener("pointerdown", onPointerDownOutside, true);
+  }, [swatchFor]);
 
   const displayed = orderedFields(fields, edits);
   const byName = new Map(displayed.map((f) => [f.name, f]));
@@ -61,7 +84,11 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
 
   const onHandleDown = (e: React.PointerEvent<HTMLSpanElement>, name: string) => {
     const row = (e.currentTarget as HTMLElement).closest("[data-fieldrow]") as HTMLElement | null;
-    dragInfo.current = { name, startY: e.clientY, rowH: row?.offsetHeight ?? 22 };
+    // getBoundingClientRect is transform-inclusive (reflects React Flow's zoom scale),
+    // unlike offsetHeight which is in untransformed layout pixels.
+    const rect = row?.getBoundingClientRect();
+    const rowH = rect && rect.height > 0 ? rect.height : 22;
+    dragInfo.current = { name, startY: e.clientY, rowH };
     startOrder.current = displayed.map((f) => f.name);
     setDragOrder(startOrder.current);
     setSwatchFor(null);
@@ -130,10 +157,12 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
                 className="shrink-0 select-none"
                 onClick={() => toggleFieldHidden(nodeId, name)}
                 title={hidden ? "Show field" : "Hide field"}
+                aria-label={hidden ? "Show field" : "Hide field"}
               >
                 {hidden ? "🚫" : "👁"}
               </button>
               <button
+                data-swatch-toggle
                 className="h-3 w-3 shrink-0 rounded-sm border border-gray-400"
                 style={{ backgroundColor: color ?? "#ffffff" }}
                 onClick={() => setSwatchFor(swatchFor === name ? null : name)}
