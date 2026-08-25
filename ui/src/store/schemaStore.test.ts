@@ -80,3 +80,44 @@ describe("physicsStore.editingNodeId", () => {
     expect(usePhysicsStore.getState().editingNodeId).toBeNull();
   });
 });
+
+describe("edgeOffsets", () => {
+  const EDGE = "testapp.Order->testapp.Customer:customer";
+  const s = () => useSchemaStore.getState();
+
+  beforeEach(() => {
+    useSchemaStore.setState({ edgeOffsets: new Map() });
+  });
+
+  it("stores an offset per edge id", () => {
+    s().setEdgeOffset(EDGE, { x: 30, y: -12 });
+    expect(s().edgeOffsets.get(EDGE)).toEqual({ x: 30, y: -12 });
+  });
+
+  it("drops the entry when the offset is (near) zero", () => {
+    s().setEdgeOffset(EDGE, { x: 30, y: -12 });
+    s().setEdgeOffset(EDGE, { x: 0.4, y: -0.9 });
+    expect(s().edgeOffsets.has(EDGE)).toBe(false);
+  });
+
+  it("clearEdgeOffset removes only that edge", () => {
+    s().setEdgeOffset(EDGE, { x: 30, y: -12 });
+    s().setEdgeOffset("other", { x: 5, y: 5 });
+    s().clearEdgeOffset(EDGE);
+    expect(s().edgeOffsets.has(EDGE)).toBe(false);
+    expect(s().edgeOffsets.get("other")).toEqual({ x: 5, y: 5 });
+  });
+
+  it("resetConfig clears all offsets", () => {
+    s().setEdgeOffset(EDGE, { x: 30, y: -12 });
+    s().resetConfig();
+    expect(s().edgeOffsets.size).toBe(0);
+  });
+
+  it("does not mutate the previous map (new reference per update)", () => {
+    const before = s().edgeOffsets;
+    s().setEdgeOffset(EDGE, { x: 1, y: 1 });
+    expect(s().edgeOffsets).not.toBe(before);
+    expect(before.size).toBe(0);
+  });
+});

@@ -26,6 +26,11 @@ interface SchemaStore {
   // have entries; an entry whose edits are all cleared is removed.
   fieldEdits: Map<string, FieldEdits>;
 
+  // Per-edge midpoint offsets for the smart bezier style (issue #96), relative
+  // to the curve's natural midpoint. Sparse: keyed by React Flow edge id
+  // (`${source}->${target}:${field}`); near-zero offsets are removed.
+  edgeOffsets: Map<string, { x: number; y: number }>;
+
   // Node visibility
   setAllVisible: (ids: string[]) => void;
   toggleNodeVisibility: (id: string) => void;
@@ -46,6 +51,10 @@ interface SchemaStore {
   setFieldOrder: (nodeId: string, order: string[], naturalOrder: string[]) => void;
   setFieldColor: (nodeId: string, fieldName: string, color: string | null) => void;
   resetFieldEdits: (nodeId: string) => void;
+
+  // Edge shaping
+  setEdgeOffset: (id: string, offset: { x: number; y: number }) => void;
+  clearEdgeOffset: (id: string) => void;
 
   // App collapse (group node)
   toggleAppCollapse: (appLabel: string) => void;
@@ -99,6 +108,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   canvasHidePositions: new Map(),
   canvasLayoutSuppressVersion: 0,
   fieldEdits: new Map(),
+  edgeOffsets: new Map(),
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids), schemaInitialized: true }),
 
@@ -214,6 +224,21 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       return { fieldEdits: next };
     }),
 
+  setEdgeOffset: (id, offset) =>
+    set((s) => {
+      const next = new Map(s.edgeOffsets);
+      if (Math.abs(offset.x) < 1 && Math.abs(offset.y) < 1) next.delete(id);
+      else next.set(id, offset);
+      return { edgeOffsets: next };
+    }),
+
+  clearEdgeOffset: (id) =>
+    set((s) => {
+      const next = new Map(s.edgeOffsets);
+      next.delete(id);
+      return { edgeOffsets: next };
+    }),
+
   toggleAppCollapse: (appLabel) =>
     set((s) => {
       const next = new Set(s.collapsedApps);
@@ -255,5 +280,6 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       layoutVersion: 0,
       canvasHidePositions: new Map(),
       fieldEdits: new Map(),
+      edgeOffsets: new Map(),
     }),
 }));
