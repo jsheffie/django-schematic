@@ -239,10 +239,11 @@ describe("smartBezierPathThrough", () => {
     expect(path).toBe("M0,0 C140,-53.333333333333336 140,46.666666666666664 200,100");
     expect(mid.x).toBeCloseTo(130, 6);
     expect(mid.y).toBeCloseTo(10, 6);
-    // Equivalent to calling smartBezierPath directly with the derived offset.
-    expect(
+    // Equivalent to calling smartBezierPath directly with the derived offset
+    // (through - natural === (30, -40) exactly, so this is an exact toEqual).
+    expect({ path, mid }).toEqual(
       smartBezierPath({ source, target, sourceSide: "r", targetSide: "l", offset: { x: 30, y: -40 } }),
-    ).toEqual(smartBezierPath({ source, target, sourceSide: "r", targetSide: "l", offset: { x: 30, y: -40 } }));
+    );
   });
 
   it("self-loop: through-point still controls the loop's horizontal position", () => {
