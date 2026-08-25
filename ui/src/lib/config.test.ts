@@ -72,6 +72,28 @@ describe("importConfig", () => {
     expect(useSchemaStore.getState().fieldEdits.get("testapp.Order")).toEqual(EDITS);
   });
 
+  it("imports a v4 config that omits edgeOffsets entirely as an empty map", () => {
+    const v4NoOffsets = JSON.stringify({
+      version: 4,
+      activeLayout: "elk",
+      visibleNodeIds: ["testapp.Order"],
+      expandedNodeIds: [],
+      pinnedPositions: {},
+      collapsedApps: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+      physics: {
+        edgeStyle: "floating",
+        liveDragPhysics: false,
+        forceParams: {},
+        appMode: "normal",
+      },
+      fieldEdits: { "testapp.Order": EDITS },
+      // edgeOffsets intentionally omitted
+    });
+    expect(() => importConfig(v4NoOffsets)).not.toThrow();
+    expect(useSchemaStore.getState().edgeOffsets.size).toBe(0);
+  });
+
   it("imports a v2 config (no fieldEdits) as an empty map", () => {
     const v2 = JSON.stringify({
       version: 2,
