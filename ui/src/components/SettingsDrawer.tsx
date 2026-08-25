@@ -173,7 +173,7 @@ export default function SettingsDrawer({ onReheat }: Props) {
                   {(
                     [
                       { value: "step" as EdgeStyle, label: "Step", desc: "Angular, 90° corners", disabled: false },
-                      { value: "bezier" as EdgeStyle, label: "Bezier", desc: "Smooth curves", disabled: false },
+                      { value: "bezier" as EdgeStyle, label: "Bezier", desc: "Smooth curves anchored to fields; drag the midpoint to reshape", disabled: false },
                       { value: "floating" as EdgeStyle, label: "Floating", desc: "Center-to-center, follows the node", disabled: false },
                     ]
                   ).map(({ value, label, desc, disabled }) => (
