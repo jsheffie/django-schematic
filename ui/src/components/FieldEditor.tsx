@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
 import type { FieldInfo } from "../lib/types";
 import { IconEye, IconEyeSlash } from "./icons";
+import { AnchorHandle } from "./AnchorHandle";
+import { fieldHandleId } from "../lib/smartEdge";
 
 function SwatchPopover({
   current,
@@ -83,6 +86,14 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
   const byName = new Map(displayed.map((f) => [f.name, f]));
   const rowNames = dragOrder ?? displayed.map((f) => f.name);
 
+  // Rows move during a drag-reorder without changing node height; tell React
+  // Flow to re-measure the anchor handles so edges follow the row live.
+  const updateNodeInternals = useUpdateNodeInternals();
+  const rowKey = rowNames.join(" ");
+  useEffect(() => {
+    updateNodeInternals(nodeId);
+  }, [nodeId, rowKey, updateNodeInternals]);
+
   const onHandleDown = (e: React.PointerEvent<HTMLSpanElement>, name: string) => {
     const row = (e.currentTarget as HTMLElement).closest("[data-fieldrow]") as HTMLElement | null;
     // getBoundingClientRect is transform-inclusive (reflects React Flow's zoom scale),
@@ -136,6 +147,7 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
               } ${hidden ? "opacity-40" : ""} ${isDragging ? "bg-blue-50 shadow-sm" : ""}`}
               style={color ? { backgroundColor: `${color}4D` } : undefined}
             >
+              <AnchorHandle id={fieldHandleId(name)} />
               <span
                 className="cursor-grab touch-none select-none px-0.5 text-gray-400 active:cursor-grabbing"
                 title="Drag to reorder"

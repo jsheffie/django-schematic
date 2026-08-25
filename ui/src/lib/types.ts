@@ -23,6 +23,7 @@ export interface EdgeInfo {
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
   field_name: string;
   related_name: string | null;
+  target_field: string | null; // remote pk / to_field name; null for subclass/proxy edges and unrecognized relation types
 }
 
 export interface SchemaGraph {

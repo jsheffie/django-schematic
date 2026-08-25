@@ -88,7 +88,7 @@ interface PhysicsStore {
 }
 
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
-  edgeStyle: "floating",
+  edgeStyle: "bezier",
   liveDragPhysics: false,
   physicsEnabled: false,
   forceParams: DEFAULT_FORCE_PARAMS,
@@ -120,28 +120,28 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     if (mode === "stiff") {
       set({
         appMode: "stiff",
-        edgeStyle: "floating",
+        edgeStyle: "bezier",
         liveDragPhysics: false,
         forceParams: STIFF_FORCE_PARAMS,
       });
     } else if (mode === "normal") {
       set({
         appMode: "normal",
-        edgeStyle: "floating",
+        edgeStyle: "bezier",
         liveDragPhysics: false,
         forceParams: DEFAULT_FORCE_PARAMS,
       });
     } else if (mode === "fun") {
       set({
         appMode: "fun",
-        edgeStyle: "floating",
+        edgeStyle: "bezier",
         liveDragPhysics: true,
         forceParams: FUN_FORCE_PARAMS,
       });
     } else if (mode === "excitation") {
       set({
         appMode: "excitation",
-        edgeStyle: "floating",
+        edgeStyle: "bezier",
         liveDragPhysics: true,
         forceParams: EXCITATION_FORCE_PARAMS,
       });

@@ -109,6 +109,7 @@ export default function SchemaCanvas({ schema }: Props) {
           relation_type: e.relation_type,
           field_name: e.field_name,
           related_name: e.related_name,
+          target_field: e.target_field,
           edgeStyle,
         },
         markerEnd:   RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerEnd,
