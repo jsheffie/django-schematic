@@ -93,3 +93,46 @@ def test_to_json_is_valid():
     assert "app_labels" in data
     assert "app_names" in data
     assert isinstance(data["app_names"], dict)
+
+
+def _edge(schema, source: str, field_name: str, relation_type: str):
+    return next(
+        e
+        for e in schema.edges
+        if e.source == source and e.field_name == field_name and e.relation_type == relation_type
+    )
+
+
+@pytest.mark.django_db
+def test_fk_edge_target_field_is_remote_pk():
+    schema = build_schema(filter_apps=["testapp"])
+    assert _edge(schema, "testapp.Book", "author", "fk").target_field == "id"
+
+
+@pytest.mark.django_db
+def test_m2m_edge_target_field_is_remote_pk():
+    schema = build_schema(filter_apps=["testapp"])
+    assert _edge(schema, "testapp.Book", "tags", "m2m").target_field == "id"
+
+
+@pytest.mark.django_db
+def test_custom_through_m2m_edge_target_field_is_remote_pk():
+    # Django's RelatedField.target_field raises FieldDoesNotExist for M2M with a
+    # custom `through`; the extractor must use related_model._meta.pk instead.
+    schema = build_schema(filter_apps=["testapp"])
+    assert _edge(schema, "testapp.BookWithThrough", "tags", "m2m").target_field == "id"
+
+
+@pytest.mark.django_db
+def test_subclass_edge_target_field_is_none():
+    schema = build_schema(filter_apps=["testapp"])
+    assert _edge(schema, "testapp.SpecialBook", "", "subclass").target_field is None
+
+
+@pytest.mark.django_db
+def test_target_field_serialized_in_json():
+    import json
+
+    schema = build_schema(filter_apps=["testapp"])
+    edges = json.loads(schema.to_json())["edges"]
+    assert all("target_field" in e for e in edges)

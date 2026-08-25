@@ -47,6 +47,10 @@ class EdgeInfo:
     relation_type: str  # "fk" | "o2o" | "m2m" | "subclass" | "proxy"
     field_name: str
     related_name: str | None
+    # Name of the field on `target` this relation points at: the remote pk (or
+    # `to_field` for FK/O2O). None for subclass/proxy edges. The frontend uses it
+    # to anchor the target end of an edge to that field's row.
+    target_field: str | None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -124,16 +128,23 @@ def _extract_edges(
 
         from django.db.models import ForeignKey, ManyToManyField, OneToOneField
 
+        target_field: str | None
         if isinstance(f, OneToOneField):
             rel = "o2o"
+            target_field = f.target_field.name
         elif isinstance(f, ForeignKey):
             rel = "fk"
+            target_field = f.target_field.name
         elif isinstance(f, ManyToManyField):
             if suppress_through_m2m and not f.remote_field.through._meta.auto_created:
                 continue
             rel = "m2m"
+            # Not f.target_field: it raises FieldDoesNotExist for M2M fields
+            # with a custom `through` model (path infos resolve lazily).
+            target_field = f.related_model._meta.pk.name
         else:
             rel = "fk"
+            target_field = None
 
         edges.append(
             EdgeInfo(
@@ -142,6 +153,7 @@ def _extract_edges(
                 relation_type=rel,
                 field_name=f.name,
                 related_name=getattr(f, "related_query_name", lambda: None)() or None,
+                target_field=target_field,
             )
         )
 
@@ -160,6 +172,7 @@ def _extract_edges(
                 relation_type=rel,
                 field_name="",
                 related_name=None,
+                target_field=None,
             )
         )
 

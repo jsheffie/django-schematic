@@ -39,3 +39,11 @@ class BookWithThrough(models.Model):
 
     class Meta:
         app_label = "testapp"
+
+
+class SpecialBook(Book):
+    """Multi-table inheritance child — produces a 'subclass' edge to Book."""
+    edition = models.CharField(max_length=50)
+
+    class Meta:
+        app_label = "testapp"
