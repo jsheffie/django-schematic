@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   Handle,
   Position,
@@ -69,10 +69,20 @@ export const ModelNode = memo(function ModelNode({
 
   // Reordering/hiding fields or toggling edit mode moves rows without changing
   // the node's height, so React Flow won't re-measure handles on its own.
+  // React Flow's ResizeObserver already re-measures on mount and on any height
+  // change (expand/collapse), so skip the first run here — it would just be a
+  // redundant broadcast (updateNodeInternals triggers a `set({})` that re-runs
+  // every store selector) — and only force a re-measure on later
+  // fieldEdits/isEditing changes.
   const updateNodeInternals = useUpdateNodeInternals();
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     updateNodeInternals(data.nodeId);
-  }, [data.nodeId, fieldEdits, isEditing, isExpanded, updateNodeInternals]);
+  }, [data.nodeId, fieldEdits, isEditing, updateNodeInternals]);
 
   const { visible: visibleFields, hiddenCount } = applyFieldEdits(data.fields, fieldEdits);
 
