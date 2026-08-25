@@ -163,4 +163,44 @@ describe("smartBezierPath", () => {
     const c1x = Number(/ C(-?[\d.]+),/.exec(path)![1]);
     expect(c1x).toBeLessThan(0); // -(0.25 * 25 * sqrt(50))
   });
+
+  it("same x, both-left: enforces the minimum bulge instead of collapsing to a line", () => {
+    const { path, mid } = smartBezierPath({
+      source: { x: 100, y: 0 }, target: { x: 100, y: 200 }, sourceSide: "l", targetSide: "l",
+    });
+    // controlOffset(0) = 0, so both controls fall back to MIN_SAME_SIDE_BULGE (40).
+    expect(path).toBe("M100,0 C60,0 60,200 100,200");
+    expect(mid).toEqual({ x: 70, y: 100 }); // (100+180+180+100)/8, (0+0+600+200)/8
+  });
+
+  it("small x difference: still uses the minimum bulge when the natural offset is smaller", () => {
+    const { path } = smartBezierPath({
+      source: { x: 100, y: 0 }, target: { x: 110, y: 100 }, sourceSide: "l", targetSide: "l",
+    });
+    const [c1x, c2x] = [...path.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].slice(1, 3).map((m) => Number(m[1]));
+    // c1: 100 - max(controlOffset(-10)≈19.76, 40) = 60
+    // c2: 110 - max(controlOffset(10)=5, 40) = 70
+    expect(c1x).toBeCloseTo(60, 6);
+    expect(c2x).toBeCloseTo(70, 6);
+  });
+
+  it("identical anchors (collapsed self-edge): bulges left and spreads vertically into a visible loop", () => {
+    const { path, mid } = smartBezierPath({
+      source: { x: 100, y: 50 }, target: { x: 100, y: 50 }, sourceSide: "l", targetSide: "l",
+    });
+    expect(path).toBe("M100,50 C60,25 60,75 100,50");
+    expect(mid).toEqual({ x: 70, y: 50 }); // (100+180+180+100)/8, (50+75+225+50)/8
+  });
+
+  it("same-side plus user offset still moves the midpoint by exactly the offset", () => {
+    const base = smartBezierPath({
+      source: { x: 100, y: 0 }, target: { x: 100, y: 200 }, sourceSide: "l", targetSide: "l",
+    }).mid;
+    const moved = smartBezierPath({
+      source: { x: 100, y: 0 }, target: { x: 100, y: 200 }, sourceSide: "l", targetSide: "l",
+      offset: { x: 30, y: -40 },
+    }).mid;
+    expect(moved.x - base.x).toBeCloseTo(30, 6);
+    expect(moved.y - base.y).toBeCloseTo(-40, 6);
+  });
 });

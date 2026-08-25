@@ -76,9 +76,29 @@ const CURVATURE = 0.25;
 function controlOffset(distance: number): number {
   return distance >= 0 ? 0.5 * distance : CURVATURE * 25 * Math.sqrt(-distance);
 }
-function controlX(x: number, otherX: number, side: Side): number {
-  return side === "r" ? x + controlOffset(otherX - x) : x - controlOffset(x - otherX);
+// `minOffset` guards the same-side case: controlOffset(0) is 0 (RF's formula
+// returns 0 at distance 0), so without a floor the two control points sit
+// exactly on the anchors and the intended U-curve collapses into a straight
+// segment. controlOffset is non-negative for every input, so passing
+// minOffset=0 (the opposite-side callsites) is a no-op and leaves that math
+// byte-identical.
+function controlX(x: number, otherX: number, side: Side, minOffset = 0): number {
+  const offset = Math.max(controlOffset(side === "r" ? otherX - x : x - otherX), minOffset);
+  return side === "r" ? x + offset : x - offset;
 }
+
+// Same-side (U-curve) tuning, both in flow units:
+//   MIN_SAME_SIDE_BULGE: floor on the horizontal control-point offset so a
+//     same-x pair (e.g. a vertical chain under dagre-tb, where equal node
+//     widths give identical left borders) still bulges instead of degenerating
+//     into a straight line.
+//   SELF_LOOP_HALF_HEIGHT: when both anchors are (near-)identical — a
+//     self-referential FK on a collapsed node, where source and target are
+//     the same header point — the bulge alone still draws a zero-length path
+//     (both ends coincide), so the control points are also spread vertically
+//     to trace a visible loop.
+const MIN_SAME_SIDE_BULGE = 40;
+const SELF_LOOP_HALF_HEIGHT = 25;
 
 // Shifting both control points by d moves the t=0.5 point by 0.75*d
 // (B(0.5) = (P0 + 3C1 + 3C2 + P3) / 8), so divide the desired midpoint offset
@@ -103,8 +123,21 @@ export function smartBezierPath({
 }: SmartPathArgs): { path: string; mid: Point } {
   const shiftX = offset.x / MID_SHIFT_RATIO;
   const shiftY = offset.y / MID_SHIFT_RATIO;
-  const c1 = { x: controlX(source.x, target.x, sourceSide) + shiftX, y: source.y + shiftY };
-  const c2 = { x: controlX(target.x, source.x, targetSide) + shiftX, y: target.y + shiftY };
+  const sameSide = sourceSide === targetSide;
+  const minOffset = sameSide ? MIN_SAME_SIDE_BULGE : 0;
+
+  const c1 = { x: controlX(source.x, target.x, sourceSide, minOffset) + shiftX, y: source.y + shiftY };
+  const c2 = { x: controlX(target.x, source.x, targetSide, minOffset) + shiftX, y: target.y + shiftY };
+
+  // Collapsed self-edge: same side AND (near-)identical anchors. The bulge
+  // above still produces a zero-length path since both endpoints coincide, so
+  // spread the controls vertically into a visible loop. Checked on the raw
+  // anchors (before shiftY) so the offset is still applied uniformly below.
+  if (sameSide && Math.abs(source.y - target.y) < 1 && Math.abs(source.x - target.x) < 1) {
+    c1.y = source.y - SELF_LOOP_HALF_HEIGHT + shiftY;
+    c2.y = target.y + SELF_LOOP_HALF_HEIGHT + shiftY;
+  }
+
   const mid = {
     x: (source.x + 3 * c1.x + 3 * c2.x + target.x) / 8,
     y: (source.y + 3 * c1.y + 3 * c2.y + target.y) / 8,
