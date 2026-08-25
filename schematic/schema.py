@@ -47,9 +47,7 @@ class EdgeInfo:
     relation_type: str  # "fk" | "o2o" | "m2m" | "subclass" | "proxy"
     field_name: str
     related_name: str | None
-    # Name of the field on `target` this relation points at: the remote pk (or
-    # `to_field` for FK/O2O). None for subclass/proxy edges and for relation
-    # fields of an unrecognized type (which are reported as "fk"). The frontend
+    # Name of the field on `target` this relation points at.The frontend
     # uses it to anchor the target end of an edge to that field's row.
     target_field: str | None
 

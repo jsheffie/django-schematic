@@ -1,5 +1,5 @@
 /**
- * Geometry for the "smart" bezier edge (issue #96).
+ * Geometry for the "smart" bezier edge.
  *
  * Every model-node row renders an invisible <AnchorHandle id> (header: "hdr",
  * field rows: "f:<name>"). React Flow measures those handles into
