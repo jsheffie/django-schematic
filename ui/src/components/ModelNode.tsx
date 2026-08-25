@@ -1,10 +1,19 @@
 import { memo, useEffect, useState } from "react";
-import { Handle, Position, useReactFlow, type Node, type NodeProps } from "@xyflow/react";
+import {
+  Handle,
+  Position,
+  useReactFlow,
+  useUpdateNodeInternals,
+  type Node,
+  type NodeProps,
+} from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { appColors } from "../lib/colors";
 import { applyFieldEdits } from "../lib/fieldEdits";
 import { FieldEditor } from "./FieldEditor";
+import { AnchorHandle } from "./AnchorHandle";
+import { HEADER_HANDLE_ID, fieldHandleId } from "../lib/smartEdge";
 import type { FieldInfo } from "../lib/types";
 
 export type ModelNodeData = Node<{
@@ -18,11 +27,12 @@ export type ModelNodeData = Node<{
 function FieldRow({ field, color }: { field: FieldInfo; color?: string }) {
   return (
     <div
-      className={`flex items-center gap-2 px-2 py-0.5 text-xs ${
+      className={`relative flex items-center gap-2 px-2 py-0.5 text-xs ${
         field.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
       }`}
       style={color ? { backgroundColor: `${color}4D` } : undefined}
     >
+      <AnchorHandle id={fieldHandleId(field.name)} />
       <span className="flex-1 truncate">{field.name}</span>
       <span className="text-gray-400 shrink-0">{field.field_type}</span>
       {field.null && <span className="text-gray-300">null</span>}
@@ -57,6 +67,13 @@ export const ModelNode = memo(function ModelNode({
     [data.nodeId],
   );
 
+  // Reordering/hiding fields or toggling edit mode moves rows without changing
+  // the node's height, so React Flow won't re-measure handles on its own.
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(data.nodeId);
+  }, [data.nodeId, fieldEdits, isEditing, isExpanded, updateNodeInternals]);
+
   const { visible: visibleFields, hiddenCount } = applyFieldEdits(data.fields, fieldEdits);
 
   const { border: borderColor, bg: bgColor } = appColors(data.appLabel, colorPalette);
@@ -74,7 +91,12 @@ export const ModelNode = memo(function ModelNode({
         backgroundColor: isProxy ? "#fff" : bgColor,
       }}
     >
+      {/* Default handles for the step style / React Flow's own edge anchoring.
+          The source handle MUST stay the first type="source" handle in DOM order:
+          edges without an explicit sourceHandle resolve to handleBounds.source[0],
+          and every AnchorHandle below is also type="source". */}
       <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
 
       {/* Double-click hide confirmation */}
       {showHidePrompt && (
@@ -103,11 +125,12 @@ export const ModelNode = memo(function ModelNode({
 
       {/* Header */}
       <div
-        className="flex items-center gap-1 px-2 py-1 cursor-pointer select-none"
+        className="relative flex items-center gap-1 px-2 py-1 cursor-pointer select-none"
         style={{ borderBottom: isExpanded || isEditing ? `1px solid ${borderColor}` : "none" }}
         onClick={() => toggleFieldExpansion(data.nodeId)}
         onDoubleClick={(e) => { e.stopPropagation(); setShowHidePrompt(true); }}
       >
+        <AnchorHandle id={HEADER_HANDLE_ID} />
         <span className="font-semibold flex-1 truncate">{data.name}</span>
         <button
           className="nodrag shrink-0 rounded px-0.5 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-700"
@@ -163,8 +186,6 @@ export const ModelNode = memo(function ModelNode({
           </div>
         )
       )}
-
-      <Handle type="source" position={Position.Right} />
     </div>
   );
 });
