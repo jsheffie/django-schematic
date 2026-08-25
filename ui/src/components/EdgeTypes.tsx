@@ -12,11 +12,14 @@ import {
 } from "@xyflow/react";
 import type { EdgeStyle } from "../store/physicsStore";
 import { getNodeBorderPoint, getNodeCenter } from "../lib/floatingEdge";
+import { useSchemaStore } from "../store/schemaStore";
+import { chooseSides, nodeRect, resolveAnchor, smartBezierPath } from "../lib/smartEdge";
 
 export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
   field_name: string;
   related_name: string | null;
+  target_field: string | null;
   edgeStyle?: EdgeStyle;
 }, 'schema'>;
 
@@ -56,10 +59,14 @@ export function SchemaEdge({
   const color = EDGE_COLORS[relType] ?? "#6b7280";
   const style = data?.edgeStyle ?? "step";
 
-  // Always call hooks — floating edge needs live node positions from RF store.
-  // Results are only used when style === "floating".
+  // Always call hooks — floating and smart bezier edges need live node
+  // positions from the RF store. Results are only used for those styles.
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
+
+  // Smart bezier: per-edge user midpoint offset (sparse map; undefined = none).
+  const offset = useSchemaStore((s) => s.edgeOffsets.get(id));
+  const isSmart = style === "bezier" && !!sourceNode && !!targetNode;
 
   let edgePath: string;
   let labelX: number;
@@ -76,14 +83,27 @@ export function SchemaEdge({
       targetX: tp.x,
       targetY: tp.y,
     });
+  } else if (isSmart && sourceNode && targetNode) {
+    // Side-aware, field-anchored cubic. Sides and anchors are recomputed every
+    // render from live node positions, so the curve flips sides while dragging
+    // and follows the field row when fields are reordered or the node collapses.
+    const sides = chooseSides(nodeRect(sourceNode), nodeRect(targetNode));
+    const s = resolveAnchor(sourceNode, data?.field_name || null, sides.source);
+    const t = resolveAnchor(targetNode, data?.target_field ?? null, sides.target);
+    const curve = smartBezierPath({
+      source: s,
+      target: t,
+      sourceSide: sides.source,
+      targetSide: sides.target,
+      offset,
+    });
+    edgePath = curve.path;
+    labelX = curve.mid.x;
+    labelY = curve.mid.y;
   } else if (style === "bezier") {
+    // Nodes not in the RF store yet (first frame): plain bezier fallback.
     [edgePath, labelX, labelY] = getBezierPath({
-      sourceX,
-      sourceY,
-      sourcePosition,
-      targetX,
-      targetY,
-      targetPosition,
+      sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
     });
   } else {
     [edgePath, labelX, labelY] = getSmoothStepPath({
