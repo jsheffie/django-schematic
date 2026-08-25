@@ -22,6 +22,22 @@ interface PhysicsConfig {
 }
 
 export interface ViewConfig {
+  version: 4;
+  activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
+  visibleNodeIds: string[];
+  expandedNodeIds: string[];
+  pinnedPositions: Record<string, { x: number; y: number }>;
+  collapsedApps: string[];
+  viewport: { x: number; y: number; zoom: number };
+  canvasSize?: { width: number; height: number };
+  physics: PhysicsConfig;
+  canvasHidePositions?: Record<string, { x: number; y: number }>;
+  fieldEdits?: Record<string, FieldEdits>;
+  edgeOffsets?: Record<string, { x: number; y: number }>; // smart bezier midpoint offsets (issue #96)
+}
+
+// Legacy v3 format (no edgeOffsets)
+interface ViewConfigV3 {
   version: 3;
   activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
   visibleNodeIds: string[];
@@ -79,7 +95,7 @@ export function exportConfig(
   };
 
   const config: ViewConfig = {
-    version: 3,
+    version: 4,
     activeLayout: s.activeLayout,
     visibleNodeIds: Array.from(s.visibleNodeIds),
     expandedNodeIds: Array.from(s.expandedNodeIds),
@@ -89,6 +105,7 @@ export function exportConfig(
     canvasSize: { width: window.innerWidth, height: window.innerHeight },
     canvasHidePositions: Object.fromEntries(s.canvasHidePositions),
     fieldEdits: Object.fromEntries(s.fieldEdits),
+    edgeOffsets: Object.fromEntries(s.edgeOffsets),
     physics: {
       edgeStyle: p.edgeStyle,
       liveDragPhysics: p.liveDragPhysics,
@@ -105,18 +122,20 @@ export function exportConfig(
 
 /** Returns the viewport and original canvas size from the config so the caller can apply them. */
 export function importConfig(json: string): { x: number; y: number; zoom: number; canvasSize?: { width: number; height: number } } {
-  const raw = JSON.parse(json) as ViewConfig | ViewConfigV2 | ViewConfigV1;
+  const raw = JSON.parse(json) as ViewConfig | ViewConfigV3 | ViewConfigV2 | ViewConfigV1;
 
-  if (raw.version !== 1 && raw.version !== 2 && raw.version !== 3) {
+  if (raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4) {
     throw new Error("Unknown config version");
   }
 
+  type V2Plus = ViewConfigV2 | ViewConfigV3 | ViewConfig;
   const isV2OrHigher = raw.version >= 2;
-  const rawLayout = isV2OrHigher ? ((raw as ViewConfigV2 | ViewConfig).activeLayout as string) : undefined;
+  const rawLayout = isV2OrHigher ? ((raw as V2Plus).activeLayout as string) : undefined;
   const activeLayout = rawLayout === "force" ? "organic" : (rawLayout as "organic" | "dagre-lr" | "dagre-tb" | "elk" | undefined);
 
-  const v2OrHigher = isV2OrHigher ? (raw as ViewConfigV2 | ViewConfig) : null;
-  const v3 = raw.version === 3 ? (raw as ViewConfig) : null;
+  const v2OrHigher = isV2OrHigher ? (raw as V2Plus) : null;
+  const v3OrHigher = raw.version >= 3 ? (raw as ViewConfigV3 | ViewConfig) : null;
+  const v4 = raw.version === 4 ? (raw as ViewConfig) : null;
 
   useSchemaStore.setState({
     visibleNodeIds: new Set(raw.visibleNodeIds),
@@ -128,15 +147,19 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
       ? new Map(Object.entries(v2OrHigher.canvasHidePositions))
       : new Map(),
     fieldEdits:
-      v3 && v3.fieldEdits
-        ? new Map(Object.entries(v3.fieldEdits))
+      v3OrHigher && v3OrHigher.fieldEdits
+        ? new Map(Object.entries(v3OrHigher.fieldEdits))
+        : new Map(),
+    edgeOffsets:
+      v4 && v4.edgeOffsets
+        ? new Map(Object.entries(v4.edgeOffsets))
         : new Map(),
     schemaInitialized: true,
     ...(activeLayout ? { activeLayout } : {}),
   });
 
-  if (isV2OrHigher && (raw as ViewConfigV2 | ViewConfig).physics) {
-    const physics = (raw as ViewConfigV2 | ViewConfig).physics;
+  if (isV2OrHigher && (raw as V2Plus).physics) {
+    const physics = (raw as V2Plus).physics;
     const importedAppMode: AppMode =
       (physics.appMode as string) === "auto-layout" ? "normal" : physics.appMode;
     usePhysicsStore.setState({
@@ -154,6 +177,6 @@ export function importConfig(json: string): { x: number; y: number; zoom: number
   useSchemaStore.getState().bumpImportId();
   return {
     ...raw.viewport,
-    canvasSize: isV2OrHigher ? (raw as ViewConfigV2 | ViewConfig).canvasSize : undefined,
+    canvasSize: isV2OrHigher ? (raw as V2Plus).canvasSize : undefined,
   };
 }
