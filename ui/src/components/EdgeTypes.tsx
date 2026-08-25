@@ -181,8 +181,13 @@ export function SchemaEdge({
         {hovered ? (
           /* Hover tooltip: type / field / reverse */
           <div
-            className="absolute bg-white border border-gray-200 rounded shadow-lg px-2 py-1.5 text-xs pointer-events-none z-50"
+            className="absolute bg-white border border-gray-200 rounded shadow-lg px-2 py-1.5 text-xs pointer-events-none z-[1001]"
             style={{
+              // React Flow assigns nodes z-index from internals.z (0 normally,
+              // 1000 when selected/elevated); the edge-label-renderer layer has
+              // no stacking context of its own, so a child z-index competes
+              // directly with nodes. z-[1001] keeps the tooltip visible even
+              // over a selected node. (pointer-events stays none — decorative.)
               transform: `translate(-50%, -120%) translate(${labelX}px,${labelY}px)`,
               minWidth: 140,
             }}
@@ -225,6 +230,14 @@ export function SchemaEdge({
               pointerEvents: "all",
               cursor: dragging ? "grabbing" : "grab",
               touchAction: "none",
+              // Nodes paint above the edge-label-renderer layer (React Flow
+              // gives nodes z-index from internals.z, up to 1000 when
+              // selected/elevated); the grip's midpoint commonly lands over a
+              // node after a far-border side flip, so without an explicit
+              // z-index above 1000 the node intercepts pointer events and the
+              // grip becomes unclickable (drag-to-start and double-click-to-
+              // reset both fail) whenever that happens.
+              zIndex: 1001,
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             }}
             title="Drag to reshape. Double-click to reset."
