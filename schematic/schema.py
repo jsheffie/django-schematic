@@ -48,8 +48,9 @@ class EdgeInfo:
     field_name: str
     related_name: str | None
     # Name of the field on `target` this relation points at: the remote pk (or
-    # `to_field` for FK/O2O). None for subclass/proxy edges. The frontend uses it
-    # to anchor the target end of an edge to that field's row.
+    # `to_field` for FK/O2O). None for subclass/proxy edges and for relation
+    # fields of an unrecognized type (which are reported as "fk"). The frontend
+    # uses it to anchor the target end of an edge to that field's row.
     target_field: str | None
 
 
@@ -143,6 +144,8 @@ def _extract_edges(
             # with a custom `through` model (path infos resolve lazily).
             target_field = f.related_model._meta.pk.name
         else:
+            # Unrecognized relation field type — fall back to "fk" with no
+            # resolvable target_field.
             rel = "fk"
             target_field = None
 
