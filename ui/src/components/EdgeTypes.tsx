@@ -14,7 +14,7 @@ import {
 import type { EdgeStyle } from "../store/physicsStore";
 import { getNodeBorderPoint, getNodeCenter } from "../lib/floatingEdge";
 import { useSchemaStore } from "../store/schemaStore";
-import { chooseSides, nodeRect, resolveAnchor, smartBezierPath } from "../lib/smartEdge";
+import { smartEdgeGeometry } from "../lib/smartEdge";
 import type { Point } from "../lib/smartEdge";
 
 export type SchemaEdgeData = Edge<{
@@ -124,19 +124,20 @@ export function SchemaEdge({
     // Side-aware, field-anchored cubic. Sides and anchors are recomputed every
     // render from live node positions, so the curve flips sides while dragging
     // and follows the field row when fields are reordered or the node collapses.
-    const sides = chooseSides(nodeRect(sourceNode), nodeRect(targetNode));
-    const s = resolveAnchor(sourceNode, data?.field_name || null, sides.source);
-    const t = resolveAnchor(targetNode, data?.target_field ?? null, sides.target);
-    const curve = smartBezierPath({
-      source: s,
-      target: t,
-      sourceSide: sides.source,
-      targetSide: sides.target,
+    // Dragging the grip past a node's far border also re-attaches that end to
+    // the near side (see smartEdgeGeometry / flipSideTowardPull); the pull
+    // point is computed from the base (unflipped) sides so there's no
+    // sides -> mid -> pull -> sides feedback loop.
+    const g = smartEdgeGeometry({
+      sourceNode,
+      targetNode,
+      sourceField: data?.field_name || null,
+      targetField: data?.target_field ?? null,
       offset,
     });
-    edgePath = curve.path;
-    labelX = curve.mid.x;
-    labelY = curve.mid.y;
+    edgePath = g.path;
+    labelX = g.mid.x;
+    labelY = g.mid.y;
   } else if (style === "bezier") {
     // Nodes not in the RF store yet (first frame): plain bezier fallback.
     [edgePath, labelX, labelY] = getBezierPath({

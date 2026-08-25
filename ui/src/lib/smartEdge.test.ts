@@ -8,6 +8,9 @@ import {
   handleY,
   resolveAnchor,
   smartBezierPath,
+  flipSideTowardPull,
+  smartBezierPathThrough,
+  smartEdgeGeometry,
   type Rect,
 } from "./smartEdge";
 
@@ -202,5 +205,161 @@ describe("smartBezierPath", () => {
     }).mid;
     expect(moved.x - base.x).toBeCloseTo(30, 6);
     expect(moved.y - base.y).toBeCloseTo(-40, 6);
+  });
+});
+
+describe("flipSideTowardPull", () => {
+  const R: Rect = { x: 100, y: 0, width: 200, height: 50 }; // left 100, right 300
+
+  it("base l: flips to r only when pulled strictly past the right border", () => {
+    expect(flipSideTowardPull("l", R, 301)).toBe("r");
+    expect(flipSideTowardPull("l", R, 300)).toBe("l"); // boundary: no flip
+    expect(flipSideTowardPull("l", R, 200)).toBe("l");
+    expect(flipSideTowardPull("l", R, 50)).toBe("l");
+  });
+
+  it("base r: flips to l only when pulled strictly past the left border", () => {
+    expect(flipSideTowardPull("r", R, 99)).toBe("l");
+    expect(flipSideTowardPull("r", R, 100)).toBe("r"); // boundary: no flip
+    expect(flipSideTowardPull("r", R, 200)).toBe("r");
+    expect(flipSideTowardPull("r", R, 350)).toBe("r");
+  });
+});
+
+describe("smartBezierPathThrough", () => {
+  it("shifts both control points so B(0.5) lands exactly on `through`", () => {
+    const source = { x: 0, y: 0 };
+    const target = { x: 200, y: 100 };
+    const through = { x: 130, y: 10 };
+    const { path, mid } = smartBezierPathThrough({
+      source, target, sourceSide: "r", targetSide: "l", through,
+    });
+    expect(path.startsWith("M0,0 ")).toBe(true);
+    expect(path.endsWith(" 200,100")).toBe(true);
+    expect(path).toBe("M0,0 C140,-53.333333333333336 140,46.666666666666664 200,100");
+    expect(mid.x).toBeCloseTo(130, 6);
+    expect(mid.y).toBeCloseTo(10, 6);
+    // Equivalent to calling smartBezierPath directly with the derived offset.
+    expect(
+      smartBezierPath({ source, target, sourceSide: "r", targetSide: "l", offset: { x: 30, y: -40 } }),
+    ).toEqual(smartBezierPath({ source, target, sourceSide: "r", targetSide: "l", offset: { x: 30, y: -40 } }));
+  });
+
+  it("self-loop: through-point still controls the loop's horizontal position", () => {
+    const source = { x: 100, y: 50 };
+    const target = { x: 100, y: 50 };
+    const through = { x: 40, y: 50 };
+    const { c1, c2, mid } = (() => {
+      const r = smartBezierPathThrough({ source, target, sourceSide: "l", targetSide: "l", through });
+      const m = /^M[\d.-]+,[\d.-]+ C([\d.-]+),([\d.-]+) ([\d.-]+),([\d.-]+) /.exec(r.path)!;
+      return {
+        c1: { x: Number(m[1]), y: Number(m[2]) },
+        c2: { x: Number(m[3]), y: Number(m[4]) },
+        mid: r.mid,
+      };
+    })();
+    expect(c1).toEqual({ x: 20, y: 25 });
+    expect(c2).toEqual({ x: 20, y: 75 });
+    expect(mid.x).toBeCloseTo(40, 6);
+  });
+});
+
+describe("smartEdgeGeometry", () => {
+  const src = makeNode({
+    x: 0, y: 0, width: 200, height: 100,
+    handles: [{ id: "hdr", y: 10 }, { id: "f:author", y: 60 }],
+  });
+  const tgt = makeNode({
+    x: 400, y: 0, width: 200, height: 100,
+    handles: [{ id: "hdr", y: 10 }, { id: "f:id", y: 30 }],
+  });
+
+  it("offset undefined: byte-identical to the old chooseSides/resolveAnchor/smartBezierPath pipeline", () => {
+    const base = chooseSides(nodeRect(src), nodeRect(tgt));
+    const s0 = resolveAnchor(src, "author", base.source);
+    const t0 = resolveAnchor(tgt, "id", base.target);
+    const old = smartBezierPath({ source: s0, target: t0, sourceSide: base.source, targetSide: base.target });
+
+    const g = smartEdgeGeometry({ sourceNode: src, targetNode: tgt, sourceField: "author", targetField: "id" });
+
+    expect(g.sides).toEqual(base);
+    expect(g.source).toEqual(s0);
+    expect(g.target).toEqual(t0);
+    expect(g.path).toBe(old.path);
+    expect(g.mid).toEqual(old.mid);
+  });
+
+  it("dead zone: pull point still inside the target node keeps base sides", () => {
+    const g = smartEdgeGeometry({
+      sourceNode: src, targetNode: tgt, sourceField: "author", targetField: "id",
+      offset: { x: 150, y: 0 },
+    });
+    expect(g.sides).toEqual({ source: "r", target: "l" });
+    expect(g.target.x).toBe(400);
+    expect(g.mid.x).toBeCloseTo(450, 6);
+    expect(g.mid.y).toBeCloseTo(45.5, 6);
+  });
+
+  it("target flips: pulled past the target's right border", () => {
+    const g = smartEdgeGeometry({
+      sourceNode: src, targetNode: tgt, sourceField: "author", targetField: "id",
+      offset: { x: 350, y: 0 },
+    });
+    expect(g.sides).toEqual({ source: "r", target: "r" });
+    expect(g.target).toEqual({ x: 600, y: 30.5 });
+    expect(g.path.endsWith(" 600,30.5")).toBe(true);
+    expect(g.mid.x).toBeCloseTo(650, 6);
+    expect(g.mid.y).toBeCloseTo(45.5, 6);
+  });
+
+  it("source flips: pulled past the source's left border", () => {
+    const g = smartEdgeGeometry({
+      sourceNode: src, targetNode: tgt, sourceField: "author", targetField: "id",
+      offset: { x: -350, y: 0 },
+    });
+    expect(g.sides).toEqual({ source: "l", target: "l" });
+    expect(g.source.x).toBe(0);
+    expect(g.path.startsWith("M0,60.5 ")).toBe(true);
+    expect(g.mid.x).toBeCloseTo(-50, 6);
+    expect(g.mid.y).toBeCloseTo(45.5, 6);
+  });
+
+  it("mixed from an overlap base: source flips first, then target also flips", () => {
+    const overlapSrc = makeNode({ x: 0, y: 0, width: 200, height: 100, handles: [{ id: "hdr", y: 10 }] });
+    const overlapTgt = makeNode({ x: 100, y: 300, width: 200, height: 100, handles: [{ id: "hdr", y: 10 }] });
+
+    const g1 = smartEdgeGeometry({
+      sourceNode: overlapSrc, targetNode: overlapTgt, sourceField: null, targetField: null,
+      offset: { x: 250, y: 0 },
+    });
+    expect(g1.sides).toEqual({ source: "r", target: "l" });
+    expect(g1.source.x).toBe(200);
+    expect(g1.target.x).toBe(100);
+
+    const g2 = smartEdgeGeometry({
+      sourceNode: overlapSrc, targetNode: overlapTgt, sourceField: null, targetField: null,
+      offset: { x: 300, y: 0 },
+    });
+    expect(g2.sides).toEqual({ source: "r", target: "r" });
+  });
+
+  it("self-edge: same node as both ends, pulled past the shared right border", () => {
+    const node = makeNode({ x: 100, y: 0, width: 200, height: 100, handles: [{ id: "hdr", y: 10 }] });
+
+    const flipped = smartEdgeGeometry({
+      sourceNode: node, targetNode: node, sourceField: "author", targetField: null,
+      offset: { x: 240, y: 0 },
+    });
+    expect(flipped.sides).toEqual({ source: "r", target: "r" });
+    expect(flipped.source.x).toBe(300);
+    expect(flipped.target.x).toBe(300);
+    expect(flipped.path.startsWith("M300,10.5 ")).toBe(true);
+    expect(flipped.mid.x).toBeCloseTo(310, 6);
+
+    const notYet = smartEdgeGeometry({
+      sourceNode: node, targetNode: node, sourceField: "author", targetField: null,
+      offset: { x: 200, y: 0 },
+    });
+    expect(notYet.sides).toEqual({ source: "l", target: "l" });
   });
 });
