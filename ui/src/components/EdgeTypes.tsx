@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -6,6 +6,7 @@ import {
   getSmoothStepPath,
   getStraightPath,
   useInternalNode,
+  useReactFlow,
   type Edge,
   type EdgeProps,
   type EdgeTypes,
@@ -14,6 +15,7 @@ import type { EdgeStyle } from "../store/physicsStore";
 import { getNodeBorderPoint, getNodeCenter } from "../lib/floatingEdge";
 import { useSchemaStore } from "../store/schemaStore";
 import { chooseSides, nodeRect, resolveAnchor, smartBezierPath } from "../lib/smartEdge";
+import type { Point } from "../lib/smartEdge";
 
 export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
@@ -67,6 +69,41 @@ export function SchemaEdge({
   // Smart bezier: per-edge user midpoint offset (sparse map; undefined = none).
   const offset = useSchemaStore((s) => s.edgeOffsets.get(id));
   const isSmart = style === "bezier" && !!sourceNode && !!targetNode;
+
+  const setEdgeOffset = useSchemaStore((s) => s.setEdgeOffset);
+  const clearEdgeOffset = useSchemaStore((s) => s.clearEdgeOffset);
+  const { screenToFlowPosition } = useReactFlow();
+  const [dragging, setDragging] = useState(false);
+  // Pointer + offset at drag start; deltas are computed in flow coordinates so
+  // zoom and pan are accounted for.
+  const dragStart = useRef<{ flow: Point; offset: Point } | null>(null);
+
+  const onGripPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dragStart.current = {
+      flow: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
+      offset: offset ?? { x: 0, y: 0 },
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+  const onGripPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragStart.current;
+    if (!d) return;
+    const now = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    setEdgeOffset(id, { x: d.offset.x + (now.x - d.flow.x), y: d.offset.y + (now.y - d.flow.y) });
+  };
+  const onGripPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStart.current) return;
+    dragStart.current = null;
+    setDragging(false);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const showGrip = isSmart && (hovered || dragging || offset !== undefined);
 
   let edgePath: string;
   let labelX: number;
@@ -169,12 +206,38 @@ export function SchemaEdge({
             <div
               className="absolute text-xs text-gray-500 bg-white px-0.5 rounded pointer-events-none"
               style={{
-                transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+                transform: `translate(-50%, ${isSmart ? "-150%" : "-50%"}) translate(${labelX}px,${labelY}px)`,
               }}
             >
               {data.field_name}
             </div>
           )
+        )}
+        {showGrip && (
+          <div
+            className="nodrag nopan absolute rounded-full border-2 bg-white"
+            style={{
+              width: 10,
+              height: 10,
+              borderColor: color,
+              opacity: hovered || dragging ? 1 : 0.35,
+              pointerEvents: "all",
+              cursor: dragging ? "grabbing" : "grab",
+              touchAction: "none",
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            }}
+            title="Drag to reshape. Double-click to reset."
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onPointerDown={onGripPointerDown}
+            onPointerMove={onGripPointerMove}
+            onPointerUp={onGripPointerUp}
+            onPointerCancel={onGripPointerUp}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              clearEdgeOffset(id);
+            }}
+          />
         )}
       </EdgeLabelRenderer>
     </>
