@@ -17,3 +17,26 @@ export function IconEyeSlash({ className = "w-4 h-4" }: { className?: string }) 
     </svg>
   );
 }
+
+// Drawer toggles. The panel region fills in while that drawer is open so the
+// icon mirrors the real state of the UI, not just the button's active color.
+
+export function IconPanelLeft({ open = false, className = "w-4 h-4" }: { open?: boolean; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      {open && <rect x="3" y="4" width="6" height="16" rx="2" fill="currentColor" stroke="none"/>}
+      <line x1="9" y1="4" x2="9" y2="20"/>
+    </svg>
+  );
+}
+
+export function IconPanelRight({ open = false, className = "w-4 h-4" }: { open?: boolean; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      {open && <rect x="15" y="4" width="6" height="16" rx="2" fill="currentColor" stroke="none"/>}
+      <line x1="15" y1="4" x2="15" y2="20"/>
+    </svg>
+  );
+}

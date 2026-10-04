@@ -1,6 +1,7 @@
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import FileMenu from "./FileMenu";
+import { IconPanelLeft, IconPanelRight } from "./icons";
 
 function IconBtn({ onClick, title, active, children }: {
   onClick: () => void;
@@ -35,11 +36,13 @@ const LAYOUT_SHORT: Record<ActiveLayout, string> = {
   organic: "Organic",
 };
 
-const LAYOUT_FULL: Record<ActiveLayout, string> = {
-  elk: "Auto-Layout",
-  "dagre-lr": "Left → Right",
-  "dagre-tb": "Top → Bottom",
-  organic: "Organic",
+// Tooltip per layout. Names the engine so the four buttons are distinguishable
+// by more than their arrow; wording mirrors the Layout section of HelpDialog.
+const LAYOUT_TOOLTIP: Record<ActiveLayout, string> = {
+  elk: "Auto-Layout: ELK layered algorithm, left to right. Async; best for large schemas.",
+  organic: "Organic: d3-force physics simulation. The only layout where Node Spacing and Live mode apply.",
+  "dagre-lr": "Left → Right: dagre hierarchical layout (rankdir LR). Synchronous.",
+  "dagre-tb": "Top → Bottom: dagre hierarchical layout (rankdir TB). Same engine as L→R, direction only.",
 };
 
 export default function Toolbar() {
@@ -53,6 +56,8 @@ export default function Toolbar() {
   const setForceParams = usePhysicsStore((s) => s.setForceParams);
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
+  const sidebarOpen = usePhysicsStore((s) => s.sidebarOpen);
+  const setSidebarOpen = usePhysicsStore((s) => s.setSidebarOpen);
   const setSettingsTab = usePhysicsStore((s) => s.setSettingsTab);
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
 
@@ -73,7 +78,7 @@ export default function Toolbar() {
   const modeInactive = "bg-white border-gray-200 hover:bg-gray-50 text-gray-700";
 
   return (
-    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
+    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
       {/* Layout section */}
       <div className="flex flex-col items-center gap-0.5">
         <span className="text-[10px] text-gray-400 leading-none self-start">Layout</span>
@@ -83,7 +88,7 @@ export default function Toolbar() {
               key={layout}
               className={`${layoutBtnBase} ${activeLayout === layout ? layoutActive : layoutInactive}`}
               onClick={() => applyLayout(layout)}
-              title={LAYOUT_FULL[layout]}
+              title={LAYOUT_TOOLTIP[layout]}
             >
               {LAYOUT_SHORT[layout]}
             </button>
@@ -143,15 +148,22 @@ export default function Toolbar() {
 
       <div className="w-px h-8 bg-gray-200 mx-0.5" />
 
-      {/* Settings + Help + File cluster */}
+      {/* Drawers + Help + File cluster */}
       <div className="flex flex-col items-stretch gap-0.5">
         <div className="flex gap-0.5">
+          <IconBtn
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title="Models"
+            active={sidebarOpen}
+          >
+            <IconPanelLeft open={sidebarOpen} />
+          </IconBtn>
           <IconBtn
             onClick={() => { setSettingsTab("appearance"); setDrawerOpen(!drawerOpen); }}
             title="Settings"
             active={drawerOpen}
           >
-            ⚙
+            <IconPanelRight open={drawerOpen} />
           </IconBtn>
           <IconBtn
             onClick={() => setHelpOpen(true)}

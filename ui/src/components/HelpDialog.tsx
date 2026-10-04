@@ -1,8 +1,17 @@
+import { useEffect } from "react";
 import { usePhysicsStore } from "../store/physicsStore";
 
 export default function HelpDialog() {
   const helpOpen = usePhysicsStore((s) => s.helpOpen);
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
+
+  // Escape to dismiss, same as FilenameDialog in FileMenu.
+  useEffect(() => {
+    if (!helpOpen) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setHelpOpen(false); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [helpOpen, setHelpOpen]);
 
   if (!helpOpen) return null;
 
@@ -17,6 +26,7 @@ export default function HelpDialog() {
           <h2 className="text-sm font-semibold text-gray-800">Help</h2>
           <button
             onClick={() => setHelpOpen(false)}
+            title="Close help"
             className="text-gray-400 hover:text-gray-600 text-xl leading-none"
           >
             ×
@@ -40,7 +50,7 @@ export default function HelpDialog() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                <tr><td className="py-1 text-gray-400">Layout</td><td>Force</td><td>Force</td><td>Force</td><td>Force</td></tr>
+                <tr><td className="py-1 text-gray-400">Layout</td><td>Organic</td><td>Organic</td><td>Organic</td><td>Organic</td></tr>
                 <tr><td className="py-1 text-gray-400">Edges</td><td>Floating</td><td>Floating</td><td>Floating</td><td>Floating</td></tr>
                 <tr><td className="py-1 text-gray-400">Live drag</td><td>Off</td><td>Off</td><td>On</td><td>On</td></tr>
                 <tr><td className="py-1 text-gray-400">Feel</td><td>Snappy</td><td>Balanced</td><td>Bouncy</td><td>Chaotic</td></tr>
@@ -48,25 +58,40 @@ export default function HelpDialog() {
             </table>
           </section>
 
+          {/* Toolbar */}
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-1.5">Toolbar</h3>
+            <p className="text-gray-500 mb-2">The floating bar at the top of the canvas. Hover any button for a short description.</p>
+            <dl className="flex flex-col gap-1.5">
+              <div><dt className="font-medium inline">Layout —</dt><dd className="inline text-gray-500"> Auto, Organic, L→R, T→B. Each runs a different layout engine; see the Layout section below.</dd></div>
+              <div><dt className="font-medium inline">Mode —</dt><dd className="inline text-gray-500"> <span className="font-medium text-gray-700">Static</span> turns physics off in any layout so nodes stay where you drag them. <span className="font-medium text-gray-700">Live</span> switches to Organic and turns physics on.</dd></div>
+              <div><dt className="font-medium inline">Node Spacing —</dt><dd className="inline text-gray-500"> distance between connected nodes. Only active in Organic; it is the same value as the Link Distance slider in Settings → Physics.</dd></div>
+              <div><dt className="font-medium inline">Models / Settings —</dt><dd className="inline text-gray-500"> open or close the left and right drawers. Both can be open at once. The icon fills in while its drawer is open. The ‹ › tabs on the screen edges do the same thing.</dd></div>
+              <div><dt className="font-medium inline">? —</dt><dd className="inline text-gray-500"> this help. Press Esc or click outside to close it.</dd></div>
+              <div><dt className="font-medium inline">File —</dt><dd className="inline text-gray-500"> export and import; see File menu below.</dd></div>
+            </dl>
+          </section>
+
           {/* Layout */}
           <section>
             <h3 className="font-semibold text-gray-900 mb-1.5">Layout</h3>
+            <p className="text-gray-500 mb-2">In toolbar order. Switching layouts repositions every node that is not pinned.</p>
             <dl className="flex flex-col gap-1.5">
               <div>
-                <dt className="font-medium inline">Force —</dt>
-                <dd className="inline text-gray-500"> physics simulation; nodes repel and edges act as springs. Drag a node to pin it.</dd>
+                <dt className="font-medium inline">Auto (ELK) —</dt>
+                <dd className="inline text-gray-500"> ELK layered algorithm; automatically positions nodes in a clean left-to-right hierarchy. Runs asynchronously. Best for large schemas. Also triggered by the Auto-Layout preset in Settings → Physics.</dd>
               </div>
               <div>
-                <dt className="font-medium inline">Left → Right —</dt>
+                <dt className="font-medium inline">Organic —</dt>
+                <dd className="inline text-gray-500"> d3-force physics simulation; nodes repel and edges act as springs. Drag a node to pin it. The only layout where Node Spacing and Live mode apply.</dd>
+              </div>
+              <div>
+                <dt className="font-medium inline">L→R —</dt>
                 <dd className="inline text-gray-500"> dagre hierarchical layout, left to right.</dd>
               </div>
               <div>
-                <dt className="font-medium inline">Top → Bottom —</dt>
-                <dd className="inline text-gray-500"> dagre hierarchical layout, top to bottom.</dd>
-              </div>
-              <div>
-                <dt className="font-medium inline">Auto-Layout (ELK) —</dt>
-                <dd className="inline text-gray-500"> ELK layered algorithm; automatically positions nodes in a clean left-to-right hierarchy. Best for large schemas. Available in the toolbar or via the Auto-Layout preset in Settings → Physics.</dd>
+                <dt className="font-medium inline">T→B —</dt>
+                <dd className="inline text-gray-500"> dagre hierarchical layout, top to bottom. Same engine as L→R, direction only.</dd>
               </div>
             </dl>
           </section>
@@ -100,7 +125,7 @@ export default function HelpDialog() {
           {/* Sidebar */}
           <section>
             <h3 className="font-semibold text-gray-900 mb-1.5">Sidebar (Models)</h3>
-            <p className="text-gray-500 mb-2">Open with the › tab on the left edge. App names show as full dotted paths (e.g. <span className="font-medium text-gray-700">django.contrib.auth</span>).</p>
+            <p className="text-gray-500 mb-2">Open with the Models toggle in the toolbar or the › tab on the left edge. App names show as full dotted paths (e.g. <span className="font-medium text-gray-700">django.contrib.auth</span>).</p>
 
             <h4 className="font-medium text-gray-800 mb-1">Toolbar icons (top of sidebar)</h4>
             <dl className="flex flex-col gap-1 mb-3">
@@ -125,8 +150,8 @@ export default function HelpDialog() {
 
           {/* Settings */}
           <section>
-            <h3 className="font-semibold text-gray-900 mb-1.5">⚙ Settings</h3>
-            <p className="text-gray-500 mb-2">Two tabs: <span className="font-medium text-gray-700">Appearance</span> (colors, background, edge style) and <span className="font-medium text-gray-700">Physics</span> (preset, live drag, force simulation sliders).</p>
+            <h3 className="font-semibold text-gray-900 mb-1.5">Settings</h3>
+            <p className="text-gray-500 mb-2">Open with the Settings toggle in the toolbar or the ‹ tab on the right edge. Two tabs: <span className="font-medium text-gray-700">Appearance</span> (colors, background, edge style) and <span className="font-medium text-gray-700">Physics</span> (preset, live drag, force simulation sliders).</p>
 
             <h4 className="font-medium text-gray-800 mb-1">Edge Style</h4>
             <dl className="flex flex-col gap-1 mb-3">
@@ -136,16 +161,16 @@ export default function HelpDialog() {
             </dl>
 
             <h4 className="font-medium text-gray-800 mb-1">Live Drag Physics</h4>
-            <p className="text-gray-500 mb-3">Other nodes react in real time while you drag one (Force layout only).</p>
+            <p className="text-gray-500 mb-3">Other nodes react in real time while you drag one (Organic layout only).</p>
 
             <h4 className="font-medium text-gray-800 mb-1">Force Simulation Sliders</h4>
-            <p className="text-gray-500 mb-1">Active in Force layout. Hit <span className="font-medium text-gray-700">Apply to running sim</span> to update without restarting.</p>
+            <p className="text-gray-500 mb-1">Active in Organic layout. Hit <span className="font-medium text-gray-700">Apply to running sim</span> to update without restarting.</p>
             <dl className="flex flex-col gap-1">
               <div><dt className="font-medium inline">Alpha Decay —</dt><dd className="inline text-gray-500"> cooling rate. Lower = longer, bouncier animation.</dd></div>
               <div><dt className="font-medium inline">Alpha Min —</dt><dd className="inline text-gray-500"> energy floor where the sim stops.</dd></div>
               <div><dt className="font-medium inline">Velocity Decay —</dt><dd className="inline text-gray-500"> friction. Lower = floaty; higher = snappy.</dd></div>
               <div><dt className="font-medium inline">Charge Strength —</dt><dd className="inline text-gray-500"> repulsion between nodes. More negative = more spread out.</dd></div>
-              <div><dt className="font-medium inline">Link Distance —</dt><dd className="inline text-gray-500"> natural edge length. Shorter = tighter cluster.</dd></div>
+              <div><dt className="font-medium inline">Link Distance —</dt><dd className="inline text-gray-500"> natural edge length. Shorter = tighter cluster. Same value as Node Spacing in the toolbar.</dd></div>
               <div><dt className="font-medium inline">Collision Radius —</dt><dd className="inline text-gray-500"> minimum spacing between nodes.</dd></div>
             </dl>
           </section>
