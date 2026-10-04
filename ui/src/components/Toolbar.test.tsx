@@ -80,3 +80,96 @@ describe("Toolbar sort all tables by type", () => {
     expect(title).toContain("manual reorders");
   });
 });
+
+describe("Toolbar sort all: confirmation when a custom order exists", () => {
+  const manualOrder = ["status", "id", "customer", "created_at"];
+  const naturalTag = ["code", "name"];
+
+  function withManualOrderOnOrder() {
+    useSchemaStore.setState({
+      fieldEdits: new Map([
+        ["shop.Order", { hiddenFields: [], fieldOrder: manualOrder, fieldColors: {} }],
+      ]),
+    });
+  }
+
+  it("does not ask when the only edits are hidden fields or colors", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([
+        ["shop.Order", { hiddenFields: ["status"], fieldOrder: null, fieldColors: { id: "#ef4444" } }],
+      ]),
+    });
+    const { getByRole, queryByRole } = renderToolbar();
+
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+
+    expect(queryByRole("dialog")).toBeNull();
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual([
+      "id", "customer", "status", "created_at",
+    ]);
+  });
+
+  it("asks first, naming the tables whose order would be replaced, and changes nothing yet", () => {
+    withManualOrderOnOrder();
+    const { getByRole } = renderToolbar();
+
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+
+    const dialog = getByRole("dialog", { name: "Sort all tables by type" });
+    expect(dialog.textContent).toContain("1 table already has a custom field order");
+    expect(dialog.textContent).toContain("Order");
+    expect(dialog.textContent).not.toContain("Tag");
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual(manualOrder);
+    expect(useSchemaStore.getState().fieldEdits.has("shop.Tag")).toBe(false);
+  });
+
+  it("Cancel keeps every existing order and closes the dialog", () => {
+    withManualOrderOnOrder();
+    const { getByRole, queryByRole } = renderToolbar();
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+
+    fireEvent.click(getByRole("button", { name: "Cancel" }));
+
+    expect(queryByRole("dialog")).toBeNull();
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual(manualOrder);
+    expect(useSchemaStore.getState().fieldEdits.has("shop.Tag")).toBe(false);
+  });
+
+  it("Escape closes the dialog without sorting", () => {
+    withManualOrderOnOrder();
+    const { getByRole, queryByRole } = renderToolbar();
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(queryByRole("dialog")).toBeNull();
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual(manualOrder);
+  });
+
+  it("confirming sorts every table and closes the dialog", () => {
+    withManualOrderOnOrder();
+    const { getByRole, queryByRole } = renderToolbar();
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+
+    fireEvent.click(getByRole("button", { name: "Sort all tables" }));
+
+    expect(queryByRole("dialog")).toBeNull();
+    const edits = useSchemaStore.getState().fieldEdits;
+    expect(edits.get("shop.Order")?.fieldOrder).toEqual(["id", "customer", "status", "created_at"]);
+    expect(edits.get("shop.Tag")?.fieldOrder).toEqual(["name", "code"]);
+    expect(naturalTag).toEqual(["code", "name"]);
+  });
+
+  it("pluralises the count when several tables have a custom order", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([
+        ["shop.Order", { hiddenFields: [], fieldOrder: manualOrder, fieldColors: {} }],
+        ["shop.Tag", { hiddenFields: [], fieldOrder: ["name", "code"], fieldColors: {} }],
+      ]),
+    });
+    const { getByRole } = renderToolbar();
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+
+    expect(getByRole("dialog").textContent).toContain("2 tables already have a custom field order");
+  });
+});

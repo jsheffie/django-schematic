@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { toPng } from "html-to-image";
 import { useReactFlow } from "@xyflow/react";
 import { exportConfig, importConfig } from "../lib/config";
@@ -42,7 +43,10 @@ function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCanc
 
   if (!open) return null;
 
-  return (
+  // Portal: the toolbar that contains FileMenu is positioned with a CSS
+  // transform, which makes it the containing block for `fixed` descendants.
+  // Without the portal the modal is pinned to the toolbar, not the viewport.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
@@ -72,7 +76,8 @@ function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCanc
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

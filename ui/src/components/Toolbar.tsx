@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import FileMenu from "./FileMenu";
+import SortAllDialog from "./SortAllDialog";
 import { IconPanelLeft, IconPanelRight, IconSortByType } from "./icons";
 import type { SchemaGraph } from "../lib/types";
 
@@ -53,6 +55,26 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setLayout = useSchemaStore((s) => s.setLayout);
   const sortAllFieldsByType = useSchemaStore((s) => s.sortAllFieldsByType);
+  const fieldEdits = useSchemaStore((s) => s.fieldEdits);
+  const [confirmSortAll, setConfirmSortAll] = useState(false);
+
+  // Tables whose custom order (drag or an earlier sort) the global sort would
+  // replace. Shown by model name; by "app.Model" when two apps share a name.
+  const customOrdered = schema.nodes.filter((n) => fieldEdits.get(n.id)?.fieldOrder);
+  const nameCount = new Map<string, number>();
+  for (const n of customOrdered) nameCount.set(n.name, (nameCount.get(n.name) ?? 0) + 1);
+  const affected = customOrdered
+    .map((n) => ((nameCount.get(n.name) ?? 0) > 1 ? n.id : n.name))
+    .sort((a, b) => a.localeCompare(b));
+
+  function onSortAll() {
+    if (affected.length === 0) sortAllFieldsByType(schema.nodes);
+    else setConfirmSortAll(true);
+  }
+  function confirmSortAllNow() {
+    setConfirmSortAll(false);
+    sortAllFieldsByType(schema.nodes);
+  }
 
   const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
   const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
@@ -155,7 +177,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
       <div className="flex flex-col items-stretch gap-0.5">
         <div className="flex gap-0.5">
           <IconBtn
-            onClick={() => sortAllFieldsByType(schema.nodes)}
+            onClick={onSortAll}
             label="Sort all tables by type"
             title="Sort fields in every table by type: primary key, relations, fields grouped by type, booleans, dates and times last. Re-running replaces manual reorders."
           >
@@ -184,6 +206,12 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
         </div>
         <FileMenu />
       </div>
+      <SortAllDialog
+        open={confirmSortAll}
+        affected={affected}
+        onConfirm={confirmSortAllNow}
+        onCancel={() => setConfirmSortAll(false)}
+      />
     </div>
   );
 }
