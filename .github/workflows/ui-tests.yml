@@ -7,15 +7,28 @@ on:
 
 jobs:
   ui:
+    name: ui (Node ${{ matrix.label }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Reference version, also the floor of `engines` in ui/package.json.
+          - label: ".nvmrc"
+            node-version-file: ui/.nvmrc
+          # Current release, to catch deprecations like DEP0205 early.
+          - label: "26"
+            node-version: "26"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node 22
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
+          node-version-file: ${{ matrix.node-version-file }}
           cache: "npm"
           cache-dependency-path: ui/package-lock.json
 
