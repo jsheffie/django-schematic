@@ -45,14 +45,14 @@ import {
   isAttached,
   type ArrowEnd,
 } from "../lib/annotations";
+import { mergeDisplayNodes } from "../lib/mergeDisplayNodes";
 import { useForceLayout } from "../hooks/useForceLayout";
 import { useAnnotationActions } from "../hooks/useAnnotationActions";
 import { runDagreLayout } from "../hooks/useLayout";
 import { runElkLayout } from "../hooks/useElkLayout";
 import SettingsDrawer from "./SettingsDrawer";
 
-// Three node kinds share the canvas (issue #100): model tables, free-form text
-// blocks, and invisible anchors that stand in for the free ends of arrows.
+// Model tables, text blocks, and invisible anchors for the free ends of arrows.
 type CanvasNode = ModelNodeData | TextBlockNodeData | AnchorNodeData;
 
 const nodeTypes: NodeTypes = {
@@ -106,18 +106,16 @@ export default function SchemaCanvas({ schema }: Props) {
     [schemaInitialized, visibleNodeIds, schema.nodes],
   );
 
-  // Arrows whose attached ends all have something to attach to. An arrow on a
-  // hidden model is hidden with it (and so is its anchor node, below).
+  // Arrows whose attached ends exist and are visible; hidden with their model.
   const visibleArrows = useMemo(() => {
     const blockIds = new Set(textBlocks.keys());
     return [...arrows].filter(([, a]) => isArrowVisible(a, effectiveVisibleIds, blockIds));
   }, [arrows, textBlocks, effectiveVisibleIds]);
 
-  // Build React Flow nodes from API data, filtered to visible set, plus the
-  // annotation nodes. Model positions here are only the initial/pinned values;
-  // the layout hooks will override them via setNodes → onNodesChange →
-  // displayNodes. Text blocks and anchors carry their own positions and are
-  // never touched by a layout pass.
+  // Build React Flow nodes: visible models plus annotation nodes. Model
+  // positions here are only the initial/pinned values; the layout hooks
+  // override them via setNodes → onNodesChange → displayNodes. Text blocks
+  // and anchors carry their own positions and are never laid out.
   const rfNodes: CanvasNode[] = useMemo(() => {
     const models: ModelNodeData[] = schema.nodes
       .filter((n) => effectiveVisibleIds.has(n.id))
@@ -127,7 +125,7 @@ export default function SchemaCanvas({ schema }: Props) {
           id: n.id,
           type: "model",
           position: pinned ?? { x: 0, y: 0 },
-          deletable: false, // Backspace must never remove a table from the canvas
+          deletable: false, // Backspace never removes a table
           data: {
             nodeId: n.id,
             name: n.name,
@@ -161,7 +159,7 @@ export default function SchemaCanvas({ schema }: Props) {
           selectable: false,
           deletable: false,
           focusable: false,
-          zIndex: 1001, // above elevated nodes so the end stays grabbable
+          zIndex: 1001, // stays grabbable above elevated nodes
           data: { arrowId, end },
         });
       }
@@ -170,9 +168,8 @@ export default function SchemaCanvas({ schema }: Props) {
     return [...models, ...texts, ...anchors];
   }, [schema.nodes, effectiveVisibleIds, pinnedPositions, textBlocks, visibleArrows]);
 
-  // Build React Flow edges: relation edges (edgeStyle and related_name through
-  // data) plus annotation arrows. Edge selection is controlled too, so the
-  // arrow's `selected` flag is merged in from the store here.
+  // Relation edges plus annotation arrows. Edge selection is controlled, so
+  // the arrow's `selected` flag is merged in from the store.
   const rfEdges: Edge[] = useMemo(() => {
     const relations: Edge[] = schema.edges
       .filter((e) => effectiveVisibleIds.has(e.source) && effectiveVisibleIds.has(e.target))
@@ -245,33 +242,12 @@ export default function SchemaCanvas({ schema }: Props) {
   const lastSuppressVersionRef = useRef(canvasLayoutSuppressVersion);
   const layoutRunRef = useRef(0);
 
-  // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
-  // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
-  // Exception: on a fresh import, apply the incoming rfNodes positions directly
-  // so that the imported layout is actually shown instead of the current one.
-  // A text block that was not on the canvas before is one the user just added:
-  // it becomes the selection (and everything else is deselected) so its
-  // toolbar and resize handles are there right away.
+  // When rfNodes changes (schema reload, visibility toggle, annotation edit),
+  // sync displayNodes; see mergeDisplayNodes for what is kept and why.
   useEffect(() => {
     const isImport = importId !== lastAppliedImportIdRef.current;
     if (isImport) lastAppliedImportIdRef.current = importId;
-
-    setDisplayNodes((curr) => {
-      if (isImport) {
-        return rfNodes.map((n) => ({ ...n }));
-      }
-      const prev = new Map(curr.map((n) => [n.id, n]));
-      const hasNewText = rfNodes.some((n) => n.type === "text" && !prev.has(n.id));
-      return rfNodes.map((n) => {
-        const was = prev.get(n.id);
-        const isNewText = n.type === "text" && !was;
-        return {
-          ...n,
-          position: was?.position ?? n.position,
-          selected: hasNewText ? isNewText : was?.selected,
-        } as CanvasNode;
-      });
-    });
+    setDisplayNodes((curr) => mergeDisplayNodes(curr, rfNodes, isImport));
   }, [rfNodes, importId]);
 
   // Route React Flow position changes (drags, layout updates via setNodes) into
@@ -371,8 +347,8 @@ export default function SchemaCanvas({ schema }: Props) {
     setTimeout(() => fitView({ duration: 300 }), 0);
   }, [activeLayout, layoutVersion, importId, canvasLayoutSuppressVersion, nodesMeasured, setNodes, fitView, buildSizeMap]);
 
-  // onNodeDragStop — model nodes pin in Zustand (and in the sim when physics
-  // is on); annotation nodes commit their new place to the store instead.
+  // onNodeDragStop — model nodes pin (and reheat the sim when physics is on);
+  // annotation nodes commit their new place to the store.
   const onNodeDragStop: OnNodeDrag<CanvasNode> = useCallback(
     (_event, node) => {
       if (node.type === "text") {
@@ -384,7 +360,7 @@ export default function SchemaCanvas({ schema }: Props) {
         updateArrow(arrowId, {
           [end]: { x: node.position.x + ANCHOR_SIZE / 2, y: node.position.y + ANCHOR_SIZE / 2 },
         });
-        // Grabbing the anchor deselects edges (a node drag); the arrow stays the selection.
+        // A node drag deselects edges; keep the arrow selected.
         setSelectedArrow(arrowId);
         return;
       }
@@ -404,9 +380,7 @@ export default function SchemaCanvas({ schema }: Props) {
     [liveDragPhysics, physicsEnabled, simPinNode],
   );
 
-  // Edge selection in controlled mode: React Flow reports it here and reads it
-  // back from the `selected` flag merged into rfEdges. Only arrows are
-  // selectable in practice; relation edges have no selected styling.
+  // Controlled edge selection: reported here, read back from rfEdges.
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
       for (const c of changes) {
@@ -419,8 +393,7 @@ export default function SchemaCanvas({ schema }: Props) {
     [setSelectedArrow],
   );
 
-  // Backspace / Delete on a selection. Model nodes and relation edges are
-  // `deletable: false`, so only annotations ever arrive here.
+  // Only annotations arrive here: models and relation edges are not deletable.
   const onNodesDelete = useCallback(
     (deleted: CanvasNode[]) => {
       for (const n of deleted) if (n.type === "text") removeTextBlock(n.id);
@@ -438,11 +411,9 @@ export default function SchemaCanvas({ schema }: Props) {
     [removeArrow, setSelectedArrow],
   );
 
-  // Keyboard, when focus is not in a form element and no dialog is open:
-  //   T      add a text block at the viewport centre (issue #100)
-  //   A      toggle draw-arrow mode
-  //   Esc    leave draw-arrow mode
-  //   Space  pause/resume physics in the Organic layout
+  // Shortcuts (ignored in form fields and while a dialog is open):
+  //   T add a text block, A toggle draw-arrow mode, Esc leave it,
+  //   Space pause/resume physics in the Organic layout.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
