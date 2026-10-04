@@ -72,7 +72,7 @@ interface PhysicsStore {
   // Node currently in field-edit mode (at most one at a time; null = none).
   editingNodeId: string | null;
 
-  // Canvas annotations (issue #100), transient UI state - not exported.
+  // Canvas annotation UI state, not exported.
   annotationTool: "arrow" | null;        // "arrow" while draw-arrow mode is on
   editingTextBlockId: string | null;     // text block whose textarea is open
   selectedArrowId: string | null;        // arrow edges are single-select

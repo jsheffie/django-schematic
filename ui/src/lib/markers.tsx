@@ -17,7 +17,7 @@ export const RELATION_MARKERS: Record<
   proxy:    {                                   markerEnd: "triangle-open-amber" },
 };
 
-/** Annotation arrows (issue #100): filled heads, ink and selected-blue variants. */
+/** Annotation arrow heads: ink and selected-blue variants. */
 export const ARROW_MARKER = "annotation-arrow";
 export const ARROW_MARKER_SELECTED = "annotation-arrow-selected";
 export const ARROW_COLOR = "#1f2937";

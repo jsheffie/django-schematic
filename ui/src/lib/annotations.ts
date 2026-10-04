@@ -1,11 +1,8 @@
 /**
- * Canvas annotations (issue #100): free-form text blocks (notes and titles)
- * and user-drawn arrows that are not backed by a Django model.
- *
- * This module is pure: types, id helpers, visibility rules and arrow geometry.
- * schemaStore holds the data and SchemaCanvas turns it into React Flow nodes
- * and edges (text blocks become `text` nodes, free arrow ends become tiny
- * invisible `anchor` nodes, arrows become `arrow` edges).
+ * Canvas annotations: text blocks and user-drawn arrows not backed by a model.
+ * Pure types, ids, visibility rules and arrow geometry; schemaStore holds the
+ * data and SchemaCanvas renders it (`text` nodes, `anchor` nodes for free
+ * arrow ends, `arrow` edges).
  */
 import { Position, getSmoothStepPath } from "@xyflow/react";
 import type { EdgeStyle } from "../store/physicsStore";
@@ -71,11 +68,7 @@ export const anchorNodeId = (arrowId: string, end: ArrowEnd): string => `anchor:
 export const arrowEndNodeId = (arrowId: string, end: ArrowEnd, ep: ArrowEndpoint): string =>
   isAttached(ep) ? ep.nodeId : anchorNodeId(arrowId, end);
 
-/**
- * An arrow shows only while every attached end has something to attach to: a
- * visible model or an existing text block. Hidden with its model (and back
- * when the model is shown again); a model removed from the code hides it too.
- */
+/** Visible while every attached end is a visible model or an existing text block. */
 export function isArrowVisible(
   arrow: Arrow,
   visibleModelIds: ReadonlySet<string>,
@@ -157,20 +150,13 @@ const fmt = (p: Point): string => `${p.x},${p.y}`;
 const midpoint = (a: Point, b: Point): Point => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
 /**
- * Resolve where an arrow starts and ends and the SVG path between them.
- *
- * Attached ends snap to the node border along the line toward the other end,
- * or toward the bow point when the arrow is bent, so a bowed arrow leaves the
- * node in the direction it actually travels. The bow point is computed from
- * the two reference centres (not from the snapped points) so the snapping
- * never feeds back into itself.
- *
- *   bezier   - quadratic curve. Straight at zero offset; with an offset the
- *              control point is chosen so B(0.5) lands exactly on the grip:
- *              C = 2T - (S + E) / 2.
- *   step     - React Flow's smooth step path, exiting through the wall the
- *              snapped point sits on.
- *   floating - straight line.
+ * Where an arrow starts and ends, and the path between them. Attached ends
+ * snap to the node border toward the other end (or toward the bow point when
+ * bent); the bow point comes from the reference centres so snapping never
+ * feeds back into itself.
+ *   bezier   quadratic, straight at zero offset; C = 2T - (S + E) / 2 puts B(0.5) on the grip
+ *   step     React Flow smooth step, exiting through the snapped wall
+ *   floating straight line
  */
 export function resolveArrowGeometry({ from, to, style, offset }: ArrowGeometryArgs): ArrowGeometry {
   const fromRef = from.kind === "node" ? rectCenter(from.rect) : from.point;

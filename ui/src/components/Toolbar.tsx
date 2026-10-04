@@ -178,7 +178,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
 
       <div className="w-px h-8 bg-gray-200 mx-0.5" />
 
-      {/* Annotations (issue #100): text blocks and arrows that are not models */}
+      {/* Annotations: text blocks and arrows */}
       <div className="flex flex-col items-center gap-0.5">
         <span className="text-[10px] text-gray-400 leading-none self-start">Annotate</span>
         <div className="flex gap-0.5">

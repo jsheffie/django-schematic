@@ -14,8 +14,7 @@ body,
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Title-style text blocks (issue #100) have no card; a faint outline on hover
-   shows where to grab them. Selection draws the same outline from the node. */
+/* Title text blocks have no card; the outline shows where to grab them. */
 .annotation-title:hover {
   outline: 1px dashed #d1d5db;
   outline-offset: 2px;

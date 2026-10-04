@@ -225,7 +225,7 @@ describe("Toolbar sort all: double-click must not dismiss the confirmation", () 
   });
 });
 
-describe("Annotate section (issue #100)", () => {
+describe("Annotate section", () => {
   it("Text button adds a note at the viewport centre and opens it for editing", () => {
     const { getByLabelText } = renderToolbar();
     fireEvent.click(getByLabelText("Add text block"));

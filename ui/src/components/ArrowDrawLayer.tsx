@@ -1,11 +1,8 @@
 /**
- * Draw-arrow mode (issue #100). While physicsStore.annotationTool is "arrow"
- * this transparent layer covers the canvas, takes the pointer, and turns a
- * drag into a new arrow. An end that starts or finishes over a model node or a
- * text block attaches to it (and snaps to its border); anywhere else becomes a
- * free end. Releasing creates the arrow, selects it and leaves the mode; a
- * click without a drag does nothing; Esc leaves without drawing (handled by
- * the canvas keyboard listener).
+ * Draw-arrow mode: while physicsStore.annotationTool is "arrow", this layer
+ * covers the canvas and turns a drag into an arrow. An end over a model or
+ * text block attaches to it; anywhere else is a free end. Release creates and
+ * selects the arrow and leaves the mode. Esc is handled by the canvas.
  */
 import { useRef, useState } from "react";
 import { useReactFlow, type Node } from "@xyflow/react";
@@ -41,7 +38,7 @@ export default function ArrowDrawLayer() {
 
   if (!active) return null;
 
-  // Screen → flow → the topmost model or text node under the pointer.
+  // The topmost model or text node under the pointer, if any.
   function sample(e: React.PointerEvent): PointerSample {
     const screen = { x: e.clientX, y: e.clientY };
     const flow = screenToFlowPosition(screen);
@@ -76,17 +73,17 @@ export default function ArrowDrawLayer() {
     setCurrent(null);
     if (!from || !to) return;
     const dist = Math.hypot(to.screen.x - from.screen.x, to.screen.y - from.screen.y);
-    if (dist < MIN_DRAG_PX) return; // a click, not a drag: stay in the mode
+    if (dist < MIN_DRAG_PX) return; // a click, not a drag
     if (from.node && to.node && from.node.id === to.node.id) return; // both ends on one node
     const id = addArrow({ from: toEndpoint(from), to: toEndpoint(to) });
-    // The new arrow is the selection; a node selected before drawing lets go.
+    // The new arrow becomes the selection.
     setNodes((nodes) => nodes.map((n) => (n.selected ? { ...n, selected: false } : n)));
     const ui = usePhysicsStore.getState();
     ui.setSelectedArrow(id);
     ui.setAnnotationTool(null);
   }
 
-  // Preview in screen space; an end over a node is shown snapped to its border.
+  // Preview in screen space, snapped to a node border where applicable.
   const layerBox = layerRef.current?.getBoundingClientRect();
   const toLocal = (p: Point): Point => ({ x: p.x - (layerBox?.left ?? 0), y: p.y - (layerBox?.top ?? 0) });
   let preview: { a: Point; b: Point } | null = null;

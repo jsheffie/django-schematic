@@ -72,7 +72,7 @@ def test_non_png_files_are_ignored(tmp_path):
 
 
 def test_v5_config_with_annotations_is_detected_like_any_other(tmp_path):
-    """Annotations (issue #100) ride along in the config; detection still keys on visibleNodeIds."""
+    """Annotations ride along in the config; detection still keys on visibleNodeIds."""
     config = json.dumps(
         {
             "version": 5,

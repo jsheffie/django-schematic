@@ -1,8 +1,4 @@
-/**
- * Actions shared by the toolbar buttons and the keyboard shortcuts (issue #100).
- * Must be used inside the ReactFlowProvider: the viewport centre comes from
- * React Flow's screenToFlowPosition.
- */
+/** Annotation actions shared by the toolbar and the keyboard shortcuts. Needs the ReactFlowProvider. */
 import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";

@@ -38,7 +38,7 @@ export interface ViewConfig {
   canvasHidePositions?: Record<string, { x: number; y: number }>;
   fieldEdits?: Record<string, FieldEdits>;
   edgeOffsets?: Record<string, { x: number; y: number }>; // smart bezier midpoint offsets (issue #96)
-  annotations?: Annotations; // text blocks and arrows (issue #100)
+  annotations?: Annotations; // text blocks and arrows
 }
 
 // Legacy v4 format (no annotations)

@@ -2,8 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Node } from "@xyflow/react";
 import { runDagreLayout } from "./useLayout";
 
-// Annotations (issue #100) share the canvas with model nodes but are never
-// moved by a layout pass.
+// Annotations share the canvas with model nodes but are never laid out.
 const nodes: Node[] = [
   { id: "a.A", type: "model", position: { x: 0, y: 0 }, data: {} },
   { id: "a.B", type: "model", position: { x: 0, y: 0 }, data: {} },

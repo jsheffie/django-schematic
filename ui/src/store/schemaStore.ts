@@ -39,9 +39,8 @@ interface SchemaStore {
   // (`${source}->${target}:${field}`); near-zero offsets are removed.
   edgeOffsets: Map<string, { x: number; y: number }>;
 
-  // Canvas annotations (issue #100): free-form text blocks and user-drawn
-  // arrows. Content, not presentation: resetConfig leaves them alone. Keyed
-  // by generated ids (`tb_...` / `ar_...`, see lib/annotations.ts).
+  // Canvas annotations, keyed by generated ids (lib/annotations.ts). Content,
+  // not presentation: resetConfig leaves them alone.
   textBlocks: Map<string, TextBlock>;
   arrows: Map<string, Arrow>;
 

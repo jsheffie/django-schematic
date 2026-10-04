@@ -28,9 +28,7 @@ export function loadElk(): Promise<ElkInstance> {
 const DEFAULT_WIDTH = 220;
 const DEFAULT_HEIGHT = 60;
 
-// Annotations (issue #100) are user-placed; a layout pass never moves them.
-// Only `model` nodes (and the edges between them) go to ELK; every other node
-// is returned exactly as it came in.
+// Only model nodes (and the edges between them) go to ELK; annotations pass through untouched.
 const isModel = (n: Node): boolean => n.type === "model";
 
 export async function runElkLayout(

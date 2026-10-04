@@ -1,7 +1,7 @@
 /**
- * Invisible node standing in for a free arrow end (issue #100). React Flow
- * treats the arrow as an ordinary edge between two nodes; dragging this node
- * moves the free end. It only shows a grab dot while its arrow is selected.
+ * Invisible node standing in for a free arrow end, so the arrow is an ordinary
+ * edge between two nodes. Dragging it moves the end; a grab dot shows only
+ * while the arrow is selected.
  */
 import { memo } from "react";
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";

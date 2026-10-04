@@ -53,7 +53,7 @@ export function IconSortByType({ className = "w-4 h-4", strokeWidth = 2 }: { cla
   );
 }
 
-// Annotations (issue #100), toolbar "Annotate" section.
+// Toolbar "Annotate" section.
 
 /** Text block: a capital T, the universal "add text" glyph. */
 export function IconText({ className = "w-4 h-4" }: { className?: string }) {

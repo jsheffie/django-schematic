@@ -1,10 +1,7 @@
 /**
- * Free-form text block (issue #100): a `note` (card with a folded corner, the
- * UML comment shape) or a `title` (large text, no card). Not backed by a model.
- *
- * The block's content lives in schemaStore.textBlocks; only the React Flow
- * node id and position/size pass through props. Double-click edits in place;
- * Esc or clicking away saves. The stored height is a floor (min-height), so a
+ * Free-form text block: a `note` (card with a folded corner) or a `title`
+ * (large text, no card). Content lives in schemaStore.textBlocks; double-click
+ * edits, Esc or clicking away saves. The stored height is a min-height, so a
  * card grows with its text and a manual resize sets a new floor.
  */
 import { memo, useEffect, useRef, useState } from "react";
@@ -20,8 +17,7 @@ export const DEFAULT_NOTE_COLOR = "#f59e0b"; // amber swatch
 const DEFAULT_TITLE_COLOR = "#1f2937";
 const FOLD = 12; // px, the folded corner of a note
 
-// Arrows attach to these; React Flow needs a source and a target handle on
-// every node an edge touches. They are never shown or connectable by hand.
+// React Flow needs a source and a target handle on every node an edge touches.
 const HIDDEN_HANDLE: React.CSSProperties = {
   opacity: 0,
   width: 1,
@@ -99,17 +95,14 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const text = block?.text ?? "";
 
-  // Entering edit mode starts from the saved text. Only when edit mode
-  // toggles: a store text change while typing must not reset the draft.
+  // Only when edit mode toggles: a store change while typing must not reset the draft.
   useEffect(() => {
     if (editing) setDraft(text);
   }, [editing]);
 
-  // Focus the editor with the caret at the end. React Flow keeps a new node at
-  // `visibility: hidden` until it has measured it, and focus() inside a hidden
-  // subtree is a silent no-op, so this also re-runs when the measured `height`
-  // arrives. Once the editor has focus it is left alone (typing can change the
-  // height, which must not move the caret).
+  // React Flow keeps a new node `visibility: hidden` until measured, where
+  // focus() is a no-op, so retry when the measured `height` arrives. Once
+  // focused, leave it alone: typing can change the height.
   useEffect(() => {
     const el = textareaRef.current;
     if (!editing || !el || document.activeElement === el) return;
@@ -190,7 +183,7 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
             ? { color, outline: selected ? "1px dashed #9ca3af" : undefined, outlineOffset: 2 }
             : {
                 borderColor: color,
-                // Opaque tint: a note dropped over a table must cover it, like paper.
+                // Opaque tint so a note covers whatever it sits on.
                 backgroundColor: `color-mix(in srgb, ${color} 14%, white)`,
                 color: DEFAULT_TITLE_COLOR,
                 clipPath: `polygon(0 0, calc(100% - ${FOLD}px) 0, 100% ${FOLD}px, 100% 100%, 0 100%)`,

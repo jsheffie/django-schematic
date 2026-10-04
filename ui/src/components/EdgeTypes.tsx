@@ -261,5 +261,5 @@ export function SchemaEdge({
 
 export const edgeTypes: EdgeTypes = {
   schema: SchemaEdge,
-  arrow: ArrowEdge, // annotation arrows (issue #100)
+  arrow: ArrowEdge,
 } as unknown as EdgeTypes;

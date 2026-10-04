@@ -1,14 +1,9 @@
 /**
- * User-drawn annotation arrow (issue #100). Rendered as a React Flow edge
- * between the two nodes its ends refer to: a model node, a text block, or an
- * invisible anchor node for a free end. Geometry comes from lib/annotations.ts
- * and is recomputed every render from live node positions, so an arrow follows
- * the node it is attached to while that node is dragged.
- *
- * Visually distinct from relation edges: dark dashed ink with a filled head.
- * Selected: blue, with a small toolbar (start head, label, delete) above the
- * midpoint. In the bezier edge style the midpoint grip bows the arrow, same
- * interaction as the smart relation edge.
+ * User-drawn annotation arrow: a React Flow edge between the two nodes its ends
+ * refer to (model, text block, or an anchor node for a free end). Geometry is
+ * recomputed from live node positions each render, so it follows drags.
+ * Dashed ink with a filled head; blue when selected, with a toolbar (start
+ * head, label, delete) and, in the bezier style, a midpoint grip to bow it.
  */
 import { useRef, useState } from "react";
 import {
@@ -39,7 +34,7 @@ export type ArrowEdgeData = Edge<{ arrowId: string; edgeStyle?: EdgeStyle }, "ar
 
 function endGeometry(ep: ArrowEndpoint, node: InternalNode): EndGeometry {
   if (isAttached(ep)) return { kind: "node", rect: nodeRect(node) };
-  // Free end: the anchor node's centre, live from the store so a drag shows immediately.
+  // Free end: the anchor node's centre, live so a drag shows immediately.
   const pos = node.internals.positionAbsolute;
   return { kind: "point", point: { x: pos.x + ANCHOR_SIZE / 2, y: pos.y + ANCHOR_SIZE / 2 } };
 }
@@ -142,7 +137,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
               pointerEvents: "all",
               cursor: dragging ? "grabbing" : "grab",
               touchAction: "none",
-              zIndex: 1001, // above elevated nodes, same reason as the relation-edge grip
+              zIndex: 1001, // above elevated nodes, like the relation-edge grip
               transform: `translate(-50%, -50%) translate(${g.mid.x}px,${g.mid.y}px)`,
             }}
             title="Drag to bow the arrow. Double-click to straighten."

@@ -41,9 +41,7 @@ export function useForceLayout(
     physicsEnabledRef.current = physicsEnabled;
   }, [physicsEnabled]);
 
-  // Annotations (issue #100) are user-placed; the simulation never moves them.
-  // Only `model` nodes take part; the tick below leaves every other node alone
-  // because it has no sim counterpart.
+  // Only model nodes take part; annotations have no sim counterpart and stay put.
   const modelNodes = nodes.filter((n) => n.type === "model");
 
   useEffect(() => {

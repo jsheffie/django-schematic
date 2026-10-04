@@ -14,7 +14,7 @@ export function pngExportFilter(el: Element): boolean {
   const cls = el.classList;
   if (!cls) return true;
   if (cls.contains("react-flow__minimap") || cls.contains("minimap-close")) return false;
-  // React Flow's own resize handles and node toolbars (annotations, issue #100).
+  // React Flow's resize handles and node toolbars.
   if (cls.contains("react-flow__resize-control") || cls.contains("react-flow__node-toolbar")) return false;
   return !(typeof el.hasAttribute === "function" && el.hasAttribute("data-export-skip"));
 }
