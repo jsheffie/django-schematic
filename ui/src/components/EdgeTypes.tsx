@@ -16,6 +16,7 @@ import { getNodeBorderPoint, getNodeCenter } from "../lib/floatingEdge";
 import { useSchemaStore } from "../store/schemaStore";
 import { smartEdgeGeometry } from "../lib/smartEdge";
 import type { Point } from "../lib/smartEdge";
+import { ArrowEdge } from "./ArrowEdge";
 
 export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
@@ -260,4 +261,5 @@ export function SchemaEdge({
 
 export const edgeTypes: EdgeTypes = {
   schema: SchemaEdge,
+  arrow: ArrowEdge,
 } as unknown as EdgeTypes;

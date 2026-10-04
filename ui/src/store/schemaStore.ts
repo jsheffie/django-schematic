@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import { EMPTY_FIELD_EDITS, autoFieldOrder, isEmptyEdits, type FieldEdits } from "../lib/fieldEdits";
 import type { NodeInfo } from "../lib/types";
+import {
+  isAttached,
+  newArrowId,
+  newTextBlockId,
+  type Arrow,
+  type TextBlock,
+} from "../lib/annotations";
 
 interface ViewportState {
   x: number;
@@ -32,6 +39,11 @@ interface SchemaStore {
   // (`${source}->${target}:${field}`); near-zero offsets are removed.
   edgeOffsets: Map<string, { x: number; y: number }>;
 
+  // Canvas annotations, keyed by generated ids (lib/annotations.ts). Content,
+  // not presentation: resetConfig leaves them alone.
+  textBlocks: Map<string, TextBlock>;
+  arrows: Map<string, Arrow>;
+
   // Node visibility
   setAllVisible: (ids: string[]) => void;
   toggleNodeVisibility: (id: string) => void;
@@ -58,6 +70,16 @@ interface SchemaStore {
   // Edge shaping
   setEdgeOffset: (id: string, offset: { x: number; y: number }) => void;
   clearEdgeOffset: (id: string) => void;
+
+  // Annotations
+  addTextBlock: (block: TextBlock) => string;
+  updateTextBlock: (id: string, patch: Partial<TextBlock>) => void;
+  removeTextBlock: (id: string) => void; // also removes arrows attached to it
+  addArrow: (arrow: Arrow) => string;
+  updateArrow: (id: string, patch: Partial<Arrow>) => void;
+  removeArrow: (id: string) => void;
+  setArrowOffset: (id: string, offset: { x: number; y: number }) => void;
+  clearArrowOffset: (id: string) => void;
 
   // App collapse (group node)
   toggleAppCollapse: (appLabel: string) => void;
@@ -119,6 +141,8 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   canvasLayoutSuppressVersion: 0,
   fieldEdits: new Map(),
   edgeOffsets: new Map(),
+  textBlocks: new Map(),
+  arrows: new Map(),
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids), schemaInitialized: true }),
 
@@ -258,6 +282,69 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       const next = new Map(s.edgeOffsets);
       next.delete(id);
       return { edgeOffsets: next };
+    }),
+
+  addTextBlock: (block) => {
+    const id = newTextBlockId();
+    set((s) => ({ textBlocks: new Map(s.textBlocks).set(id, block) }));
+    return id;
+  },
+
+  updateTextBlock: (id, patch) =>
+    set((s) => {
+      const cur = s.textBlocks.get(id);
+      if (!cur) return {};
+      return { textBlocks: new Map(s.textBlocks).set(id, { ...cur, ...patch }) };
+    }),
+
+  removeTextBlock: (id) =>
+    set((s) => {
+      const textBlocks = new Map(s.textBlocks);
+      textBlocks.delete(id);
+      // An arrow whose end pointed at the block has nothing to point at.
+      const touches = (a: Arrow) =>
+        (isAttached(a.from) && a.from.nodeId === id) || (isAttached(a.to) && a.to.nodeId === id);
+      const arrows = new Map([...s.arrows].filter(([, a]) => !touches(a)));
+      return { textBlocks, arrows };
+    }),
+
+  addArrow: (arrow) => {
+    const id = newArrowId();
+    set((s) => ({ arrows: new Map(s.arrows).set(id, arrow) }));
+    return id;
+  },
+
+  updateArrow: (id, patch) =>
+    set((s) => {
+      const cur = s.arrows.get(id);
+      if (!cur) return {};
+      return { arrows: new Map(s.arrows).set(id, { ...cur, ...patch }) };
+    }),
+
+  removeArrow: (id) =>
+    set((s) => {
+      const arrows = new Map(s.arrows);
+      arrows.delete(id);
+      return { arrows };
+    }),
+
+  setArrowOffset: (id, offset) =>
+    set((s) => {
+      const cur = s.arrows.get(id);
+      if (!cur) return {};
+      const next: Arrow = { ...cur };
+      if (Math.abs(offset.x) < 1 && Math.abs(offset.y) < 1) delete next.offset;
+      else next.offset = offset;
+      return { arrows: new Map(s.arrows).set(id, next) };
+    }),
+
+  clearArrowOffset: (id) =>
+    set((s) => {
+      const cur = s.arrows.get(id);
+      if (!cur) return {};
+      const next: Arrow = { ...cur };
+      delete next.offset;
+      return { arrows: new Map(s.arrows).set(id, next) };
     }),
 
   toggleAppCollapse: (appLabel) =>

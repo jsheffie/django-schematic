@@ -5,14 +5,13 @@
  */
 import { useEffect } from "react";
 import { useReactFlow } from "@xyflow/react";
-import { toPng } from "html-to-image";
 import type { Viewport } from "@xyflow/react";
-import { exportConfig, importConfig } from "../lib/config";
-import { injectTextChunk } from "../lib/pngEmbed";
+import { importConfig } from "../lib/config";
+import { captureCanvasPng } from "../lib/pngExport";
 import { useSchemaStore } from "../store/schemaStore";
 
 export default function AutomationBridge() {
-  const { getNodes, setViewport, fitView } = useReactFlow();
+  const { getNodes, setNodes, setViewport, fitView } = useReactFlow();
   const setLayout = useSchemaStore((s) => s.setLayout);
 
   useEffect(() => {
@@ -35,28 +34,7 @@ export default function AutomationBridge() {
 
       async exportPngBytes(): Promise<string> {
         await fitView({ padding: 0.1, duration: 0 });
-        const positions: Record<string, { x: number; y: number }> = {};
-        getNodes().forEach((n) => {
-          positions[n.id] = n.position;
-        });
-        const json = exportConfig(positions);
-
-        const flowEl = document.querySelector(".react-flow") as HTMLElement | null;
-        if (!flowEl) throw new Error("React Flow element not found");
-
-        const dataUrl = await toPng(flowEl, {
-          backgroundColor: "#ffffff",
-          filter: (el) =>
-            !el.classList?.contains("react-flow__minimap") &&
-            !el.classList?.contains("minimap-close"),
-        });
-
-        const base64 = dataUrl.split(",")[1];
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-        const png = injectTextChunk(bytes, "schematic", json);
+        const png = await captureCanvasPng({ getNodes, setNodes });
 
         // Chunked btoa to avoid call stack overflow on large PNGs
         let result = "";
@@ -66,7 +44,7 @@ export default function AutomationBridge() {
         return btoa(result);
       },
     };
-  }, [getNodes, setViewport, setLayout]);
+  }, [getNodes, setNodes, setViewport, setLayout]);
 
   return null;
 }

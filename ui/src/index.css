@@ -13,3 +13,9 @@ body,
   padding: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
+
+/* Title text blocks have no card; the outline shows where to grab them. */
+.annotation-title:hover {
+  outline: 1px dashed #d1d5db;
+  outline-offset: 2px;
+}

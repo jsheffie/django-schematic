@@ -72,6 +72,11 @@ interface PhysicsStore {
   // Node currently in field-edit mode (at most one at a time; null = none).
   editingNodeId: string | null;
 
+  // Canvas annotation UI state, not exported.
+  annotationTool: "arrow" | null;        // "arrow" while draw-arrow mode is on
+  editingTextBlockId: string | null;     // text block whose textarea is open
+  selectedArrowId: string | null;        // arrow edges are single-select
+
   setEdgeStyle: (s: EdgeStyle) => void;
   setLiveDragPhysics: (v: boolean) => void;
   setPhysicsEnabled: (v: boolean) => void;
@@ -84,6 +89,9 @@ interface PhysicsStore {
   setColorPalette: (p: ColorPalette) => void;
   setBackgroundStyle: (s: BackgroundStyle) => void;
   setEditingNode: (id: string | null) => void;
+  setAnnotationTool: (tool: "arrow" | null) => void;
+  setEditingTextBlock: (id: string | null) => void;
+  setSelectedArrow: (id: string | null) => void;
   applyPreset: (mode: AppMode) => void;
 }
 
@@ -101,6 +109,9 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   colorPalette: "pastel",
   backgroundStyle: "dots",
   editingNodeId: null,
+  annotationTool: null,
+  editingTextBlockId: null,
+  selectedArrowId: null,
 
   setEdgeStyle: (edgeStyle) => set({ edgeStyle }),
   setLiveDragPhysics: (liveDragPhysics) => set({ liveDragPhysics }),
@@ -115,6 +126,9 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setColorPalette: (colorPalette) => set({ colorPalette }),
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
   setEditingNode: (editingNodeId) => set({ editingNodeId }),
+  setAnnotationTool: (annotationTool) => set({ annotationTool }),
+  setEditingTextBlock: (editingTextBlockId) => set({ editingTextBlockId }),
+  setSelectedArrow: (selectedArrowId) => set({ selectedArrowId }),
 
   applyPreset: (mode) => {
     if (mode === "stiff") {

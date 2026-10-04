@@ -1,0 +1,116 @@
+{
+  "version": 5,
+  "activeLayout": "elk",
+  "visibleNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member"
+  ],
+  "expandedNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Member",
+    "library.Loan"
+  ],
+  "pinnedPositions": {
+    "library.Author": {
+      "x": 598,
+      "y": 12
+    },
+    "library.Book": {
+      "x": 301,
+      "y": 22.166666666666664
+    },
+    "library.Genre": {
+      "x": 598,
+      "y": 193
+    },
+    "library.Loan": {
+      "x": 12,
+      "y": 45.666666666666664
+    },
+    "library.Member": {
+      "x": 301,
+      "y": 243.16666666666666
+    }
+  },
+  "collapsedApps": [],
+  "viewport": {
+    "x": 69,
+    "y": 146.66666666666669,
+    "zoom": 2
+  },
+  "canvasSize": {
+    "width": 1720,
+    "height": 1129
+  },
+  "canvasHidePositions": {},
+  "fieldEdits": {},
+  "edgeOffsets": {},
+  "annotations": {
+    "textBlocks": {
+      "tb_muu6he9ispewcg": {
+        "x": 84,
+        "y": 270.0833333333333,
+        "width": 200,
+        "height": 72,
+        "text": "denormalized from Loan - rebuilt nightly",
+        "style": "note"
+      },
+      "tb_muu6m94ohv0d17": {
+        "x": 124.5,
+        "y": -19.583333333333343,
+        "width": 200,
+        "height": 72,
+        "text": "Library",
+        "style": "title"
+      }
+    },
+    "arrows": {
+      "ar_muu6i3ksv56l6k": {
+        "from": {
+          "nodeId": "tb_muu6he9ispewcg"
+        },
+        "to": {
+          "nodeId": "library.Book"
+        },
+        "label": "nightly",
+        "startHead": true,
+        "offset": {
+          "x": -68,
+          "y": 40.49999999999997
+        }
+      },
+      "ar_muu6nil9hedchv": {
+        "from": {
+          "x": 690,
+          "y": 367.66666666666663
+        },
+        "to": {
+          "nodeId": "library.Author"
+        },
+        "label": "owner"
+      }
+    }
+  },
+  "physics": {
+    "edgeStyle": "bezier",
+    "liveDragPhysics": false,
+    "forceParams": {
+      "alphaDecay": 0.0228,
+      "alphaMin": 0.001,
+      "velocityDecay": 0.4,
+      "chargeStrength": -400,
+      "linkDistance": 180,
+      "collisionRadius": 80
+    },
+    "appMode": "normal",
+    "colorPalette": "pastel",
+    "backgroundStyle": "dots",
+    "minimapVisible": true,
+    "sidebarOpen": false
+  }
+}

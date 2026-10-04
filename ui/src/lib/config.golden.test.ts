@@ -30,7 +30,9 @@ describe("every committed config fixture still imports", () => {
 
   it("has at least one fixture per known version", () => {
     expect(files).toEqual(
-      expect.arrayContaining(["config-v1.json", "config-v2.json", "config-v3.json", "config-v4.json"]),
+      expect.arrayContaining([
+        "config-v1.json", "config-v2.json", "config-v3.json", "config-v4.json", "config-v5.json",
+      ]),
     );
   });
 
@@ -204,6 +206,69 @@ describe("config-v4.json", () => {
       ]),
     );
     expect(usePhysicsStore.getState().edgeStyle).toBe("bezier");
+  });
+});
+
+describe("config-v5.json", () => {
+  it("restores text blocks and arrows exactly as exported", () => {
+    const viewport = importConfig(fixture("config-v5.json"));
+    const s = useSchemaStore.getState();
+
+    expect(s.visibleNodeIds).toEqual(
+      new Set(["library.Author", "library.Book", "library.Genre", "library.Loan", "library.Member"]),
+    );
+    // Export captures model positions only: no text block or anchor ids leak into pins.
+    expect([...s.pinnedPositions.keys()].sort()).toEqual(
+      ["library.Author", "library.Book", "library.Genre", "library.Loan", "library.Member"],
+    );
+    expect(viewport).toEqual({
+      x: 69,
+      y: 146.66666666666669,
+      zoom: 2,
+      canvasSize: { width: 1720, height: 1129 },
+    });
+
+    expect(s.textBlocks).toEqual(
+      new Map([
+        ["tb_muu6he9ispewcg", {
+          x: 84, y: 270.0833333333333, width: 200, height: 72,
+          text: "denormalized from Loan - rebuilt nightly", style: "note",
+        }],
+        ["tb_muu6m94ohv0d17", {
+          x: 124.5, y: -19.583333333333343, width: 200, height: 72,
+          text: "Library", style: "title",
+        }],
+      ]),
+    );
+    expect(s.arrows).toEqual(
+      new Map([
+        ["ar_muu6i3ksv56l6k", {
+          from: { nodeId: "tb_muu6he9ispewcg" },
+          to: { nodeId: "library.Book" },
+          label: "nightly",
+          startHead: true,
+          offset: { x: -68, y: 40.49999999999997 },
+        }],
+        ["ar_muu6nil9hedchv", {
+          from: { x: 690, y: 367.66666666666663 },
+          to: { nodeId: "library.Author" },
+          label: "owner",
+        }],
+      ]),
+    );
+    expect(s.edgeOffsets.size).toBe(0);
+    expect(s.fieldEdits.size).toBe(0);
+  });
+
+  it("is what Reset leaves alone and what a v4 import replaces", () => {
+    importConfig(fixture("config-v5.json"));
+    useSchemaStore.getState().resetConfig();
+    expect(useSchemaStore.getState().textBlocks.size).toBe(2);
+    expect(useSchemaStore.getState().arrows.size).toBe(2);
+
+    importConfig(fixture("config-v4.json"));
+    expect(useSchemaStore.getState().textBlocks.size).toBe(0);
+    expect(useSchemaStore.getState().arrows.size).toBe(0);
   });
 });
 

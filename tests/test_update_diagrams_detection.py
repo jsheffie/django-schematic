@@ -69,3 +69,23 @@ def test_non_png_files_are_ignored(tmp_path):
     (tmp_path / "notes.txt").write_text("hello")
     result = find_stale_pngs(tmp_path, {"auth.User"})
     assert result == []
+
+
+def test_v5_config_with_annotations_is_detected_like_any_other(tmp_path):
+    """Annotations ride along in the config; detection still keys on visibleNodeIds."""
+    config = json.dumps(
+        {
+            "version": 5,
+            "visibleNodeIds": ["auth.User"],
+            "annotations": {
+                "textBlocks": {
+                    "tb_1": {"x": 0, "y": 0, "width": 200, "height": 72, "text": "note", "style": "note"}
+                },
+                "arrows": {"ar_1": {"from": {"nodeId": "tb_1"}, "to": {"nodeId": "auth.User"}}},
+            },
+        }
+    )
+    p = tmp_path / "annotated.png"
+    p.write_bytes(inject_text_chunk(make_minimal_png(), "schematic", config))
+    assert find_stale_pngs(tmp_path, {"auth.User"}) == [p]
+    assert find_stale_pngs(tmp_path, {"auth.Group"}) == []

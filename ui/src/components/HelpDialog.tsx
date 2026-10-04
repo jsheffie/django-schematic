@@ -69,6 +69,7 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">Mode —</dt><dd className="inline text-gray-500"> <span className="font-medium text-gray-700">Static</span> turns physics off in any layout so nodes stay where you drag them. <span className="font-medium text-gray-700">Live</span> switches to Organic and turns physics on.</dd></div>
               <div><dt className="font-medium inline">Node Spacing —</dt><dd className="inline text-gray-500"> distance between connected nodes. Only active in Organic; it is the same value as the Link Distance slider in Settings → Physics.</dd></div>
               <div><dt className="font-medium inline">Sort all tables by type -</dt><dd className="inline text-gray-500"> one click puts every table's fields in the same order: primary key, relations, fields grouped by type, booleans, dates and times last. Covers hidden and collapsed models too. It always asks first, and names any tables whose hand-made order would be replaced, so you can keep them. File menu Reset undoes it for all tables.</dd></div>
+              <div><dt className="font-medium inline">Annotate -</dt><dd className="inline text-gray-500"> <span className="font-medium text-gray-700">T</span> adds a text block (a note or a title) and <span className="font-medium text-gray-700">A</span> starts drawing an arrow. Both have keyboard shortcuts of the same letter. See Annotations below.</dd></div>
               <div><dt className="font-medium inline">Models / Settings —</dt><dd className="inline text-gray-500"> open or close the left and right drawers. Both can be open at once. The icon fills in while its drawer is open. The ‹ › tabs on the screen edges do the same thing.</dd></div>
               <div><dt className="font-medium inline">? —</dt><dd className="inline text-gray-500"> this help. Press Esc or click outside to close it.</dd></div>
               <div><dt className="font-medium inline">File —</dt><dd className="inline text-gray-500"> export and import; see File menu below.</dd></div>
@@ -117,11 +118,11 @@ export default function HelpDialog() {
           <section>
             <h3 className="font-semibold text-gray-900 mb-1.5">File menu</h3>
             <dl className="flex flex-col gap-1.5">
-              <div><dt className="font-medium inline">Export config —</dt><dd className="inline text-gray-500"> saves node positions, visible models, expanded fields, viewport, and physics settings to a JSON file.</dd></div>
+              <div><dt className="font-medium inline">Export config —</dt><dd className="inline text-gray-500"> saves node positions, visible models, expanded fields, viewport, physics settings, and annotations (text blocks and arrows) to a JSON file.</dd></div>
               <div><dt className="font-medium inline">Import config —</dt><dd className="inline text-gray-500"> restores a previously exported JSON config, including positions.</dd></div>
               <div><dt className="font-medium inline">Export PNG —</dt><dd className="inline text-gray-500"> downloads the canvas as a PNG image with the full config embedded inside. The layout and settings can be restored later via Import PNG.</dd></div>
               <div><dt className="font-medium inline">Import PNG —</dt><dd className="inline text-gray-500"> reads an exported PNG and restores the embedded config, including positions, visibility, and physics settings.</dd></div>
-              <div><dt className="font-medium inline">Reset —</dt><dd className="inline text-gray-500"> clears pinned positions, collapses all expanded fields, and removes every field edit (order, hidden fields, colors) and connector reshaping.</dd></div>
+              <div><dt className="font-medium inline">Reset —</dt><dd className="inline text-gray-500"> clears pinned positions, collapses all expanded fields, and removes every field edit (order, hidden fields, colors) and connector reshaping. Annotations are kept: delete them one by one, or import a config without them.</dd></div>
             </dl>
           </section>
 
@@ -189,6 +190,34 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">Double-click node header —</dt><dd className="inline text-gray-500"> prompt to hide the model from the canvas.</dd></div>
               <div><dt className="font-medium inline">Hover connector —</dt><dd className="inline text-gray-500"> show relation type, field name, and reverse lookup.</dd></div>
               <div><dt className="font-medium inline">✎ on node header (hover) -</dt><dd className="inline text-gray-500"> open table edit mode for that model; see below.</dd></div>
+              <div><dt className="font-medium inline">Double-click text block -</dt><dd className="inline text-gray-500"> edit its text. Esc or a click elsewhere saves.</dd></div>
+              <div><dt className="font-medium inline">Click arrow -</dt><dd className="inline text-gray-500"> select it: label, start arrowhead and delete appear above its midpoint; a free end shows a dot you can drag.</dd></div>
+              <div><dt className="font-medium inline">Backspace / Delete -</dt><dd className="inline text-gray-500"> remove the selected text block or arrow. Models and relation lines are never deleted this way.</dd></div>
+            </dl>
+          </section>
+
+          {/* Annotations */}
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-1.5">Annotations</h3>
+            <p className="text-gray-500 mb-2">Notes, titles and arrows that are not part of the model registry: a diagram title, a legend, or a remark next to a table. They are saved with Export config and Export PNG, re-imported with them, and rendered in diagrams produced by <span className="font-medium text-gray-700">update_diagrams</span>. No layout or physics pass ever moves them.</p>
+
+            <h4 className="font-medium text-gray-800 mb-1">Text blocks</h4>
+            <dl className="flex flex-col gap-1 mb-3">
+              <div><dt className="font-medium inline">Add -</dt><dd className="inline text-gray-500"> press <span className="font-medium text-gray-700">T</span> or click the T in the toolbar. The block appears at the centre of the view, ready to type into. A block left empty disappears.</dd></div>
+              <div><dt className="font-medium inline">Edit -</dt><dd className="inline text-gray-500"> double-click. Esc or a click elsewhere saves. Line breaks are kept.</dd></div>
+              <div><dt className="font-medium inline">Move / resize -</dt><dd className="inline text-gray-500"> drag it like a table; drag a corner or edge handle of a selected block to resize. A block grows with its text; a manual resize sets its minimum size.</dd></div>
+              <div><dt className="font-medium inline">Note / Title -</dt><dd className="inline text-gray-500"> the bar above a selected block switches between a <span className="font-medium text-gray-700">Note</span> (a coloured card with a folded corner) and a <span className="font-medium text-gray-700">Title</span> (large plain text). The same bar holds the eight colour swatches and a clear button.</dd></div>
+              <div><dt className="font-medium inline">Delete -</dt><dd className="inline text-gray-500"> Backspace or Delete while selected, or the × that appears at its corner on hover. Arrows attached to the block go with it.</dd></div>
+            </dl>
+
+            <h4 className="font-medium text-gray-800 mb-1">Arrows</h4>
+            <dl className="flex flex-col gap-1">
+              <div><dt className="font-medium inline">Draw -</dt><dd className="inline text-gray-500"> press <span className="font-medium text-gray-700">A</span> or click the arrow in the toolbar, then drag from where the arrow starts to where it points. Esc cancels. The mode ends after one arrow.</dd></div>
+              <div><dt className="font-medium inline">Ends -</dt><dd className="inline text-gray-500"> an end that starts or finishes on a table or a text block attaches to it and follows it when it moves. Anywhere else is a free end: select the arrow and drag its dot.</dd></div>
+              <div><dt className="font-medium inline">Shape -</dt><dd className="inline text-gray-500"> arrows follow the Edge Style setting. In Bezier, drag the midpoint grip to bow the arrow around other tables; double-click the grip to straighten it.</dd></div>
+              <div><dt className="font-medium inline">Label / start head -</dt><dd className="inline text-gray-500"> select the arrow and type a short label, or toggle the arrowhead at its start, in the bar above its midpoint.</dd></div>
+              <div><dt className="font-medium inline">Hidden models -</dt><dd className="inline text-gray-500"> an arrow attached to a hidden model is hidden with it and comes back when the model is shown again.</dd></div>
+              <div><dt className="font-medium inline">Delete -</dt><dd className="inline text-gray-500"> Backspace or Delete while selected, or the × in its bar.</dd></div>
             </dl>
           </section>
 

@@ -28,12 +28,17 @@ export function loadElk(): Promise<ElkInstance> {
 const DEFAULT_WIDTH = 220;
 const DEFAULT_HEIGHT = 60;
 
+// Only model nodes (and the edges between them) go to ELK; annotations pass through untouched.
+const isModel = (n: Node): boolean => n.type === "model";
+
 export async function runElkLayout(
   nodes: Node[],
   edges: Edge[],
   nodeSizes: Map<string, { width: number; height: number }>
 ): Promise<Node[]> {
-  if (nodes.length === 0) return nodes;
+  const modelNodes = nodes.filter(isModel);
+  if (modelNodes.length === 0) return nodes;
+  const modelIds = new Set(modelNodes.map((n) => n.id));
 
   const elkGraph = {
     id: "root",
@@ -43,7 +48,7 @@ export async function runElkLayout(
       "elk.layered.spacing.nodeNodeBetweenLayers": "80",
       "elk.spacing.nodeNode": "40",
     },
-    children: nodes.map((n) => {
+    children: modelNodes.map((n) => {
       const s = nodeSizes.get(n.id);
       return {
         id: n.id,
@@ -51,17 +56,20 @@ export async function runElkLayout(
         height: s?.height ?? DEFAULT_HEIGHT,
       };
     }),
-    edges: edges.map((e) => ({
-      id: e.id,
-      sources: [e.source],
-      targets: [e.target],
-    })),
+    edges: edges
+      .filter((e) => modelIds.has(e.source) && modelIds.has(e.target))
+      .map((e) => ({
+        id: e.id,
+        sources: [e.source],
+        targets: [e.target],
+      })),
   };
 
   const elk = await loadElk();
   const layout = await elk.layout(elkGraph);
 
   return nodes.map((n) => {
+    if (!isModel(n)) return n;
     const child = layout.children?.find((c) => c.id === n.id);
     if (!child || child.x === undefined || child.y === undefined) return n;
     return { ...n, position: { x: child.x, y: child.y } };

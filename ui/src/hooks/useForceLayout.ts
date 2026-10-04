@@ -41,15 +41,18 @@ export function useForceLayout(
     physicsEnabledRef.current = physicsEnabled;
   }, [physicsEnabled]);
 
+  // Only model nodes take part; annotations have no sim counterpart and stay put.
+  const modelNodes = nodes.filter((n) => n.type === "model");
+
   useEffect(() => {
-    if (!enabled || nodes.length === 0) {
+    if (!enabled || modelNodes.length === 0) {
       simRef.current?.stop();
       return;
     }
 
     simRef.current?.stop();
 
-    const simNodes: SimNode[] = nodes.map((n) => ({
+    const simNodes: SimNode[] = modelNodes.map((n) => ({
       id: n.id,
       width:  (n as { measured?: { width?: number } }).measured?.width  ?? 220,
       height: (n as { measured?: { height?: number } }).measured?.height ?? 60,
@@ -67,7 +70,7 @@ export function useForceLayout(
     // If nodes already have spread-out positions (e.g. switching from dagre),
     // start the simulation cool so nodes stay roughly where they are instead
     // of exploding. Only start at full alpha on a true first load (all at origin).
-    const hasExistingPositions = nodes.some(
+    const hasExistingPositions = modelNodes.some(
       (n) => Math.abs(n.position.x) > 1 || Math.abs(n.position.y) > 1,
     );
     const initialAlpha = hasExistingPositions ? 0.1 : 1.0;
@@ -111,7 +114,7 @@ export function useForceLayout(
     return () => {
       simulation.stop();
     };
-  }, [nodes.length, edges.length, setNodes, enabled, importId]);
+  }, [modelNodes.length, edges.length, setNodes, enabled, importId]);
 
   // Stop or restart the simulation when physicsEnabled changes.
   // Declared after the setup effect so it runs second on the same render.
