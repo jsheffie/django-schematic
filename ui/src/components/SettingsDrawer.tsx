@@ -57,6 +57,7 @@ export default function SettingsDrawer({ onReheat }: Props) {
           <span className="text-sm font-semibold text-gray-800">Settings</span>
           <button
             onClick={() => setDrawerOpen(false)}
+            title="Close settings"
             className="text-gray-400 hover:text-gray-600 text-lg leading-none"
           >
             ×

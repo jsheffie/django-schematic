@@ -46,7 +46,7 @@ export default function SidebarDrawer({ schema }: Props) {
           transition: "transform 0.25s ease",
         }}
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        title={sidebarOpen ? "Close model list" : "Open model list"}
+        title={sidebarOpen ? "Close models" : "Open models"}
       >
         {sidebarOpen ? "‹" : "›"}
       </button>
