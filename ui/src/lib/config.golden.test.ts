@@ -211,9 +211,11 @@ describe("schema drift against a committed export", () => {
   const field = (name: string): FieldInfo => ({
     name,
     field_type: "CharField",
+    internal_type: "CharField",
     is_relation: false,
     null: false,
     unique: false,
+    primary_key: false,
   });
 
   it("drops order entries for fields that no longer exist and appends new ones", () => {
