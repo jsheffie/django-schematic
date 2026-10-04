@@ -63,10 +63,12 @@ function renderToolbar() {
 }
 
 describe("Toolbar sort all tables by type", () => {
-  it("sorts every table in the schema, visible or not", () => {
+  it("sorts every table in the schema, visible or not, once confirmed", () => {
     const { getByRole } = renderToolbar();
 
     fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
+    expect(useSchemaStore.getState().fieldEdits.size).toBe(0);
+    fireEvent.click(getByRole("button", { name: "Sort all tables" }));
 
     const edits = useSchemaStore.getState().fieldEdits;
     expect(edits.get("shop.Order")?.fieldOrder).toEqual(["id", "customer", "status", "created_at"]);
@@ -93,20 +95,26 @@ describe("Toolbar sort all: confirmation when a custom order exists", () => {
     });
   }
 
-  it("does not ask when the only edits are hidden fields or colors", () => {
+  it("always asks; with no custom order it says nothing will be replaced", () => {
     useSchemaStore.setState({
       fieldEdits: new Map([
         ["shop.Order", { hiddenFields: ["status"], fieldOrder: null, fieldColors: { id: "#ef4444" } }],
       ]),
     });
-    const { getByRole, queryByRole } = renderToolbar();
+    const { getByRole } = renderToolbar();
 
     fireEvent.click(getByRole("button", { name: "Sort all tables by type" }));
 
-    expect(queryByRole("dialog")).toBeNull();
+    const dialog = getByRole("dialog", { name: "Sort all tables by type" });
+    expect(dialog.textContent).toContain("No table has a custom field order yet");
+    expect(dialog.textContent).not.toContain("already has");
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toBeNull();
+
+    fireEvent.click(getByRole("button", { name: "Sort all tables" }));
     expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual([
       "id", "customer", "status", "created_at",
     ]);
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.hiddenFields).toEqual(["status"]);
   });
 
   it("asks first, naming the tables whose order would be replaced, and changes nothing yet", () => {

@@ -13,10 +13,11 @@ interface Props {
 const MAX_NAMES = 6;
 
 /**
- * Confirmation shown by the toolbar's "Sort all tables by type" when at least
- * one table already has a custom field order (issue #117 follow-up). Same
- * modal recipe as FilenameDialog and HelpDialog. The confirm button takes
- * focus so Enter / Space proceed and Escape cancels.
+ * Confirmation shown by the toolbar's "Sort all tables by type" (issue #117
+ * follow-up). Always shown: it says what the sort does and, when some tables
+ * already have a custom field order, names them. Same modal recipe as
+ * FilenameDialog and HelpDialog. The confirm button takes focus so Enter /
+ * Space proceed and Escape cancels.
  *
  * Rendered through a portal: the toolbar that owns this dialog is positioned
  * with a CSS transform, which would make it the containing block for a
@@ -62,16 +63,22 @@ export default function SortAllDialog({ open, affected, onConfirm, onCancel }: P
             Every table's fields will be put in the same order: primary key, relations, fields grouped
             by type, booleans, dates and times last. Hidden fields and colors are kept.
           </p>
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
-            <span className="font-medium">
-              {count === 1
-                ? "1 table already has a custom field order"
-                : `${count} tables already have a custom field order`}
-            </span>
-            {" "}from dragging or an earlier sort. {count === 1 ? "It" : "They"} will be replaced:{" "}
-            <span className="font-medium">{shown.join(", ")}</span>
-            {more > 0 ? ` and ${more} more` : ""}.
-          </p>
+          {count === 0 ? (
+            <p className="text-gray-500">
+              No table has a custom field order yet, so nothing arranged by hand will be replaced.
+            </p>
+          ) : (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
+              <span className="font-medium">
+                {count === 1
+                  ? "1 table already has a custom field order"
+                  : `${count} tables already have a custom field order`}
+              </span>
+              {" "}from dragging or an earlier sort. {count === 1 ? "It" : "They"} will be replaced:{" "}
+              <span className="font-medium">{shown.join(", ")}</span>
+              {more > 0 ? ` and ${more} more` : ""}.
+            </p>
+          )}
           <div className="flex justify-end gap-2 pt-1">
             <button
               onClick={onCancel}

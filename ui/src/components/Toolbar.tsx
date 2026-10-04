@@ -59,7 +59,8 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   const [confirmSortAll, setConfirmSortAll] = useState(false);
 
   // Tables whose custom order (drag or an earlier sort) the global sort would
-  // replace. Shown by model name; by "app.Model" when two apps share a name.
+  // replace, for the confirmation. Shown by model name; by "app.Model" when
+  // two apps share a name.
   const customOrdered = schema.nodes.filter((n) => fieldEdits.get(n.id)?.fieldOrder);
   const nameCount = new Map<string, number>();
   for (const n of customOrdered) nameCount.set(n.name, (nameCount.get(n.name) ?? 0) + 1);
@@ -67,9 +68,10 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
     .map((n) => ((nameCount.get(n.name) ?? 0) > 1 ? n.id : n.name))
     .sort((a, b) => a.localeCompare(b));
 
+  // Always confirm: the dialog is where the user learns what the sort does,
+  // and it names any tables whose hand-made order would be replaced.
   function onSortAll() {
-    if (affected.length === 0) sortAllFieldsByType(schema.nodes);
-    else setConfirmSortAll(true);
+    setConfirmSortAll(true);
   }
   function confirmSortAllNow() {
     setConfirmSortAll(false);
@@ -181,7 +183,9 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
             label="Sort all tables by type"
             title="Sort fields in every table by type: primary key, relations, fields grouped by type, booleans, dates and times last. Re-running replaces manual reorders."
           >
-            <IconSortByType />
+            {/* Heavier stroke than the per-table button: three thin lines carry
+                less ink than the neighbouring panel icons and read as disabled. */}
+            <IconSortByType strokeWidth={2.75} />
           </IconBtn>
           <IconBtn
             onClick={() => setSidebarOpen(!sidebarOpen)}
