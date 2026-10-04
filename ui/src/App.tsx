@@ -33,7 +33,7 @@ export default function App() {
       <div className="relative h-full w-full overflow-hidden">
         <SidebarDrawer schema={schema} />
         <SettingsHandle />
-        <Toolbar />
+        <Toolbar schema={schema} />
         <SchemaCanvas schema={schema} />
       </div>
       <HelpDialog />

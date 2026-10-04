@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { usePhysicsStore } from "../store/physicsStore";
+import { backdropClick } from "../lib/backdrop";
 
 export default function HelpDialog() {
   const helpOpen = usePhysicsStore((s) => s.helpOpen);
@@ -18,8 +19,9 @@ export default function HelpDialog() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
+        data-dialog-backdrop
         className="absolute inset-0 bg-black/30"
-        onClick={() => setHelpOpen(false)}
+        onClick={backdropClick(() => setHelpOpen(false))}
       />
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -66,6 +68,7 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">Layout —</dt><dd className="inline text-gray-500"> Auto, Organic, L→R, T→B. Each runs a different layout engine; see the Layout section below.</dd></div>
               <div><dt className="font-medium inline">Mode —</dt><dd className="inline text-gray-500"> <span className="font-medium text-gray-700">Static</span> turns physics off in any layout so nodes stay where you drag them. <span className="font-medium text-gray-700">Live</span> switches to Organic and turns physics on.</dd></div>
               <div><dt className="font-medium inline">Node Spacing —</dt><dd className="inline text-gray-500"> distance between connected nodes. Only active in Organic; it is the same value as the Link Distance slider in Settings → Physics.</dd></div>
+              <div><dt className="font-medium inline">Sort all tables by type -</dt><dd className="inline text-gray-500"> one click puts every table's fields in the same order: primary key, relations, fields grouped by type, booleans, dates and times last. Covers hidden and collapsed models too. It always asks first, and names any tables whose hand-made order would be replaced, so you can keep them. File menu Reset undoes it for all tables.</dd></div>
               <div><dt className="font-medium inline">Models / Settings —</dt><dd className="inline text-gray-500"> open or close the left and right drawers. Both can be open at once. The icon fills in while its drawer is open. The ‹ › tabs on the screen edges do the same thing.</dd></div>
               <div><dt className="font-medium inline">? —</dt><dd className="inline text-gray-500"> this help. Press Esc or click outside to close it.</dd></div>
               <div><dt className="font-medium inline">File —</dt><dd className="inline text-gray-500"> export and import; see File menu below.</dd></div>
@@ -118,7 +121,7 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">Import config —</dt><dd className="inline text-gray-500"> restores a previously exported JSON config, including positions.</dd></div>
               <div><dt className="font-medium inline">Export PNG —</dt><dd className="inline text-gray-500"> downloads the canvas as a PNG image with the full config embedded inside. The layout and settings can be restored later via Import PNG.</dd></div>
               <div><dt className="font-medium inline">Import PNG —</dt><dd className="inline text-gray-500"> reads an exported PNG and restores the embedded config, including positions, visibility, and physics settings.</dd></div>
-              <div><dt className="font-medium inline">Reset —</dt><dd className="inline text-gray-500"> clears pinned positions and collapses all expanded fields.</dd></div>
+              <div><dt className="font-medium inline">Reset —</dt><dd className="inline text-gray-500"> clears pinned positions, collapses all expanded fields, and removes every field edit (order, hidden fields, colors) and connector reshaping.</dd></div>
             </dl>
           </section>
 
@@ -197,7 +200,7 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">≡ handle -</dt><dd className="inline text-gray-500"> drag a row up or down to reorder it. Connector lines follow the moved row.</dd></div>
               <div><dt className="font-medium inline">Eye icon -</dt><dd className="inline text-gray-500"> hide or show a single field. Hidden fields stay grayed out in edit mode and are left out of the normal view.</dd></div>
               <div><dt className="font-medium inline">Color square -</dt><dd className="inline text-gray-500"> tint the row with one of eight swatches, or clear it.</dd></div>
-              <div><dt className="font-medium inline">Sort by type -</dt><dd className="inline text-gray-500"> one click orders the whole table: primary key first, then relations (FK, O2O, M2M) alphabetically, then the other fields grouped by type with the groups in alphabetical order, then booleans, and date / time fields last. Hidden fields are sorted into place, not appended. It is a starting point: drag rows afterwards to fine-tune, and click it again to re-sort from scratch.</dd></div>
+              <div><dt className="font-medium inline">Sort by type -</dt><dd className="inline text-gray-500"> one click orders the whole table: primary key first, then relations (FK, O2O, M2M) alphabetically, then the other fields grouped by type with the groups in alphabetical order, then booleans, and date / time fields last. Hidden fields are sorted into place, not appended. It is a starting point: drag rows afterwards to fine-tune, and click it again to re-sort from scratch. The toolbar's <span className="font-medium text-gray-700">Sort all tables by type</span> does the same for every model at once.</dd></div>
               <div><dt className="font-medium inline">Reset -</dt><dd className="inline text-gray-500"> clear every field edit on this model: order, hidden fields, and colors.</dd></div>
               <div><dt className="font-medium inline">Done -</dt><dd className="inline text-gray-500"> leave edit mode. Field edits are saved with Export config and Export PNG.</dd></div>
             </dl>

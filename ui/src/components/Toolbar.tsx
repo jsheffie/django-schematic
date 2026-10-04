@@ -1,11 +1,16 @@
+import { useState } from "react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import FileMenu from "./FileMenu";
-import { IconPanelLeft, IconPanelRight } from "./icons";
+import SortAllDialog from "./SortAllDialog";
+import { IconPanelLeft, IconPanelRight, IconSortByType } from "./icons";
+import type { SchemaGraph } from "../lib/types";
 
-function IconBtn({ onClick, title, active, children }: {
+function IconBtn({ onClick, title, label, active, children }: {
   onClick: () => void;
   title: string;
+  /** Accessible name when `title` is a longer explanation rather than the control's name. */
+  label?: string;
   active?: boolean;
   children: React.ReactNode;
 }) {
@@ -13,6 +18,7 @@ function IconBtn({ onClick, title, active, children }: {
     <button
       onClick={onClick}
       title={title}
+      aria-label={label}
       className={`w-7 h-7 flex items-center justify-center rounded text-sm border transition-colors ${
         active
           ? "bg-blue-600 border-blue-600 text-white"
@@ -45,9 +51,32 @@ const LAYOUT_TOOLTIP: Record<ActiveLayout, string> = {
   "dagre-tb": "Top → Bottom: dagre hierarchical layout (rankdir TB). Same engine as L→R, direction only.",
 };
 
-export default function Toolbar() {
+export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setLayout = useSchemaStore((s) => s.setLayout);
+  const sortAllFieldsByType = useSchemaStore((s) => s.sortAllFieldsByType);
+  const fieldEdits = useSchemaStore((s) => s.fieldEdits);
+  const [confirmSortAll, setConfirmSortAll] = useState(false);
+
+  // Tables whose custom order (drag or an earlier sort) the global sort would
+  // replace, for the confirmation. Shown by model name; by "app.Model" when
+  // two apps share a name.
+  const customOrdered = schema.nodes.filter((n) => fieldEdits.get(n.id)?.fieldOrder);
+  const nameCount = new Map<string, number>();
+  for (const n of customOrdered) nameCount.set(n.name, (nameCount.get(n.name) ?? 0) + 1);
+  const affected = customOrdered
+    .map((n) => ((nameCount.get(n.name) ?? 0) > 1 ? n.id : n.name))
+    .sort((a, b) => a.localeCompare(b));
+
+  // Always confirm: the dialog is where the user learns what the sort does,
+  // and it names any tables whose hand-made order would be replaced.
+  function onSortAll() {
+    setConfirmSortAll(true);
+  }
+  function confirmSortAllNow() {
+    setConfirmSortAll(false);
+    sortAllFieldsByType(schema.nodes);
+  }
 
   const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
   const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
@@ -146,11 +175,18 @@ export default function Toolbar() {
 
       <div className="w-px h-8 bg-gray-200 mx-0.5" />
 
-      <div className="w-px h-8 bg-gray-200 mx-0.5" />
-
-      {/* Drawers + Help + File cluster */}
+      {/* Sort all + drawers + Help + File cluster */}
       <div className="flex flex-col items-stretch gap-0.5">
         <div className="flex gap-0.5">
+          <IconBtn
+            onClick={onSortAll}
+            label="Sort all tables by type"
+            title="Sort fields in every table by type: primary key, relations, fields grouped by type, booleans, dates and times last. Re-running replaces manual reorders."
+          >
+            {/* Heavier stroke than the per-table button: three thin lines carry
+                less ink than the neighbouring panel icons and read as disabled. */}
+            <IconSortByType strokeWidth={2.75} />
+          </IconBtn>
           <IconBtn
             onClick={() => setSidebarOpen(!sidebarOpen)}
             title="Models"
@@ -174,6 +210,12 @@ export default function Toolbar() {
         </div>
         <FileMenu />
       </div>
+      <SortAllDialog
+        open={confirmSortAll}
+        affected={affected}
+        onConfirm={confirmSortAllNow}
+        onCancel={() => setConfirmSortAll(false)}
+      />
     </div>
   );
 }

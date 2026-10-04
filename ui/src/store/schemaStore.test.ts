@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useSchemaStore } from "./schemaStore";
 import { usePhysicsStore } from "./physicsStore";
+import type { FieldInfo } from "../lib/types";
 
 const NODE = "testapp.Order";
 const NATURAL = ["id", "customer", "total", "notes"];
@@ -119,5 +120,106 @@ describe("edgeOffsets", () => {
     s().setEdgeOffset(EDGE, { x: 1, y: 1 });
     expect(s().edgeOffsets).not.toBe(before);
     expect(before.size).toBe(0);
+  });
+});
+
+describe("sortAllFieldsByType", () => {
+  const field = (
+    name: string,
+    field_type: string,
+    extra: Partial<FieldInfo> = {},
+  ): FieldInfo => ({
+    name,
+    field_type,
+    internal_type: field_type,
+    is_relation: false,
+    null: false,
+    unique: false,
+    primary_key: false,
+    ...extra,
+  });
+  // Alphabetical, as the Python side delivers it.
+  const order = {
+    id: "shop.Order",
+    fields: [
+      field("created_at", "DateTimeField"),
+      field("customer", "ForeignKey", { is_relation: true }),
+      field("id", "BigAutoField", { primary_key: true }),
+      field("is_paid", "BooleanField"),
+      field("status", "CharField"),
+    ],
+  };
+  // Alphabetical [code, name]; sorted by type group is [name (Char), code (Slug)].
+  const tag = {
+    id: "shop.Tag",
+    fields: [field("code", "SlugField"), field("name", "CharField")],
+  };
+  // Already in sorted order: pk, then one CharField.
+  const author = {
+    id: "shop.Author",
+    fields: [field("id", "BigAutoField", { primary_key: true }), field("name", "CharField")],
+  };
+
+  beforeEach(() => {
+    useSchemaStore.setState({ fieldEdits: new Map() });
+  });
+
+  it("stores the sorted order for every node in one update", () => {
+    const seen: number[] = [];
+    const unsub = useSchemaStore.subscribe((s) => seen.push(s.fieldEdits.size));
+
+    useSchemaStore.getState().sortAllFieldsByType([order, tag, author]);
+    unsub();
+
+    const edits = useSchemaStore.getState().fieldEdits;
+    expect(edits.get("shop.Order")?.fieldOrder).toEqual([
+      "id", "customer", "status", "is_paid", "created_at",
+    ]);
+    expect(edits.get("shop.Tag")?.fieldOrder).toEqual(["name", "code"]);
+    expect(seen).toEqual([2]);
+  });
+
+  it("stores no entry for a node whose natural order is already sorted", () => {
+    useSchemaStore.getState().sortAllFieldsByType([author]);
+    expect(useSchemaStore.getState().fieldEdits.has("shop.Author")).toBe(false);
+  });
+
+  it("leaves hidden fields and colors on each node untouched", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([
+        ["shop.Order", { hiddenFields: ["status"], fieldOrder: null, fieldColors: { id: "#ef4444" } }],
+      ]),
+    });
+
+    useSchemaStore.getState().sortAllFieldsByType([order, tag]);
+
+    const e = useSchemaStore.getState().fieldEdits.get("shop.Order");
+    expect(e?.hiddenFields).toEqual(["status"]);
+    expect(e?.fieldColors).toEqual({ id: "#ef4444" });
+    expect(e?.fieldOrder).toEqual(["id", "customer", "status", "is_paid", "created_at"]);
+  });
+
+  it("replaces a manual order on every node when run again", () => {
+    useSchemaStore.getState().setFieldOrder(
+      "shop.Order",
+      ["status", "created_at", "is_paid", "id", "customer"],
+      order.fields.map((f) => f.name),
+    );
+    useSchemaStore.getState().sortAllFieldsByType([order, tag]);
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual([
+      "id", "customer", "status", "is_paid", "created_at",
+    ]);
+  });
+
+  it("drops the entry for a node whose manual order sorts back to natural", () => {
+    useSchemaStore.getState().setFieldOrder(
+      "shop.Author",
+      ["name", "id"],
+      author.fields.map((f) => f.name),
+    );
+    expect(useSchemaStore.getState().fieldEdits.has("shop.Author")).toBe(true);
+
+    useSchemaStore.getState().sortAllFieldsByType([author]);
+    expect(useSchemaStore.getState().fieldEdits.has("shop.Author")).toBe(false);
   });
 });
