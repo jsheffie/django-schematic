@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings
 
 
@@ -5,7 +7,7 @@ def _debug_default(request: object) -> bool:
     return bool(settings.DEBUG)
 
 
-DEFAULTS: dict = {
+DEFAULTS: dict[str, Any] = {
     "visible": _debug_default,
     "include_apps": [],
     "exclude_apps": ["admin", "contenttypes", "sessions", "auth"],
@@ -19,6 +21,6 @@ DEFAULTS: dict = {
 }
 
 
-def get_setting(key: str):
-    user_settings: dict = getattr(settings, "SCHEMATIC", {})
+def get_setting(key: str) -> Any:
+    user_settings: dict[str, Any] = getattr(settings, "SCHEMATIC", {})
     return user_settings.get(key, DEFAULTS[key])

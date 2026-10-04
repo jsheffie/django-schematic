@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.apps import apps as django_apps
 
@@ -63,7 +63,7 @@ class SchemaGraph:
     app_labels: tuple[str, ...]
     app_names: dict[str, str]   # app_label → full dotted name, e.g. {"auth": "django.contrib.auth"}
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
 
     def to_json(self) -> str:
@@ -120,6 +120,20 @@ def _tags(model: type[django_models.Model], *, is_through: bool = False) -> tupl
     return tuple(tags)
 
 
+def _custom_through_model(
+    field: django_models.ManyToManyField[Any, Any],
+) -> type[django_models.Model] | None:
+    """Return the explicit `through` model of an M2M field, or None if Django auto-created it.
+
+    `remote_field.through` is typed `type[Model] | None` because it is unresolved
+    until the app registry is ready; by the time we walk the registry it is always set.
+    """
+    through = field.remote_field.through
+    if through is None or through._meta.auto_created:
+        return None
+    return through
+
+
 def _extract_edges(
     model: type[django_models.Model],
     all_model_ids: set[str],
@@ -151,7 +165,7 @@ def _extract_edges(
             rel = "fk"
             target_field = f.target_field.name
         elif isinstance(f, ManyToManyField):
-            if suppress_through_m2m and not f.remote_field.through._meta.auto_created:
+            if suppress_through_m2m and _custom_through_model(f) is not None:
                 continue
             rel = "m2m"
             # Not f.target_field: it raises FieldDoesNotExist for M2M fields
@@ -178,7 +192,7 @@ def _extract_edges(
     for parent in model.__bases__:
         if not hasattr(parent, "_meta"):
             continue
-        parent_id = _node_id(parent)  # type: ignore[arg-type]
+        parent_id = _node_id(parent)
         if parent_id not in all_model_ids:
             continue
         rel = "proxy" if model._meta.proxy else "subclass"
@@ -238,11 +252,13 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
 
     from django.db.models import ManyToManyField
 
-    through_models: set[type] = set()
+    through_models: set[type[django_models.Model]] = set()
     for m in all_models:
         for f in m._meta.get_fields():
-            if isinstance(f, ManyToManyField) and not f.remote_field.through._meta.auto_created:
-                through_models.add(f.remote_field.through)
+            if isinstance(f, ManyToManyField):
+                through = _custom_through_model(f)
+                if through is not None:
+                    through_models.add(through)
 
     nodes = tuple(
         sorted(

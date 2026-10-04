@@ -15,9 +15,10 @@ import tempfile
 import time
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 from django.apps import apps as django_apps
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 
 from schematic.png_utils import extract_text_chunk, inject_text_chunk
 from schematic.settings import get_setting
@@ -114,10 +115,10 @@ def changed_model_ids_from_files(changed_files: list[str]) -> set[str]:
 def _free_port() -> int:
     with socket.socket() as s:
         s.bind(("", 0))
-        return s.getsockname()[1]
+        return int(s.getsockname()[1])
 
 
-def start_dev_server(port: int) -> subprocess.Popen:  # type: ignore[type-arg]
+def start_dev_server(port: int) -> subprocess.Popen[bytes]:
     return subprocess.Popen(
         [sys.executable, "manage.py", "runserver", f"127.0.0.1:{port}", "--noreload"],
         stdout=subprocess.DEVNULL,
@@ -180,7 +181,7 @@ def render_png(schema_url: str, config_json: str, render_timeout: int, boot_time
 class Command(BaseCommand):
     help = "Re-render stale PNG schema diagrams whose models changed in the current branch."
 
-    def add_arguments(self, parser):  # type: ignore[override]
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "--base-branch",
             default="main",
@@ -208,7 +209,7 @@ class Command(BaseCommand):
             ),
         )
 
-    def handle(self, *args, **options):  # type: ignore[override]
+    def handle(self, *args: Any, **options: Any) -> None:
         diagrams_dir_raw = options["diagrams_dir"] or get_setting("diagrams_dir")
         if not diagrams_dir_raw:
             raise CommandError(
