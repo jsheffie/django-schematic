@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useUpdateNodeInternals } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
-import { orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
+import { autoFieldOrder, orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
 import type { FieldInfo } from "../lib/types";
 import { IconEye, IconEyeSlash } from "./icons";
 import { AnchorHandle } from "./AnchorHandle";
@@ -289,6 +289,14 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
         })
       )}
       <div className="mt-1 flex items-center justify-end gap-2 border-t border-gray-200 px-2 pt-1">
+        <button
+          className="mr-auto text-xs text-gray-500 hover:text-gray-800 disabled:cursor-default disabled:opacity-40 disabled:hover:text-gray-500"
+          onClick={() => setFieldOrder(nodeId, autoFieldOrder(fields), fields.map((f) => f.name))}
+          disabled={isDragging}
+          title="Primary key, then relations, then fields grouped by type, dates and times last"
+        >
+          Sort by type
+        </button>
         <button
           className="text-xs text-gray-500 hover:text-gray-800"
           onClick={() => resetFieldEdits(nodeId)}

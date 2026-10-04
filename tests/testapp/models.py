@@ -47,3 +47,16 @@ class SpecialBook(Book):
 
     class Meta:
         app_label = "testapp"
+
+
+class CreatedTimestampField(models.DateTimeField):
+    """Custom subclass: `field_type` is the class name, `internal_type` stays DateTimeField."""
+
+
+class Isbn(models.Model):
+    """Primary key not named `id` - exercises FieldInfo.primary_key (issue #111)."""
+    code = models.CharField(max_length=13, primary_key=True)
+    registered_at = CreatedTimestampField()
+
+    class Meta:
+        app_label = "testapp"

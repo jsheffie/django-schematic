@@ -2,10 +2,12 @@
 
 export interface FieldInfo {
   name: string;
-  field_type: string;
+  field_type: string;    // Python class name, e.g. "AutoCreatedField"; what the UI shows
   is_relation: boolean;
   null: boolean;
   unique: boolean;
+  primary_key: boolean;
+  internal_type: string; // Django's get_internal_type(), e.g. "DateTimeField" for a custom subclass
 }
 
 export interface NodeInfo {
