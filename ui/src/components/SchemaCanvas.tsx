@@ -153,8 +153,6 @@ export default function SchemaCanvas({ schema }: Props) {
   const isFirstLayoutRef = useRef(true);
   // Track canvas-initiated suppress version so layout effect can skip recalc.
   const lastSuppressVersionRef = useRef(canvasLayoutSuppressVersion);
-  // Incremented on every layout pass. ELK is async (lazy chunk load + layout), so a
-  // result is only applied if no newer pass (layout switch, import, hide) started meanwhile.
   const layoutRunRef = useRef(0);
 
   // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
@@ -264,7 +262,7 @@ export default function SchemaCanvas({ schema }: Props) {
         })
         .catch((err: unknown) => {
           // ELK is lazy-loaded; the chunk fetch can fail (offline, stale deploy).
-          console.error("[schematic] ELK layout failed", err);
+          console.error("[schematic] ELK layout 'Auto' failed", err);
         });
       return;
     }

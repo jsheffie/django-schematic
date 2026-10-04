@@ -4,9 +4,7 @@
  * Pass `nodeSizes` (built from `node.measured` in SchemaCanvas) so the layout
  * uses each node's actual rendered dimensions rather than a hardcoded constant.
  *
- * ELK is ~1.4 MB minified, so it is loaded on demand via dynamic import()
- * instead of being bundled into main.js. Vite emits it as a separate chunk
- * under chunks/ next to main.js (see vite.config.ts chunkFileNames).
+ * ELK (~1.4 MB) is lazy-loaded via dynamic import() to keep it out of main.js.
  */
 import type { Edge, Node } from "@xyflow/react";
 import type { ELK as ElkInstance } from "elkjs/lib/elk.bundled.js";
