@@ -252,10 +252,15 @@ export default function SchemaCanvas({ schema }: Props) {
     isFirstLayoutRef.current = false;
 
     if (activeLayout === "elk") {
-      runElkLayout(rfNodesRef.current, rfEdgesRef.current, sizeMap).then((positioned) => {
-        setNodes(positioned);
-        setTimeout(() => fitView({ duration: 300 }), 0);
-      });
+      runElkLayout(rfNodesRef.current, rfEdgesRef.current, sizeMap)
+        .then((positioned) => {
+          setNodes(positioned);
+          setTimeout(() => fitView({ duration: 300 }), 0);
+        })
+        .catch((err: unknown) => {
+          // ELK is lazy-loaded; the chunk fetch can fail (offline, stale deploy).
+          console.error("[schematic] ELK layout failed", err);
+        });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";
