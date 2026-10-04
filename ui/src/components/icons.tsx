@@ -52,3 +52,25 @@ export function IconSortByType({ className = "w-4 h-4", strokeWidth = 2 }: { cla
     </svg>
   );
 }
+
+// Annotations (issue #100), toolbar "Annotate" section.
+
+/** Text block: a capital T, the universal "add text" glyph. */
+export function IconText({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M5 6h14"/>
+      <path d="M12 6v13"/>
+    </svg>
+  );
+}
+
+/** Draw arrow: a diagonal shaft with a filled head, like the arrows it draws. */
+export function IconArrow({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <line x1="5" y1="19" x2="17" y2="7"/>
+      <path d="M11 5h8v8z" fill="currentColor" stroke="none"/>
+    </svg>
+  );
+}

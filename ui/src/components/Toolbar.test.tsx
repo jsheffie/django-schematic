@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import Toolbar from "./Toolbar";
 import { useSchemaStore } from "../store/schemaStore";
+import { usePhysicsStore } from "../store/physicsStore";
 import type { FieldInfo, SchemaGraph } from "../lib/types";
 
 const field = (name: string, field_type: string, extra: Partial<FieldInfo> = {}): FieldInfo => ({
@@ -49,7 +50,13 @@ const SCHEMA: SchemaGraph = {
 
 beforeEach(() => {
   // Only one node visible: the sort must still cover every node in the schema.
-  useSchemaStore.setState({ fieldEdits: new Map(), visibleNodeIds: new Set(["shop.Tag"]) });
+  useSchemaStore.setState({
+    fieldEdits: new Map(),
+    visibleNodeIds: new Set(["shop.Tag"]),
+    textBlocks: new Map(),
+    arrows: new Map(),
+  });
+  usePhysicsStore.setState({ annotationTool: null, editingTextBlockId: null });
 });
 
 afterEach(cleanup);
@@ -215,5 +222,34 @@ describe("Toolbar sort all: double-click must not dismiss the confirmation", () 
     fireEvent.click(backdrop, { detail: 1 });
 
     expect(queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("Annotate section (issue #100)", () => {
+  it("Text button adds a note at the viewport centre and opens it for editing", () => {
+    const { getByLabelText } = renderToolbar();
+    fireEvent.click(getByLabelText("Add text block"));
+    const blocks = [...useSchemaStore.getState().textBlocks];
+    expect(blocks).toHaveLength(1);
+    const [id, block] = blocks[0];
+    expect(block).toMatchObject({ style: "note", text: "", width: 200, height: 72 });
+    expect(usePhysicsStore.getState().editingTextBlockId).toBe(id);
+  });
+
+  it("Arrow button toggles draw-arrow mode and shows as active while on", () => {
+    const { getByLabelText } = renderToolbar();
+    const btn = getByLabelText("Draw arrow");
+    fireEvent.click(btn);
+    expect(usePhysicsStore.getState().annotationTool).toBe("arrow");
+    expect(btn.className).toContain("bg-blue-600");
+    fireEvent.click(btn);
+    expect(usePhysicsStore.getState().annotationTool).toBeNull();
+  });
+
+  it("adding a text block leaves draw-arrow mode", () => {
+    const { getByLabelText } = renderToolbar();
+    fireEvent.click(getByLabelText("Draw arrow"));
+    fireEvent.click(getByLabelText("Add text block"));
+    expect(usePhysicsStore.getState().annotationTool).toBeNull();
   });
 });

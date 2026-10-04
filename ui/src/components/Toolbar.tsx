@@ -3,7 +3,8 @@ import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import FileMenu from "./FileMenu";
 import SortAllDialog from "./SortAllDialog";
-import { IconPanelLeft, IconPanelRight, IconSortByType } from "./icons";
+import { IconArrow, IconPanelLeft, IconPanelRight, IconSortByType, IconText } from "./icons";
+import { useAnnotationActions } from "../hooks/useAnnotationActions";
 import type { SchemaGraph } from "../lib/types";
 
 function IconBtn({ onClick, title, label, active, children }: {
@@ -89,6 +90,8 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   const setSidebarOpen = usePhysicsStore((s) => s.setSidebarOpen);
   const setSettingsTab = usePhysicsStore((s) => s.setSettingsTab);
   const setHelpOpen = usePhysicsStore((s) => s.setHelpOpen);
+  const annotationTool = usePhysicsStore((s) => s.annotationTool);
+  const { addTextBlockAtCenter, toggleArrowTool } = useAnnotationActions();
 
   const isOrganic = activeLayout === "organic";
 
@@ -170,6 +173,30 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
           <span className="text-xs text-gray-500 w-8 text-right tabular-nums select-none">
             {forceParams.linkDistance}
           </span>
+        </div>
+      </div>
+
+      <div className="w-px h-8 bg-gray-200 mx-0.5" />
+
+      {/* Annotations (issue #100): text blocks and arrows that are not models */}
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-[10px] text-gray-400 leading-none self-start">Annotate</span>
+        <div className="flex gap-0.5">
+          <IconBtn
+            onClick={() => addTextBlockAtCenter("note")}
+            label="Add text block"
+            title="Add text block (T): a note or title you can type in, drag and resize."
+          >
+            <IconText />
+          </IconBtn>
+          <IconBtn
+            onClick={toggleArrowTool}
+            label="Draw arrow"
+            active={annotationTool === "arrow"}
+            title="Draw arrow (A): drag from where the arrow starts to where it points. Esc cancels."
+          >
+            <IconArrow />
+          </IconBtn>
         </div>
       </div>
 
