@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "visibleNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre"
+  ],
+  "expandedNodeIds": [
+    "library.Book"
+  ],
+  "pinnedPositions": {
+    "library.Author": {
+      "x": 420,
+      "y": 180
+    },
+    "library.Book": {
+      "x": 120,
+      "y": 60
+    },
+    "library.Genre": {
+      "x": 420,
+      "y": -40
+    }
+  },
+  "collapsedApps": [
+    "auth",
+    "store"
+  ],
+  "viewport": {
+    "x": 96,
+    "y": 48,
+    "zoom": 1.25
+  }
+}

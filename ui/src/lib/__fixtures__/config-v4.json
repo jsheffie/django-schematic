@@ -1,0 +1,298 @@
+{
+  "version": 4,
+  "activeLayout": "elk",
+  "visibleNodeIds": [
+    "auth.User",
+    "tracker.Comment",
+    "tracker.Project",
+    "tracker.Tag",
+    "tracker.Task"
+  ],
+  "expandedNodeIds": [
+    "account.EmailAddress",
+    "account.EmailConfirmation",
+    "admin.LogEntry",
+    "auth.User",
+    "contenttypes.ContentType",
+    "django_celery_beat.ClockedSchedule",
+    "django_celery_beat.CrontabSchedule",
+    "django_celery_beat.IntervalSchedule",
+    "django_celery_beat.PeriodicTask",
+    "django_celery_beat.PeriodicTasks",
+    "django_celery_beat.SolarSchedule",
+    "guardian.GroupObjectPermission",
+    "guardian.UserObjectPermission",
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Member",
+    "sessions.Session",
+    "sites.Site",
+    "socialaccount.SocialAccount",
+    "socialaccount.SocialApp",
+    "socialaccount.SocialToken",
+    "store.Category",
+    "store.Customer",
+    "store.Order",
+    "store.OrderItem",
+    "store.Product",
+    "store.Review",
+    "store.Tag",
+    "taggit.Tag",
+    "taggit.TaggedItem",
+    "tracker.Comment",
+    "tracker.Project",
+    "tracker.Tag",
+    "tracker.Task",
+    "wagtailadmin.Admin",
+    "wagtailadmin.EditingSession",
+    "wagtailcore.Collection",
+    "wagtailcore.CollectionViewRestriction",
+    "wagtailcore.Comment",
+    "wagtailcore.CommentReply",
+    "wagtailcore.GroupApprovalTask",
+    "wagtailcore.GroupCollectionPermission",
+    "wagtailcore.GroupPagePermission",
+    "wagtailcore.GroupSitePermission",
+    "wagtailcore.Locale",
+    "wagtailcore.ModelLogEntry",
+    "wagtailcore.Page",
+    "wagtailcore.PageLogEntry",
+    "wagtailcore.PageSubscription",
+    "wagtailcore.PageViewRestriction",
+    "wagtailcore.ReferenceIndex",
+    "wagtailcore.Revision",
+    "wagtailcore.Site",
+    "wagtailcore.Task",
+    "wagtailcore.TaskState",
+    "wagtailcore.UploadedFile",
+    "wagtailcore.Workflow",
+    "wagtailcore.WorkflowContentType",
+    "wagtailcore.WorkflowPage",
+    "wagtailcore.WorkflowState",
+    "wagtailcore.WorkflowTask",
+    "wagtaildocs.Document",
+    "wagtailembeds.Embed",
+    "wagtailforms.FormSubmission",
+    "wagtailimages.Image",
+    "wagtailimages.Rendition",
+    "wagtailredirects.Redirect",
+    "wagtailsearch.IndexEntry",
+    "wagtailsearch.SQLiteFTSIndexEntry",
+    "wagtailusers.UserProfile",
+    "library.Loan",
+    "auth.Group",
+    "auth.Permission"
+  ],
+  "pinnedPositions": {
+    "auth.User": {
+      "x": 72.05242966751928,
+      "y": -125.32289002557545
+    },
+    "tracker.Comment": {
+      "x": 789.3817135549872,
+      "y": -50.68115942028986
+    },
+    "tracker.Project": {
+      "x": 108.73017902813308,
+      "y": 238.87851662404088
+    },
+    "tracker.Tag": {
+      "x": 782.3235294117646,
+      "y": 350.8868286445013
+    },
+    "tracker.Task": {
+      "x": 419.34398976982106,
+      "y": 120.29219948849104
+    },
+    "library.Loan": {
+      "x": -19.872,
+      "y": 94.72
+    },
+    "library.Member": {
+      "x": -319.4559999999999,
+      "y": 124.67600000000004
+    },
+    "library.Book": {
+      "x": 655.3799999999999,
+      "y": 284.8546666666666
+    },
+    "library.Genre": {
+      "x": 38.5,
+      "y": 258
+    },
+    "auth.Permission": {
+      "x": 1451,
+      "y": 196.25
+    }
+  },
+  "collapsedApps": [
+    "account",
+    "admin",
+    "auth",
+    "contenttypes",
+    "django_celery_beat",
+    "guardian",
+    "sessions",
+    "sites",
+    "socialaccount",
+    "store",
+    "taggit",
+    "tracker",
+    "wagtailadmin",
+    "wagtailcore",
+    "wagtaildocs",
+    "wagtailembeds",
+    "wagtailforms",
+    "wagtailimages",
+    "wagtailredirects",
+    "wagtailsearch",
+    "wagtailusers"
+  ],
+  "viewport": {
+    "x": 60.54139534883711,
+    "y": 332.19953488372096,
+    "zoom": 1.4548837209302325
+  },
+  "canvasSize": {
+    "width": 1720,
+    "height": 1294
+  },
+  "canvasHidePositions": {
+    "auth.Group": {
+      "x": 1155,
+      "y": 166
+    },
+    "auth.Permission": {
+      "x": 1451,
+      "y": 196.25
+    }
+  },
+  "fieldEdits": {
+    "library.Loan": {
+      "hiddenFields": [
+        "id"
+      ],
+      "fieldOrder": [
+        "book",
+        "member",
+        "details",
+        "id",
+        "loaned_on",
+        "due_on",
+        "returned_on",
+        "status"
+      ],
+      "fieldColors": {}
+    },
+    "library.Member": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user",
+        "notes",
+        "joined_on"
+      ],
+      "fieldColors": {}
+    },
+    "tracker.Task": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "assignee",
+        "project",
+        "parent",
+        "tags",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date",
+        "created_at",
+        "updated_at"
+      ],
+      "fieldColors": {}
+    },
+    "tracker.Comment": {
+      "hiddenFields": [
+        "id"
+      ],
+      "fieldOrder": [
+        "author",
+        "task",
+        "body",
+        "created_at",
+        "id",
+        "updated_at"
+      ],
+      "fieldColors": {}
+    },
+    "tracker.Project": {
+      "hiddenFields": [
+        "id"
+      ],
+      "fieldOrder": [
+        "owner",
+        "created_at",
+        "description",
+        "id",
+        "name"
+      ],
+      "fieldColors": {}
+    },
+    "auth.User": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user_permissions",
+        "groups",
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+        "password",
+        "last_login",
+        "date_joined"
+      ],
+      "fieldColors": {}
+    }
+  },
+  "edgeOffsets": {
+    "library.Loan->library.Member:member": {
+      "x": -0.236328125,
+      "y": 3.56640625
+    },
+    "library.Loan->library.Book:book": {
+      "x": -52.66015625,
+      "y": 19.884765625
+    },
+    "tracker.Task->tracker.Task:parent": {
+      "x": 274.50378886269175,
+      "y": 5.528255374840114
+    },
+    "tracker.Project->auth.User:owner": {
+      "x": -47.450634890505114,
+      "y": 13.086312140345257
+    }
+  },
+  "physics": {
+    "edgeStyle": "bezier",
+    "liveDragPhysics": false,
+    "forceParams": {
+      "alphaDecay": 0.0228,
+      "alphaMin": 0.001,
+      "velocityDecay": 0.4,
+      "chargeStrength": -400,
+      "linkDistance": 180,
+      "collisionRadius": 80
+    },
+    "appMode": "normal",
+    "colorPalette": "pastel",
+    "backgroundStyle": "dots",
+    "minimapVisible": true,
+    "sidebarOpen": false
+  }
+}
