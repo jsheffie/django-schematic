@@ -22,6 +22,9 @@ interface PhysicsConfig {
 }
 
 export interface ViewConfig {
+  // Bumping this requires a new `__fixtures__/config-v<N>.json` and
+  // `__fixtures__/export-v<N>.png` exported from the app; do not edit existing
+  // fixtures. See __fixtures__/README.md. config.golden.test.ts enforces it.
   version: 4;
   activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
   visibleNodeIds: string[];

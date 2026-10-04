@@ -1,0 +1,157 @@
+{
+  "version": 2,
+  "activeLayout": "elk",
+  "visibleNodeIds": [
+    "account.EmailAddress",
+    "account.EmailConfirmation",
+    "auth.Group",
+    "auth.Permission",
+    "auth.User",
+    "socialaccount.SocialAccount",
+    "socialaccount.SocialApp",
+    "socialaccount.SocialToken",
+    "wagtailusers.UserProfile"
+  ],
+  "expandedNodeIds": [
+    "account.EmailAddress",
+    "account.EmailConfirmation",
+    "admin.LogEntry",
+    "auth.Group",
+    "auth.Permission",
+    "auth.User",
+    "contenttypes.ContentType",
+    "django_celery_beat.ClockedSchedule",
+    "django_celery_beat.CrontabSchedule",
+    "django_celery_beat.IntervalSchedule",
+    "django_celery_beat.PeriodicTask",
+    "django_celery_beat.PeriodicTasks",
+    "django_celery_beat.SolarSchedule",
+    "guardian.GroupObjectPermission",
+    "guardian.UserObjectPermission",
+    "sessions.Session",
+    "sites.Site",
+    "socialaccount.SocialAccount",
+    "socialaccount.SocialApp",
+    "socialaccount.SocialToken",
+    "taggit.Tag",
+    "taggit.TaggedItem",
+    "wagtailadmin.Admin",
+    "wagtailadmin.EditingSession",
+    "wagtailcore.Collection",
+    "wagtailcore.CollectionViewRestriction",
+    "wagtailcore.Comment",
+    "wagtailcore.CommentReply",
+    "wagtailcore.GroupApprovalTask",
+    "wagtailcore.GroupCollectionPermission",
+    "wagtailcore.GroupPagePermission",
+    "wagtailcore.GroupSitePermission",
+    "wagtailcore.Locale",
+    "wagtailcore.ModelLogEntry",
+    "wagtailcore.Page",
+    "wagtailcore.PageLogEntry",
+    "wagtailcore.PageSubscription",
+    "wagtailcore.PageViewRestriction",
+    "wagtailcore.ReferenceIndex",
+    "wagtailcore.Revision",
+    "wagtailcore.Site",
+    "wagtailcore.Task",
+    "wagtailcore.TaskState",
+    "wagtailcore.UploadedFile",
+    "wagtailcore.Workflow",
+    "wagtailcore.WorkflowContentType",
+    "wagtailcore.WorkflowPage",
+    "wagtailcore.WorkflowState",
+    "wagtailcore.WorkflowTask",
+    "wagtaildocs.Document",
+    "wagtailembeds.Embed",
+    "wagtailforms.FormSubmission",
+    "wagtailimages.Image",
+    "wagtailimages.Rendition",
+    "wagtailredirects.Redirect",
+    "wagtailsearch.IndexEntry",
+    "wagtailsearch.SQLiteFTSIndexEntry",
+    "wagtailusers.UserProfile"
+  ],
+  "pinnedPositions": {
+    "account.EmailAddress": {
+      "x": 400.5,
+      "y": 855
+    },
+    "account.EmailConfirmation": {
+      "x": 25,
+      "y": 855
+    },
+    "auth.Group": {
+      "x": 1080.909090909091,
+      "y": 782.6561771561771
+    },
+    "auth.Permission": {
+      "x": 1362,
+      "y": 634
+    },
+    "auth.User": {
+      "x": 734,
+      "y": 574
+    },
+    "socialaccount.SocialAccount": {
+      "x": 374.5,
+      "y": 634
+    },
+    "socialaccount.SocialApp": {
+      "x": 406.7202797202797,
+      "y": 376.44055944055947
+    },
+    "socialaccount.SocialToken": {
+      "x": 12,
+      "y": 429.8333333333333
+    },
+    "wagtailusers.UserProfile": {
+      "x": 679.6713286713285,
+      "y": 159.94405594405598
+    }
+  },
+  "collapsedApps": [
+    "account",
+    "admin",
+    "auth",
+    "contenttypes",
+    "django_celery_beat",
+    "guardian",
+    "sessions",
+    "sites",
+    "socialaccount",
+    "taggit",
+    "wagtailadmin",
+    "wagtailcore",
+    "wagtaildocs",
+    "wagtailembeds",
+    "wagtailforms",
+    "wagtailimages",
+    "wagtailredirects",
+    "wagtailsearch",
+    "wagtailusers"
+  ],
+  "viewport": {
+    "x": 205.44207317073176,
+    "y": -31.46341463414629,
+    "zoom": 0.8719512195121951
+  },
+  "canvasHidePositions": {},
+  "physics": {
+    "edgeStyle": "floating",
+    "liveDragPhysics": false,
+    "forceParams": {
+      "alphaDecay": 0.0228,
+      "alphaMin": 0.001,
+      "velocityDecay": 0.4,
+      "chargeStrength": -400,
+      "linkDistance": 180,
+      "collisionRadius": 80
+    },
+    "appMode": "normal",
+    "colorPalette": "pastel",
+    "backgroundStyle": "dots",
+    "minimapVisible": true,
+    "sidebarOpen": false
+  }
+}

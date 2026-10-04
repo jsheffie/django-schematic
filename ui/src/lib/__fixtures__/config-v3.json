@@ -1,0 +1,157 @@
+{
+  "version": 3,
+  "activeLayout": "elk",
+  "visibleNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member"
+  ],
+  "expandedNodeIds": [
+    "account.EmailAddress",
+    "account.EmailConfirmation",
+    "admin.LogEntry",
+    "auth.Group",
+    "auth.Permission",
+    "auth.User",
+    "contenttypes.ContentType",
+    "django_celery_beat.ClockedSchedule",
+    "django_celery_beat.CrontabSchedule",
+    "django_celery_beat.IntervalSchedule",
+    "django_celery_beat.PeriodicTask",
+    "django_celery_beat.PeriodicTasks",
+    "django_celery_beat.SolarSchedule",
+    "guardian.GroupObjectPermission",
+    "guardian.UserObjectPermission",
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member",
+    "sessions.Session",
+    "sites.Site",
+    "socialaccount.SocialAccount",
+    "socialaccount.SocialApp",
+    "socialaccount.SocialToken",
+    "store.Category",
+    "store.Order",
+    "store.OrderItem",
+    "store.Product",
+    "store.Review",
+    "store.Tag",
+    "taggit.Tag",
+    "taggit.TaggedItem",
+    "tracker.Comment",
+    "tracker.Project",
+    "tracker.Tag",
+    "tracker.Task",
+    "wagtailadmin.Admin",
+    "wagtailadmin.EditingSession",
+    "wagtailcore.Collection",
+    "wagtailcore.CollectionViewRestriction",
+    "wagtailcore.Comment",
+    "wagtailcore.CommentReply",
+    "wagtailcore.GroupApprovalTask",
+    "wagtailcore.GroupCollectionPermission",
+    "wagtailcore.GroupPagePermission",
+    "wagtailcore.GroupSitePermission",
+    "wagtailcore.Locale",
+    "wagtailcore.ModelLogEntry",
+    "wagtailcore.Page",
+    "wagtailcore.PageLogEntry",
+    "wagtailcore.PageSubscription",
+    "wagtailcore.PageViewRestriction",
+    "wagtailcore.ReferenceIndex",
+    "wagtailcore.Revision",
+    "wagtailcore.Site",
+    "wagtailcore.Task",
+    "wagtailcore.TaskState",
+    "wagtailcore.UploadedFile",
+    "wagtailcore.Workflow",
+    "wagtailcore.WorkflowContentType",
+    "wagtailcore.WorkflowPage",
+    "wagtailcore.WorkflowState",
+    "wagtailcore.WorkflowTask",
+    "wagtaildocs.Document",
+    "wagtailembeds.Embed",
+    "wagtailforms.FormSubmission",
+    "wagtailimages.Image",
+    "wagtailimages.Rendition",
+    "wagtailredirects.Redirect",
+    "wagtailsearch.IndexEntry",
+    "wagtailsearch.SQLiteFTSIndexEntry",
+    "wagtailusers.UserProfile",
+    "store.Customer"
+  ],
+  "pinnedPositions": {
+    "library.Author": {
+      "x": 597,
+      "y": 12
+    },
+    "library.Book": {
+      "x": 301,
+      "y": 22
+    },
+    "library.Genre": {
+      "x": 597,
+      "y": 192
+    },
+    "library.Loan": {
+      "x": 12,
+      "y": 45.33333333333334
+    },
+    "library.Member": {
+      "x": 301,
+      "y": 242
+    }
+  },
+  "collapsedApps": [],
+  "viewport": {
+    "x": 42.3607843137255,
+    "y": 202.95555555555558,
+    "zoom": 1.6366013071895424
+  },
+  "canvasSize": {
+    "width": 1376,
+    "height": 1018
+  },
+  "canvasHidePositions": {},
+  "fieldEdits": {
+    "library.Book": {
+      "hiddenFields": [
+        "isbn",
+        "genre"
+      ],
+      "fieldOrder": [
+        "title",
+        "authors",
+        "description",
+        "genre",
+        "id",
+        "isbn",
+        "published_on"
+      ],
+      "fieldColors": {
+        "title": "#3b82f6"
+      }
+    }
+  },
+  "physics": {
+    "edgeStyle": "floating",
+    "liveDragPhysics": false,
+    "forceParams": {
+      "alphaDecay": 0.0228,
+      "alphaMin": 0.001,
+      "velocityDecay": 0.4,
+      "chargeStrength": -400,
+      "linkDistance": 180,
+      "collisionRadius": 80
+    },
+    "appMode": "normal",
+    "colorPalette": "pastel",
+    "backgroundStyle": "dots",
+    "minimapVisible": true,
+    "sidebarOpen": false
+  }
+}

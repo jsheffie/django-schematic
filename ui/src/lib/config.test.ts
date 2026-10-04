@@ -129,6 +129,26 @@ describe("importConfig", () => {
     expect(useSchemaStore.getState().edgeOffsets.size).toBe(0);
   });
 
+  it("maps the legacy 'force' layout name in v2 exports to 'organic'", () => {
+    const v2Force = JSON.stringify({
+      version: 2,
+      activeLayout: "force",
+      visibleNodeIds: ["testapp.Order"],
+      expandedNodeIds: [],
+      pinnedPositions: {},
+      collapsedApps: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+      physics: {
+        edgeStyle: "floating",
+        liveDragPhysics: false,
+        forceParams: {},
+        appMode: "normal",
+      },
+    });
+    importConfig(v2Force);
+    expect(useSchemaStore.getState().activeLayout).toBe("organic");
+  });
+
   it("still rejects unknown versions", () => {
     expect(() => importConfig(JSON.stringify({ version: 99 }))).toThrow(
       "Unknown config version",
