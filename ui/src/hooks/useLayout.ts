@@ -14,6 +14,11 @@ import type { Edge, Node } from "@xyflow/react";
 const DEFAULT_WIDTH = 220;
 const DEFAULT_HEIGHT = 60;
 
+// Annotations (issue #100) are user-placed; a layout pass never moves them.
+// Only `model` nodes (and the edges between them) go to the engine; every
+// other node is returned exactly as it came in.
+const isModel = (n: Node): boolean => n.type === "model";
+
 export function runDagreLayout(
   nodes: Node[],
   edges: Edge[],
@@ -24,15 +29,20 @@ export function runDagreLayout(
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir: direction, ranksep: 80, nodesep: 40 });
 
-  nodes.forEach((n) => {
+  const modelNodes = nodes.filter(isModel);
+  const modelIds = new Set(modelNodes.map((n) => n.id));
+  modelNodes.forEach((n) => {
     const s = nodeSizes.get(n.id);
     g.setNode(n.id, { width: s?.width ?? DEFAULT_WIDTH, height: s?.height ?? DEFAULT_HEIGHT });
   });
-  edges.forEach((e) => g.setEdge(e.source, e.target));
+  edges
+    .filter((e) => modelIds.has(e.source) && modelIds.has(e.target))
+    .forEach((e) => g.setEdge(e.source, e.target));
 
   dagre.layout(g);
 
   return nodes.map((n) => {
+    if (!isModel(n)) return n;
     const { x, y } = g.node(n.id);
     const s = nodeSizes.get(n.id);
     const w = s?.width ?? DEFAULT_WIDTH;

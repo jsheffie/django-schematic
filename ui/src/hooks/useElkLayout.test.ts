@@ -24,8 +24,8 @@ vi.mock("elkjs/lib/elk.bundled.js", () => ({
 }));
 
 const nodes: Node[] = [
-  { id: "a", position: { x: 0, y: 0 }, data: {} },
-  { id: "b", position: { x: 0, y: 0 }, data: {} },
+  { id: "a", type: "model", position: { x: 0, y: 0 }, data: {} },
+  { id: "b", type: "model", position: { x: 0, y: 0 }, data: {} },
 ];
 const edges: Edge[] = [{ id: "a-b", source: "a", target: "b" }];
 
@@ -60,6 +60,21 @@ describe("runElkLayout (lazy ELK)", () => {
       { x: 0, y: 50 },
       { x: 100, y: 50 },
     ]);
+  });
+
+  it("lays out model nodes only and passes annotations through untouched", async () => {
+    const { runElkLayout } = await import("./useElkLayout");
+    const mixed: Node[] = [
+      ...nodes,
+      { id: "tb_1", type: "text", position: { x: 999, y: 888 }, data: {} },
+      { id: "anchor:ar_1:to", type: "anchor", position: { x: -5, y: -6 }, data: {} },
+    ];
+    const out = await runElkLayout(mixed, [...edges, { id: "x", source: "tb_1", target: "a" }], new Map());
+    expect(out.map((n) => n.id)).toEqual(mixed.map((n) => n.id));
+    expect(out.find((n) => n.id === "tb_1")?.position).toEqual({ x: 999, y: 888 });
+    expect(out.find((n) => n.id === "anchor:ar_1:to")?.position).toEqual({ x: -5, y: -6 });
+    // The mock positions children by index: only two model nodes went to ELK.
+    expect(out.find((n) => n.id === "b")?.position).toEqual({ x: 100, y: 50 });
   });
 
   it("retries the load after a failure instead of caching the rejection", async () => {
