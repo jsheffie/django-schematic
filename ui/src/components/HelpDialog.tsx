@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { usePhysicsStore } from "../store/physicsStore";
+import { backdropClick } from "../lib/backdrop";
 
 export default function HelpDialog() {
   const helpOpen = usePhysicsStore((s) => s.helpOpen);
@@ -18,8 +19,9 @@ export default function HelpDialog() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
+        data-dialog-backdrop
         className="absolute inset-0 bg-black/30"
-        onClick={() => setHelpOpen(false)}
+        onClick={backdropClick(() => setHelpOpen(false))}
       />
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">

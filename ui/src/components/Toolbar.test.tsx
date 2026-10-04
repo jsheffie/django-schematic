@@ -173,3 +173,39 @@ describe("Toolbar sort all: confirmation when a custom order exists", () => {
     expect(getByRole("dialog").textContent).toContain("2 tables already have a custom field order");
   });
 });
+
+describe("Toolbar sort all: double-click must not dismiss the confirmation", () => {
+  beforeEach(() => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([
+        ["shop.Order", { hiddenFields: [], fieldOrder: ["status", "id", "customer", "created_at"], fieldColors: {} }],
+      ]),
+    });
+  });
+
+  // The first click of a double-click opens the dialog; the second lands on the
+  // backdrop that now covers the toolbar. Browsers mark it with detail = 2.
+  it("keeps the dialog open when the second click of a double-click hits the backdrop", () => {
+    const { getByRole, queryByRole, baseElement } = renderToolbar();
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }), { detail: 1 });
+    expect(queryByRole("dialog")).not.toBeNull();
+
+    const backdrop = baseElement.querySelector("[data-dialog-backdrop]") as HTMLElement;
+    fireEvent.click(backdrop, { detail: 2 });
+
+    expect(queryByRole("dialog")).not.toBeNull();
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldOrder).toEqual([
+      "status", "id", "customer", "created_at",
+    ]);
+  });
+
+  it("still cancels on a deliberate single click on the backdrop", () => {
+    const { getByRole, queryByRole, baseElement } = renderToolbar();
+    fireEvent.click(getByRole("button", { name: "Sort all tables by type" }), { detail: 1 });
+
+    const backdrop = baseElement.querySelector("[data-dialog-backdrop]") as HTMLElement;
+    fireEvent.click(backdrop, { detail: 1 });
+
+    expect(queryByRole("dialog")).toBeNull();
+  });
+});

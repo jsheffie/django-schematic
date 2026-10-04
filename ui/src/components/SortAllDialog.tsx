@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { backdropClick } from "../lib/backdrop";
 
 interface Props {
   open: boolean;
@@ -45,7 +46,7 @@ export default function SortAllDialog({ open, affected, onConfirm, onCancel }: P
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
+      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onCancel)} />
       <div
         role="dialog"
         aria-modal="true"
