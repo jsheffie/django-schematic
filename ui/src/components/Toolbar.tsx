@@ -1,11 +1,14 @@
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import FileMenu from "./FileMenu";
-import { IconPanelLeft, IconPanelRight } from "./icons";
+import { IconPanelLeft, IconPanelRight, IconSortByType } from "./icons";
+import type { SchemaGraph } from "../lib/types";
 
-function IconBtn({ onClick, title, active, children }: {
+function IconBtn({ onClick, title, label, active, children }: {
   onClick: () => void;
   title: string;
+  /** Accessible name when `title` is a longer explanation rather than the control's name. */
+  label?: string;
   active?: boolean;
   children: React.ReactNode;
 }) {
@@ -13,6 +16,7 @@ function IconBtn({ onClick, title, active, children }: {
     <button
       onClick={onClick}
       title={title}
+      aria-label={label}
       className={`w-7 h-7 flex items-center justify-center rounded text-sm border transition-colors ${
         active
           ? "bg-blue-600 border-blue-600 text-white"
@@ -45,9 +49,10 @@ const LAYOUT_TOOLTIP: Record<ActiveLayout, string> = {
   "dagre-tb": "Top → Bottom: dagre hierarchical layout (rankdir TB). Same engine as L→R, direction only.",
 };
 
-export default function Toolbar() {
+export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   const activeLayout = useSchemaStore((s) => s.activeLayout);
   const setLayout = useSchemaStore((s) => s.setLayout);
+  const sortAllFieldsByType = useSchemaStore((s) => s.sortAllFieldsByType);
 
   const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
   const setPhysicsEnabled = usePhysicsStore((s) => s.setPhysicsEnabled);
@@ -146,11 +151,16 @@ export default function Toolbar() {
 
       <div className="w-px h-8 bg-gray-200 mx-0.5" />
 
-      <div className="w-px h-8 bg-gray-200 mx-0.5" />
-
-      {/* Drawers + Help + File cluster */}
+      {/* Sort all + drawers + Help + File cluster */}
       <div className="flex flex-col items-stretch gap-0.5">
         <div className="flex gap-0.5">
+          <IconBtn
+            onClick={() => sortAllFieldsByType(schema.nodes)}
+            label="Sort all tables by type"
+            title="Sort fields in every table by type: primary key, relations, fields grouped by type, booleans, dates and times last. Re-running replaces manual reorders."
+          >
+            <IconSortByType />
+          </IconBtn>
           <IconBtn
             onClick={() => setSidebarOpen(!sidebarOpen)}
             title="Models"

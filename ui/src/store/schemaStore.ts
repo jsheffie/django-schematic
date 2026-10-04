@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { EMPTY_FIELD_EDITS, isEmptyEdits, type FieldEdits } from "../lib/fieldEdits";
+import { EMPTY_FIELD_EDITS, autoFieldOrder, isEmptyEdits, type FieldEdits } from "../lib/fieldEdits";
+import type { NodeInfo } from "../lib/types";
 
 interface ViewportState {
   x: number;
@@ -49,6 +50,8 @@ interface SchemaStore {
   // Field editing
   toggleFieldHidden: (nodeId: string, fieldName: string) => void;
   setFieldOrder: (nodeId: string, order: string[], naturalOrder: string[]) => void;
+  // "Sort all tables by type" (issue #117): autoFieldOrder on every node, in one update.
+  sortAllFieldsByType: (nodes: ReadonlyArray<Pick<NodeInfo, "id" | "fields">>) => void;
   setFieldColor: (nodeId: string, fieldName: string, color: string | null) => void;
   resetFieldEdits: (nodeId: string) => void;
 
@@ -80,6 +83,13 @@ interface SchemaStore {
 
   // Reset
   resetConfig: () => void;
+}
+
+// An order identical to the node's natural order is stored as null (no override).
+function normalizeFieldOrder(order: string[], naturalOrder: string[]): string[] | null {
+  const isNatural =
+    order.length === naturalOrder.length && order.every((name, i) => name === naturalOrder[i]);
+  return isNatural ? null : [...order];
 }
 
 // Returns a new map with `edits` stored under `nodeId`, or the entry removed
@@ -201,11 +211,22 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   setFieldOrder: (nodeId, order, naturalOrder) =>
     set((s) => {
       const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
-      const isNatural =
-        order.length === naturalOrder.length &&
-        order.every((name, i) => name === naturalOrder[i]);
-      const fieldOrder = isNatural ? null : [...order];
+      const fieldOrder = normalizeFieldOrder(order, naturalOrder);
       return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldOrder }) };
+    }),
+
+  sortAllFieldsByType: (nodes) =>
+    set((s) => {
+      let next = s.fieldEdits;
+      for (const node of nodes) {
+        const cur = next.get(node.id) ?? EMPTY_FIELD_EDITS;
+        const fieldOrder = normalizeFieldOrder(
+          autoFieldOrder(node.fields),
+          node.fields.map((f) => f.name),
+        );
+        next = commitFieldEdits(next, node.id, { ...cur, fieldOrder });
+      }
+      return { fieldEdits: next };
     }),
 
   setFieldColor: (nodeId, fieldName, color) =>
