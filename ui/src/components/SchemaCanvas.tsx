@@ -153,6 +153,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const isFirstLayoutRef = useRef(true);
   // Track canvas-initiated suppress version so layout effect can skip recalc.
   const lastSuppressVersionRef = useRef(canvasLayoutSuppressVersion);
+  const layoutRunRef = useRef(0);
 
   // When rfNodes changes (schema reload or visibility toggle), sync displayNodes.
   // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
@@ -230,6 +231,7 @@ export default function SchemaCanvas({ schema }: Props) {
   // actual node heights rather than the 220×60 fallback (avoids zooming too far out).
   useEffect(() => {
     if (!nodesMeasured) return;
+    const run = ++layoutRunRef.current;
 
     if (importId !== lastLayoutImportIdRef.current) {
       lastLayoutImportIdRef.current = importId;
@@ -252,10 +254,16 @@ export default function SchemaCanvas({ schema }: Props) {
     isFirstLayoutRef.current = false;
 
     if (activeLayout === "elk") {
-      runElkLayout(rfNodesRef.current, rfEdgesRef.current, sizeMap).then((positioned) => {
-        setNodes(positioned);
-        setTimeout(() => fitView({ duration: 300 }), 0);
-      });
+      runElkLayout(rfNodesRef.current, rfEdgesRef.current, sizeMap)
+        .then((positioned) => {
+          if (run !== layoutRunRef.current) return; // superseded by a newer layout pass
+          setNodes(positioned);
+          setTimeout(() => fitView({ duration: 300 }), 0);
+        })
+        .catch((err: unknown) => {
+          // ELK is lazy-loaded; the chunk fetch can fail (offline, stale deploy).
+          console.error("[schematic] ELK layout 'Auto' failed", err);
+        });
       return;
     }
     const direction = activeLayout === "dagre-lr" ? "LR" : "TB";

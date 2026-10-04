@@ -22,7 +22,7 @@ SRC_DIR := schematic/static/schematic
 ui-build:
 	cd ui && npm run build:fast
 
-## Build and copy main.js + main.css to DEPLOY_TARGET, and copy Python source files.
+## Build and copy main.js + main.css + chunks/ to DEPLOY_TARGET, and copy Python source files.
 ui-deploy: ui-build _do-copy _do-copy-python
 
 ## Validate DEPLOY_TARGET and copy the built assets.
@@ -39,6 +39,9 @@ _do-copy:
 	fi
 	cp $(SRC_DIR)/main.js  $(DEPLOY_TARGET)/main.js
 	cp $(SRC_DIR)/main.css $(DEPLOY_TARGET)/main.css
+	@# Lazy-loaded chunks (e.g. ELK) are content-hashed; replace the dir so stale ones don't pile up.
+	rm -rf $(DEPLOY_TARGET)/chunks
+	@if [ -d "$(SRC_DIR)/chunks" ]; then cp -R $(SRC_DIR)/chunks $(DEPLOY_TARGET)/chunks; fi
 	@echo "Copied -> $(DEPLOY_TARGET)"
 
 ## Copy Python source files to PYTHON_DEPLOY_TARGET.
