@@ -20,6 +20,7 @@ import {
   Panel,
   applyNodeChanges,
   type Edge,
+  type EdgeChange,
   type NodeChange,
   type NodeTypes,
   type OnNodeDrag,
@@ -30,14 +31,35 @@ import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { appColor } from "../lib/colors";
 import { ModelNode, type ModelNodeData } from "./ModelNode";
+import { TextBlockNode, DEFAULT_NOTE_COLOR, type TextBlockNodeData } from "./TextBlockNode";
+import { AnchorNode, type AnchorNodeData } from "./AnchorNode";
+import ArrowDrawLayer from "./ArrowDrawLayer";
 import { edgeTypes } from "./EdgeTypes";
+import type { ArrowEdgeData } from "./ArrowEdge";
 import { RELATION_MARKERS, MarkerDefs } from "../lib/markers";
+import {
+  ANCHOR_SIZE,
+  anchorNodeId,
+  arrowEndNodeId,
+  isArrowVisible,
+  isAttached,
+  type ArrowEnd,
+} from "../lib/annotations";
 import { useForceLayout } from "../hooks/useForceLayout";
+import { useAnnotationActions } from "../hooks/useAnnotationActions";
 import { runDagreLayout } from "../hooks/useLayout";
 import { runElkLayout } from "../hooks/useElkLayout";
 import SettingsDrawer from "./SettingsDrawer";
 
-const nodeTypes: NodeTypes = { model: ModelNode } as unknown as NodeTypes;
+// Three node kinds share the canvas (issue #100): model tables, free-form text
+// blocks, and invisible anchors that stand in for the free ends of arrows.
+type CanvasNode = ModelNodeData | TextBlockNodeData | AnchorNodeData;
+
+const nodeTypes: NodeTypes = {
+  model: ModelNode,
+  text: TextBlockNode,
+  anchor: AnchorNode,
+} as unknown as NodeTypes;
 
 interface Props {
   schema: SchemaGraph;
@@ -53,6 +75,12 @@ export default function SchemaCanvas({ schema }: Props) {
   const pinNode = useSchemaStore((s) => s.pinNode);
   const importId = useSchemaStore((s) => s.importId);
   const canvasLayoutSuppressVersion = useSchemaStore((s) => s.canvasLayoutSuppressVersion);
+  const textBlocks = useSchemaStore((s) => s.textBlocks);
+  const arrows = useSchemaStore((s) => s.arrows);
+  const updateTextBlock = useSchemaStore((s) => s.updateTextBlock);
+  const removeTextBlock = useSchemaStore((s) => s.removeTextBlock);
+  const updateArrow = useSchemaStore((s) => s.updateArrow);
+  const removeArrow = useSchemaStore((s) => s.removeArrow);
 
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
   const liveDragPhysics = usePhysicsStore((s) => s.liveDragPhysics);
@@ -63,6 +91,11 @@ export default function SchemaCanvas({ schema }: Props) {
   const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
   const colorPalette = usePhysicsStore((s) => s.colorPalette);
   const backgroundStyle = usePhysicsStore((s) => s.backgroundStyle);
+  const annotationTool = usePhysicsStore((s) => s.annotationTool);
+  const setAnnotationTool = usePhysicsStore((s) => s.setAnnotationTool);
+  const selectedArrowId = usePhysicsStore((s) => s.selectedArrowId);
+  const setSelectedArrow = usePhysicsStore((s) => s.setSelectedArrow);
+  const { addTextBlockAtCenter, toggleArrowTool } = useAnnotationActions();
 
   const { getViewport, setNodes, fitView } = useReactFlow();
 
@@ -73,11 +106,20 @@ export default function SchemaCanvas({ schema }: Props) {
     [schemaInitialized, visibleNodeIds, schema.nodes],
   );
 
-  // Build React Flow nodes from API data, filtered to visible set.
-  // Positions here are only the initial/pinned values; the layout hooks
-  // will override them via setNodes → onNodesChange → displayNodes.
-  const rfNodes: ModelNodeData[] = useMemo(() => {
-    return schema.nodes
+  // Arrows whose attached ends all have something to attach to. An arrow on a
+  // hidden model is hidden with it (and so is its anchor node, below).
+  const visibleArrows = useMemo(() => {
+    const blockIds = new Set(textBlocks.keys());
+    return [...arrows].filter(([, a]) => isArrowVisible(a, effectiveVisibleIds, blockIds));
+  }, [arrows, textBlocks, effectiveVisibleIds]);
+
+  // Build React Flow nodes from API data, filtered to visible set, plus the
+  // annotation nodes. Model positions here are only the initial/pinned values;
+  // the layout hooks will override them via setNodes → onNodesChange →
+  // displayNodes. Text blocks and anchors carry their own positions and are
+  // never touched by a layout pass.
+  const rfNodes: CanvasNode[] = useMemo(() => {
+    const models: ModelNodeData[] = schema.nodes
       .filter((n) => effectiveVisibleIds.has(n.id))
       .map((n) => {
         const pinned = pinnedPositions.get(n.id);
@@ -85,6 +127,7 @@ export default function SchemaCanvas({ schema }: Props) {
           id: n.id,
           type: "model",
           position: pinned ?? { x: 0, y: 0 },
+          deletable: false, // Backspace must never remove a table from the canvas
           data: {
             nodeId: n.id,
             name: n.name,
@@ -94,17 +137,51 @@ export default function SchemaCanvas({ schema }: Props) {
           },
         };
       });
-  }, [schema.nodes, effectiveVisibleIds, pinnedPositions]);
 
-  // Build React Flow edges, passing edgeStyle and related_name through data
+    const texts: TextBlockNodeData[] = [...textBlocks].map(([id, b]) => ({
+      id,
+      type: "text",
+      position: { x: b.x, y: b.y },
+      width: b.width,
+      deletable: true,
+      data: { blockId: id },
+    }));
+
+    const anchors: AnchorNodeData[] = [];
+    for (const [arrowId, a] of visibleArrows) {
+      for (const end of ["from", "to"] as ArrowEnd[]) {
+        const ep = a[end];
+        if (isAttached(ep)) continue;
+        anchors.push({
+          id: anchorNodeId(arrowId, end),
+          type: "anchor",
+          position: { x: ep.x - ANCHOR_SIZE / 2, y: ep.y - ANCHOR_SIZE / 2 },
+          width: ANCHOR_SIZE,
+          height: ANCHOR_SIZE,
+          selectable: false,
+          deletable: false,
+          focusable: false,
+          zIndex: 1001, // above elevated nodes so the end stays grabbable
+          data: { arrowId, end },
+        });
+      }
+    }
+
+    return [...models, ...texts, ...anchors];
+  }, [schema.nodes, effectiveVisibleIds, pinnedPositions, textBlocks, visibleArrows]);
+
+  // Build React Flow edges: relation edges (edgeStyle and related_name through
+  // data) plus annotation arrows. Edge selection is controlled too, so the
+  // arrow's `selected` flag is merged in from the store here.
   const rfEdges: Edge[] = useMemo(() => {
-    return schema.edges
+    const relations: Edge[] = schema.edges
       .filter((e) => effectiveVisibleIds.has(e.source) && effectiveVisibleIds.has(e.target))
       .map((e) => ({
         id: `${e.source}->${e.target}:${e.field_name}`,
         source: e.source,
         target: e.target,
         type: "schema",
+        deletable: false,
         data: {
           relation_type: e.relation_type,
           field_name: e.field_name,
@@ -115,11 +192,24 @@ export default function SchemaCanvas({ schema }: Props) {
         markerEnd:   RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerEnd,
         markerStart: RELATION_MARKERS[e.relation_type as keyof typeof RELATION_MARKERS]?.markerStart,
       }));
-  }, [schema.edges, effectiveVisibleIds, edgeStyle]);
+
+    const arrowEdges: ArrowEdgeData[] = visibleArrows.map(([arrowId, a]) => ({
+      id: arrowId,
+      type: "arrow",
+      source: arrowEndNodeId(arrowId, "from", a.from),
+      target: arrowEndNodeId(arrowId, "to", a.to),
+      deletable: true,
+      interactionWidth: 20,
+      selected: selectedArrowId === arrowId,
+      data: { arrowId, edgeStyle },
+    }));
+
+    return [...relations, ...arrowEdges];
+  }, [schema.edges, effectiveVisibleIds, edgeStyle, visibleArrows, selectedArrowId]);
 
   // displayNodes is the authoritative node list passed to <ReactFlow>.
   // It starts from rfNodes and is updated by layout algorithms and user drags.
-  const [displayNodes, setDisplayNodes] = useState<ModelNodeData[]>(rfNodes);
+  const [displayNodes, setDisplayNodes] = useState<CanvasNode[]>(rfNodes);
 
   // True once React Flow has measured at least one node after the first paint.
   // Used to defer the initial layout until node heights are known.
@@ -159,6 +249,9 @@ export default function SchemaCanvas({ schema }: Props) {
   // Preserve positions for nodes already on canvas; new nodes start at {x:0,y:0}.
   // Exception: on a fresh import, apply the incoming rfNodes positions directly
   // so that the imported layout is actually shown instead of the current one.
+  // A text block that was not on the canvas before is one the user just added:
+  // it becomes the selection (and everything else is deselected) so its
+  // toolbar and resize handles are there right away.
   useEffect(() => {
     const isImport = importId !== lastAppliedImportIdRef.current;
     if (isImport) lastAppliedImportIdRef.current = importId;
@@ -167,11 +260,17 @@ export default function SchemaCanvas({ schema }: Props) {
       if (isImport) {
         return rfNodes.map((n) => ({ ...n }));
       }
-      const posMap = new Map(curr.map((n) => [n.id, n.position]));
-      return rfNodes.map((n) => ({
-        ...n,
-        position: posMap.get(n.id) ?? n.position,
-      }));
+      const prev = new Map(curr.map((n) => [n.id, n]));
+      const hasNewText = rfNodes.some((n) => n.type === "text" && !prev.has(n.id));
+      return rfNodes.map((n) => {
+        const was = prev.get(n.id);
+        const isNewText = n.type === "text" && !was;
+        return {
+          ...n,
+          position: was?.position ?? n.position,
+          selected: hasNewText ? isNewText : was?.selected,
+        } as CanvasNode;
+      });
     });
   }, [rfNodes, importId]);
 
@@ -179,7 +278,7 @@ export default function SchemaCanvas({ schema }: Props) {
   // displayNodes so the controlled <ReactFlow nodes> prop stays current.
   // Also detect when React Flow has measured node dimensions after the first paint.
   const onNodesChange = useCallback(
-    (changes: NodeChange<ModelNodeData>[]) => {
+    (changes: NodeChange<CanvasNode>[]) => {
       setDisplayNodes((nds) => {
         const next = applyNodeChanges(changes, nds);
         if (!nodesMeasured && next.some((n) => n.measured?.height)) {
@@ -272,39 +371,116 @@ export default function SchemaCanvas({ schema }: Props) {
     setTimeout(() => fitView({ duration: 300 }), 0);
   }, [activeLayout, layoutVersion, importId, canvasLayoutSuppressVersion, nodesMeasured, setNodes, fitView, buildSizeMap]);
 
-  // onNodeDragStop — always pins in Zustand; only reheat sim if physics is on
-  const onNodeDragStop: OnNodeDrag<ModelNodeData> = useCallback(
+  // onNodeDragStop — model nodes pin in Zustand (and in the sim when physics
+  // is on); annotation nodes commit their new place to the store instead.
+  const onNodeDragStop: OnNodeDrag<CanvasNode> = useCallback(
     (_event, node) => {
+      if (node.type === "text") {
+        updateTextBlock(node.id, { x: node.position.x, y: node.position.y });
+        return;
+      }
+      if (node.type === "anchor") {
+        const { arrowId, end } = node.data;
+        updateArrow(arrowId, {
+          [end]: { x: node.position.x + ANCHOR_SIZE / 2, y: node.position.y + ANCHOR_SIZE / 2 },
+        });
+        // Grabbing the anchor deselects edges (a node drag); the arrow stays the selection.
+        setSelectedArrow(arrowId);
+        return;
+      }
       pinNode(node.id, node.position);
       if (physicsEnabled) simPinNode(node.id, node.position.x, node.position.y);
     },
-    [pinNode, simPinNode, physicsEnabled],
+    [pinNode, simPinNode, physicsEnabled, updateTextBlock, updateArrow, setSelectedArrow],
   );
 
-  // onNodeDrag — live physics: track dragged node in sim each frame
-  const onNodeDrag: OnNodeDrag<ModelNodeData> = useCallback(
+  // onNodeDrag — live physics: track dragged model node in sim each frame
+  const onNodeDrag: OnNodeDrag<CanvasNode> = useCallback(
     (_event, node) => {
+      if (node.type !== "model") return;
       if (!liveDragPhysics || !physicsEnabled) return;
       simPinNode(node.id, node.position.x, node.position.y);
     },
     [liveDragPhysics, physicsEnabled, simPinNode],
   );
 
-  // Spacebar toggles physics pause/resume when force layout is active
-  // and focus is not in a form element.
+  // Edge selection in controlled mode: React Flow reports it here and reads it
+  // back from the `selected` flag merged into rfEdges. Only arrows are
+  // selectable in practice; relation edges have no selected styling.
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      for (const c of changes) {
+        if (c.type !== "select") continue;
+        const current = usePhysicsStore.getState().selectedArrowId;
+        if (c.selected) setSelectedArrow(c.id);
+        else if (current === c.id) setSelectedArrow(null);
+      }
+    },
+    [setSelectedArrow],
+  );
+
+  // Backspace / Delete on a selection. Model nodes and relation edges are
+  // `deletable: false`, so only annotations ever arrive here.
+  const onNodesDelete = useCallback(
+    (deleted: CanvasNode[]) => {
+      for (const n of deleted) if (n.type === "text") removeTextBlock(n.id);
+    },
+    [removeTextBlock],
+  );
+  const onEdgesDelete = useCallback(
+    (deleted: Edge[]) => {
+      for (const e of deleted) {
+        if (e.type !== "arrow") continue;
+        if (usePhysicsStore.getState().selectedArrowId === e.id) setSelectedArrow(null);
+        removeArrow(e.id);
+      }
+    },
+    [removeArrow, setSelectedArrow],
+  );
+
+  // Keyboard, when focus is not in a form element and no dialog is open:
+  //   T      add a text block at the viewport centre (issue #100)
+  //   A      toggle draw-arrow mode
+  //   Esc    leave draw-arrow mode
+  //   Space  pause/resume physics in the Organic layout
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeLayout !== "organic") return;
-      const tag = (e.target as HTMLElement).tagName;
-      if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag)) return;
-      if (e.code === "Space") {
+      const target = e.target as HTMLElement;
+      if (["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(target.tagName)) return;
+      if (target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.querySelector("[data-dialog-backdrop]")) return;
+
+      if (e.key === "Escape") {
+        if (annotationTool) setAnnotationTool(null);
+        return;
+      }
+      if (e.key === "t" || e.key === "T") {
+        e.preventDefault();
+        addTextBlockAtCenter("note");
+        return;
+      }
+      if (e.key === "a" || e.key === "A") {
+        e.preventDefault();
+        toggleArrowTool();
+        return;
+      }
+      if (e.code === "Space" && activeLayout === "organic") {
         e.preventDefault();
         setPhysicsEnabled(!physicsEnabled);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeLayout, physicsEnabled, setPhysicsEnabled]);
+  }, [
+    activeLayout,
+    physicsEnabled,
+    setPhysicsEnabled,
+    annotationTool,
+    setAnnotationTool,
+    addTextBlockAtCenter,
+    toggleArrowTool,
+  ]);
 
   const onMoveEnd = useCallback(() => {
     setViewport(getViewport());
@@ -318,6 +494,10 @@ export default function SchemaCanvas({ schema }: Props) {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodesDelete={onNodesDelete}
+        onEdgesDelete={onEdgesDelete}
+        deleteKeyCode={["Backspace", "Delete"]}
         onNodeDragStop={onNodeDragStop}
         onNodeDrag={onNodeDrag}
         onMoveEnd={onMoveEnd}
@@ -344,6 +524,8 @@ export default function SchemaCanvas({ schema }: Props) {
         {minimapVisible && (
           <MiniMap
             nodeColor={(node) => {
+              if (node.type === "anchor") return "transparent";
+              if (node.type === "text") return textBlocks.get(node.id)?.color ?? DEFAULT_NOTE_COLOR;
               const data = node.data as ModelNodeData["data"];
               return appColor(data?.appLabel ?? "", colorPalette);
             }}
@@ -377,6 +559,7 @@ export default function SchemaCanvas({ schema }: Props) {
         </button>
       )}
 
+      <ArrowDrawLayer />
       <SettingsDrawer onReheat={reheat} />
     </div>
   );

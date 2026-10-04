@@ -88,7 +88,7 @@ function BlockToolbar({
   );
 }
 
-export const TextBlockNode = memo(function TextBlockNode({ data, selected }: NodeProps<TextBlockNodeData>) {
+export const TextBlockNode = memo(function TextBlockNode({ data, selected, height }: NodeProps<TextBlockNodeData>) {
   const block = useSchemaStore((s) => s.textBlocks.get(data.blockId));
   const updateTextBlock = useSchemaStore((s) => s.updateTextBlock);
   const removeTextBlock = useSchemaStore((s) => s.removeTextBlock);
@@ -99,19 +99,23 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected }: Nod
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const text = block?.text ?? "";
 
-  // Entering edit mode: start from the saved text and focus the editor.
+  // Entering edit mode starts from the saved text. Only when edit mode
+  // toggles: a store text change while typing must not reset the draft.
   useEffect(() => {
-    if (!editing) return;
-    setDraft(text);
-    const id = requestAnimationFrame(() => {
-      const el = textareaRef.current;
-      if (!el) return;
-      el.focus();
-      el.setSelectionRange(el.value.length, el.value.length);
-    });
-    return () => cancelAnimationFrame(id);
-    // Only when edit mode toggles: a store text change while typing must not reset the draft.
+    if (editing) setDraft(text);
   }, [editing]);
+
+  // Focus the editor with the caret at the end. React Flow keeps a new node at
+  // `visibility: hidden` until it has measured it, and focus() inside a hidden
+  // subtree is a silent no-op, so this also re-runs when the measured `height`
+  // arrives. Once the editor has focus it is left alone (typing can change the
+  // height, which must not move the caret).
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!editing || !el || document.activeElement === el) return;
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  }, [editing, height]);
 
   // If the block leaves the canvas while being edited, exit edit mode.
   useEffect(
@@ -186,7 +190,8 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected }: Nod
             ? { color, outline: selected ? "1px dashed #9ca3af" : undefined, outlineOffset: 2 }
             : {
                 borderColor: color,
-                backgroundColor: `${color}26`,
+                // Opaque tint: a note dropped over a table must cover it, like paper.
+                backgroundColor: `color-mix(in srgb, ${color} 14%, white)`,
                 color: DEFAULT_TITLE_COLOR,
                 clipPath: `polygon(0 0, calc(100% - ${FOLD}px) 0, 100% ${FOLD}px, 100% 100%, 0 100%)`,
               }
@@ -199,7 +204,7 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected }: Nod
             style={{
               width: FOLD,
               height: FOLD,
-              background: `linear-gradient(to bottom left, transparent 50%, ${color}80 50%)`,
+              background: `linear-gradient(to bottom left, transparent 50%, color-mix(in srgb, ${color} 55%, white) 50%)`,
             }}
           />
         )}

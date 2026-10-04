@@ -33,7 +33,7 @@ function rectOf(node: Node): Rect {
 
 export default function ArrowDrawLayer() {
   const active = usePhysicsStore((s) => s.annotationTool === "arrow");
-  const { screenToFlowPosition, flowToScreenPosition, getIntersectingNodes } = useReactFlow();
+  const { screenToFlowPosition, flowToScreenPosition, getIntersectingNodes, setNodes } = useReactFlow();
   const addArrow = useSchemaStore((s) => s.addArrow);
   const [start, setStart] = useState<PointerSample | null>(null);
   const [current, setCurrent] = useState<PointerSample | null>(null);
@@ -79,6 +79,8 @@ export default function ArrowDrawLayer() {
     if (dist < MIN_DRAG_PX) return; // a click, not a drag: stay in the mode
     if (from.node && to.node && from.node.id === to.node.id) return; // both ends on one node
     const id = addArrow({ from: toEndpoint(from), to: toEndpoint(to) });
+    // The new arrow is the selection; a node selected before drawing lets go.
+    setNodes((nodes) => nodes.map((n) => (n.selected ? { ...n, selected: false } : n)));
     const ui = usePhysicsStore.getState();
     ui.setSelectedArrow(id);
     ui.setAnnotationTool(null);
