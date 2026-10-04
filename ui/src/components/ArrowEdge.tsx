@@ -77,6 +77,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
   const onGripPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
+    setSelectedArrow(arrowId); // grabbing the grip is also how you pick the arrow
     dragStart.current = {
       flow: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
       offset: arrow.offset ?? { x: 0, y: 0 },
