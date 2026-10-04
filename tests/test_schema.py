@@ -136,3 +136,48 @@ def test_target_field_serialized_in_json():
     schema = build_schema(filter_apps=["testapp"])
     edges = json.loads(schema.to_json())["edges"]
     assert all("target_field" in e for e in edges)
+
+
+def _fields_by_name(schema, model_name: str):
+    node = next(n for n in schema.nodes if n.name == model_name)
+    return {f.name: f for f in node.fields}
+
+
+@pytest.mark.django_db
+def test_book_has_exactly_one_primary_key_field_named_id():
+    fields = _fields_by_name(build_schema(filter_apps=["testapp"]), "Book")
+    assert [f.name for f in fields.values() if f.primary_key] == ["id"]
+    assert fields["author"].primary_key is False
+    assert fields["title"].primary_key is False
+
+
+@pytest.mark.django_db
+def test_primary_key_flag_follows_pk_not_named_id():
+    fields = _fields_by_name(build_schema(filter_apps=["testapp"]), "Isbn")
+    assert [f.name for f in fields.values() if f.primary_key] == ["code"]
+
+
+@pytest.mark.django_db
+def test_internal_type_matches_django_internal_type():
+    fields = _fields_by_name(build_schema(filter_apps=["testapp"]), "Book")
+    assert fields["title"].internal_type == "CharField"
+    assert fields["author"].internal_type == "ForeignKey"
+    assert fields["id"].internal_type == "BigAutoField"
+
+
+@pytest.mark.django_db
+def test_internal_type_sees_through_custom_field_subclass():
+    fields = _fields_by_name(build_schema(filter_apps=["testapp"]), "Isbn")
+    assert fields["registered_at"].field_type == "CreatedTimestampField"
+    assert fields["registered_at"].internal_type == "DateTimeField"
+
+
+@pytest.mark.django_db
+def test_primary_key_and_internal_type_serialized_in_json():
+    import json
+
+    nodes = json.loads(build_schema(filter_apps=["testapp"]).to_json())["nodes"]
+    for node in nodes:
+        for field in node["fields"]:
+            assert isinstance(field["primary_key"], bool)
+            assert isinstance(field["internal_type"], str)

@@ -69,3 +69,58 @@ export function applyFieldEdits(
   const visible = ordered.filter((f) => !hidden.has(f.name));
   return { visible, hiddenCount: ordered.length - visible.length };
 }
+
+// --- Automatic ordering (issue #111) ------------------------------------------
+
+/** Django internal types that sort into the final "date / time" bucket. */
+const DATE_TIME_TYPES: ReadonlySet<string> = new Set([
+  "DateField",
+  "DateTimeField",
+  "TimeField",
+  "DurationField",
+]);
+
+/** Which of the five buckets a field sorts into; lower comes first. */
+function sortBucket(f: FieldInfo): 0 | 1 | 2 | 3 | 4 {
+  if (f.primary_key) return 0;
+  if (f.is_relation) return 1;
+  // Classify on what the field *is* (a custom DateTimeField subclass is still a
+  // date/time); fall back to the class name when internal_type is missing.
+  const kind = f.internal_type || f.field_type;
+  if (DATE_TIME_TYPES.has(kind)) return 4;
+  if (kind === "BooleanField") return 3;
+  return 2;
+}
+
+function compareStrings(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/** Case-insensitive, with the exact string as the tie-break so the result is deterministic. */
+function compareNames(a: string, b: string): number {
+  return compareStrings(a.toLowerCase(), b.toLowerCase()) || compareStrings(a, b);
+}
+
+/**
+ * Field names in "sort by type" order: primary key first, then relations
+ * (alphabetical by name), then everything else grouped by `field_type` with
+ * groups alphabetical and names alphabetical within each group, then booleans,
+ * then date and time fields last, the last two grouped the same way. Pure;
+ * covers every field passed in (hidden ones included) so the result can be
+ * handed to `setFieldOrder` as is.
+ */
+export function autoFieldOrder(fields: FieldInfo[]): string[] {
+  return [...fields]
+    .sort((a, b) => {
+      const bucketA = sortBucket(a);
+      const bucketB = sortBucket(b);
+      if (bucketA !== bucketB) return bucketA - bucketB;
+      // Relations are ordered by name only; the other buckets group by the shown type first.
+      if (bucketA !== 1) {
+        const byType = compareNames(a.field_type, b.field_type);
+        if (byType !== 0) return byType;
+      }
+      return compareNames(a.name, b.name);
+    })
+    .map((f) => f.name);
+}

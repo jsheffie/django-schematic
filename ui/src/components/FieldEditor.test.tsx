@@ -13,8 +13,31 @@ const FIELDS: FieldInfo[] = ["a", "b", "c", "d"].map((name) => ({
   is_relation: false,
   null: false,
   unique: false,
+  primary_key: false,
+  internal_type: "CharField",
 }));
 const NATURAL = FIELDS.map((f) => f.name);
+
+const typed = (name: string, field_type: string, extra: Partial<FieldInfo> = {}): FieldInfo => ({
+  name,
+  field_type,
+  internal_type: field_type,
+  is_relation: false,
+  null: false,
+  unique: false,
+  primary_key: false,
+  ...extra,
+});
+// Alphabetical, as the Python side delivers it (issue #111 example, trimmed).
+const MIXED: FieldInfo[] = [
+  typed("created_at", "DateTimeField"),
+  typed("customer", "ForeignKey", { is_relation: true }),
+  typed("id", "BigAutoField", { primary_key: true }),
+  typed("is_paid", "BooleanField"),
+  typed("notes", "TextField"),
+  typed("status", "CharField"),
+];
+const MIXED_SORTED = ["id", "customer", "status", "notes", "is_paid", "created_at"];
 
 // jsdom does not implement pointer capture; FieldEditor calls these on the handle.
 beforeAll(() => {
@@ -30,10 +53,10 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-function renderEditor() {
+function renderEditor(fields: FieldInfo[] = FIELDS) {
   const utils = render(
     <ReactFlowProvider>
-      <FieldEditor nodeId={NODE} fields={FIELDS} />
+      <FieldEditor nodeId={NODE} fields={fields} />
     </ReactFlowProvider>,
   );
   const rows = () => [...utils.container.querySelectorAll("[data-fieldrow]")] as HTMLElement[];
@@ -43,7 +66,8 @@ function renderEditor() {
       .find((r) => r.getAttribute("data-fieldrow") === name)!
       .querySelector("[title='Drag to reorder']") as HTMLElement;
   const draggingRows = () => rows().filter((r) => r.getAttribute("data-dragging") === "true");
-  return { ...utils, rows, domOrder, handle, draggingRows };
+  const sortButton = () => utils.getByRole("button", { name: "Sort by type" }) as HTMLButtonElement;
+  return { ...utils, rows, domOrder, handle, draggingRows, sortButton };
 }
 
 const storedOrder = () => useSchemaStore.getState().fieldEdits.get(NODE)?.fieldOrder ?? null;
@@ -182,5 +206,85 @@ describe("FieldEditor drag reorder", () => {
     expect(storedOrder()).toBeNull();
     expect(domOrder()).toEqual(NATURAL);
     expect(draggingRows()).toHaveLength(0);
+  });
+});
+
+describe("FieldEditor sort by type", () => {
+  it("reorders the rows and stores the sorted order on the node", () => {
+    const { sortButton, domOrder } = renderEditor(MIXED);
+
+    fireEvent.click(sortButton());
+
+    expect(domOrder()).toEqual(MIXED_SORTED);
+    expect(storedOrder()).toEqual(MIXED_SORTED);
+  });
+
+  it("keeps a hidden field in its sorted position", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([[NODE, { hiddenFields: ["status"], fieldOrder: null, fieldColors: {} }]]),
+    });
+    const { sortButton, domOrder } = renderEditor(MIXED);
+
+    fireEvent.click(sortButton());
+
+    expect(domOrder()).toEqual(MIXED_SORTED);
+    expect(useSchemaStore.getState().fieldEdits.get(NODE)?.hiddenFields).toEqual(["status"]);
+  });
+
+  it("is a starting point: a drag afterwards moves one row and leaves the rest sorted", () => {
+    const { sortButton, handle, domOrder } = renderEditor(MIXED);
+    fireEvent.click(sortButton());
+
+    // Move created_at (last) up two rows.
+    fireEvent.pointerDown(handle("created_at"), { ...pointer, clientY: 0 });
+    fireEvent.pointerMove(window, { ...pointer, clientY: -ROW_H * 2 });
+    fireEvent.pointerUp(window, { ...pointer, buttons: 0, clientY: -ROW_H * 2 });
+
+    const expected = ["id", "customer", "status", "created_at", "notes", "is_paid"];
+    expect(domOrder()).toEqual(expected);
+    expect(storedOrder()).toEqual(expected);
+  });
+
+  it("re-sorts from scratch, discarding manual tweaks", () => {
+    const { sortButton, handle, domOrder } = renderEditor(MIXED);
+    fireEvent.click(sortButton());
+    fireEvent.pointerDown(handle("created_at"), { ...pointer, clientY: 0 });
+    fireEvent.pointerMove(window, { ...pointer, clientY: -ROW_H * 2 });
+    fireEvent.pointerUp(window, { ...pointer, buttons: 0, clientY: -ROW_H * 2 });
+    expect(domOrder()).not.toEqual(MIXED_SORTED);
+
+    fireEvent.click(sortButton());
+
+    expect(domOrder()).toEqual(MIXED_SORTED);
+    expect(storedOrder()).toEqual(MIXED_SORTED);
+  });
+
+  it("Reset returns to the natural order", () => {
+    const { sortButton, domOrder, getByRole } = renderEditor(MIXED);
+    fireEvent.click(sortButton());
+    expect(domOrder()).toEqual(MIXED_SORTED);
+
+    fireEvent.click(getByRole("button", { name: "Reset" }));
+
+    expect(domOrder()).toEqual(MIXED.map((f) => f.name));
+    expect(storedOrder()).toBeNull();
+  });
+
+  it("is disabled while a drag is in flight and enabled again after release", () => {
+    const { sortButton, handle } = renderEditor(MIXED);
+    expect(sortButton().disabled).toBe(false);
+
+    fireEvent.pointerDown(handle("notes"), { ...pointer, clientY: 0 });
+    expect(sortButton().disabled).toBe(true);
+
+    fireEvent.pointerUp(window, { ...pointer, buttons: 0, clientY: 0 });
+    expect(sortButton().disabled).toBe(false);
+  });
+
+  it("explains the ordering in its tooltip", () => {
+    const { sortButton } = renderEditor(MIXED);
+    expect(sortButton().title).toBe(
+      "Primary key, then relations, then fields grouped by type, then booleans, dates and times last",
+    );
   });
 });

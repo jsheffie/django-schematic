@@ -24,10 +24,14 @@ if TYPE_CHECKING:
 @dataclasses.dataclass(frozen=True, order=True)
 class FieldInfo:
     name: str
-    field_type: str
+    field_type: str      # Python class name, e.g. "AutoCreatedField"; what the UI shows
     is_relation: bool
     null: bool
     unique: bool
+    primary_key: bool
+    # Django's get_internal_type(), e.g. "DateTimeField" for a custom subclass.
+    # Lets the UI classify fields by what they are, not by what they are called.
+    internal_type: str
 
 
 @dataclasses.dataclass(frozen=True, order=True)
@@ -88,9 +92,21 @@ def _extract_fields(model: type[django_models.Model]) -> tuple[FieldInfo, ...]:
                 is_relation=f.is_relation if hasattr(f, "is_relation") else False,
                 null=getattr(f, "null", False),
                 unique=getattr(f, "unique", False),
+                primary_key=bool(getattr(f, "primary_key", False)),
+                internal_type=_internal_type(f),
             )
         )
     return tuple(sorted(fields))
+
+
+def _internal_type(f: object) -> str:
+    """Django's internal type for a field; the class name for fields without one (e.g. GenericForeignKey)."""
+    get_internal_type = getattr(f, "get_internal_type", None)
+    if callable(get_internal_type):
+        internal = get_internal_type()
+        if isinstance(internal, str) and internal:
+            return internal
+    return type(f).__name__
 
 
 def _tags(model: type[django_models.Model], *, is_through: bool = False) -> tuple[str, ...]:

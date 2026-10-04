@@ -185,6 +185,21 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">Click node header —</dt><dd className="inline text-gray-500"> expand / collapse field list.</dd></div>
               <div><dt className="font-medium inline">Double-click node header —</dt><dd className="inline text-gray-500"> prompt to hide the model from the canvas.</dd></div>
               <div><dt className="font-medium inline">Hover connector —</dt><dd className="inline text-gray-500"> show relation type, field name, and reverse lookup.</dd></div>
+              <div><dt className="font-medium inline">✎ on node header (hover) -</dt><dd className="inline text-gray-500"> open table edit mode for that model; see below.</dd></div>
+            </dl>
+          </section>
+
+          {/* Table edit mode */}
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-1.5">Table edit mode</h3>
+            <p className="text-gray-500 mb-2">Hover a model header and click the <span className="font-medium text-gray-700">✎</span> pencil. The node expands and every field gets a row of controls. One model is in edit mode at a time; <span className="font-medium text-gray-700">Done</span> exits. Fields arrive sorted alphabetically by name; that is the natural order <span className="font-medium text-gray-700">Reset</span> returns to.</p>
+            <dl className="flex flex-col gap-1.5">
+              <div><dt className="font-medium inline">≡ handle -</dt><dd className="inline text-gray-500"> drag a row up or down to reorder it. Connector lines follow the moved row.</dd></div>
+              <div><dt className="font-medium inline">Eye icon -</dt><dd className="inline text-gray-500"> hide or show a single field. Hidden fields stay grayed out in edit mode and are left out of the normal view.</dd></div>
+              <div><dt className="font-medium inline">Color square -</dt><dd className="inline text-gray-500"> tint the row with one of eight swatches, or clear it.</dd></div>
+              <div><dt className="font-medium inline">Sort by type -</dt><dd className="inline text-gray-500"> one click orders the whole table: primary key first, then relations (FK, O2O, M2M) alphabetically, then the other fields grouped by type with the groups in alphabetical order, then booleans, and date / time fields last. Hidden fields are sorted into place, not appended. It is a starting point: drag rows afterwards to fine-tune, and click it again to re-sort from scratch.</dd></div>
+              <div><dt className="font-medium inline">Reset -</dt><dd className="inline text-gray-500"> clear every field edit on this model: order, hidden fields, and colors.</dd></div>
+              <div><dt className="font-medium inline">Done -</dt><dd className="inline text-gray-500"> leave edit mode. Field edits are saved with Export config and Export PNG.</dd></div>
             </dl>
           </section>
 
