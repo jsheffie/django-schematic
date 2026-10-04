@@ -223,3 +223,66 @@ describe("sortAllFieldsByType", () => {
     expect(useSchemaStore.getState().fieldEdits.has("shop.Author")).toBe(false);
   });
 });
+
+describe("annotations", () => {
+  beforeEach(() => useSchemaStore.setState({ textBlocks: new Map(), arrows: new Map() }));
+  const block = { x: 0, y: 0, width: 200, height: 72, text: "hi", style: "note" as const };
+
+  it("adds, updates and removes a text block", () => {
+    const s = () => useSchemaStore.getState();
+    const id = s().addTextBlock(block);
+    expect(id).toMatch(/^tb_/);
+    s().updateTextBlock(id, { text: "changed", color: "#ef4444" });
+    expect(s().textBlocks.get(id)).toMatchObject({ text: "changed", color: "#ef4444", width: 200 });
+    s().removeTextBlock(id);
+    expect(s().textBlocks.has(id)).toBe(false);
+  });
+
+  it("ignores updates to a block that does not exist", () => {
+    useSchemaStore.getState().updateTextBlock("tb_missing", { text: "x" });
+    expect(useSchemaStore.getState().textBlocks.size).toBe(0);
+  });
+
+  it("removing a text block cascades to arrows attached to it", () => {
+    const s = () => useSchemaStore.getState();
+    const tb = s().addTextBlock(block);
+    const attached = s().addArrow({ from: { nodeId: tb }, to: { nodeId: "library.Book" } });
+    const attachedAtTo = s().addArrow({ from: { x: 0, y: 0 }, to: { nodeId: tb } });
+    const other = s().addArrow({ from: { x: 0, y: 0 }, to: { nodeId: "library.Book" } });
+    s().removeTextBlock(tb);
+    expect(s().arrows.has(attached)).toBe(false);
+    expect(s().arrows.has(attachedAtTo)).toBe(false);
+    expect(s().arrows.has(other)).toBe(true);
+  });
+
+  it("adds, updates and removes arrows", () => {
+    const s = () => useSchemaStore.getState();
+    const id = s().addArrow({ from: { x: 1, y: 2 }, to: { nodeId: "library.Book" } });
+    expect(id).toMatch(/^ar_/);
+    s().updateArrow(id, { label: "nightly", startHead: true });
+    expect(s().arrows.get(id)).toMatchObject({ label: "nightly", startHead: true, from: { x: 1, y: 2 } });
+    s().removeArrow(id);
+    expect(s().arrows.has(id)).toBe(false);
+  });
+
+  it("stores arrow offsets sparsely and drops near-zero ones", () => {
+    const s = () => useSchemaStore.getState();
+    const id = s().addArrow({ from: { x: 0, y: 0 }, to: { x: 9, y: 9 } });
+    s().setArrowOffset(id, { x: 12, y: -3 });
+    expect(s().arrows.get(id)?.offset).toEqual({ x: 12, y: -3 });
+    s().setArrowOffset(id, { x: 0.4, y: -0.2 });
+    expect(s().arrows.get(id)?.offset).toBeUndefined();
+    s().setArrowOffset(id, { x: 5, y: 5 });
+    s().clearArrowOffset(id);
+    expect(s().arrows.get(id)?.offset).toBeUndefined();
+  });
+
+  it("resetConfig leaves annotations alone", () => {
+    const s = () => useSchemaStore.getState();
+    const tb = s().addTextBlock(block);
+    const ar = s().addArrow({ from: { nodeId: tb }, to: { x: 0, y: 0 } });
+    s().resetConfig();
+    expect(s().textBlocks.has(tb)).toBe(true);
+    expect(s().arrows.has(ar)).toBe(true);
+  });
+});
