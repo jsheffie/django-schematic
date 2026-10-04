@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUpdateNodeInternals } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
@@ -7,6 +7,9 @@ import type { FieldInfo } from "../lib/types";
 import { IconEye, IconEyeSlash } from "./icons";
 import { AnchorHandle } from "./AnchorHandle";
 import { fieldHandleId } from "../lib/smartEdge";
+
+// Fallback when a row has no layout yet (or in jsdom), matching a text-xs row.
+const DEFAULT_ROW_HEIGHT = 22;
 
 function SwatchPopover({
   current,
@@ -46,6 +49,35 @@ function SwatchPopover({
   );
 }
 
+/** `order` with the item at `from` moved to `to`. */
+function moveItem<T>(order: readonly T[], from: number, to: number): T[] {
+  const next = [...order];
+  if (from < 0 || from >= next.length) return next;
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+/** What a drag renders: the row being dragged, where it currently sits, and how far rows shift. */
+interface DragState {
+  name: string;
+  from: number;
+  to: number;
+  /** Row height in layout px (pre-zoom): the translateY applied inside the node. */
+  layoutRowH: number;
+}
+
+/** Per-drag measurements and targets; mutated by the pointer handlers, no re-render needed. */
+interface DragInfo extends DragState {
+  pointerId: number;
+  startY: number;
+  /** Row height in screen px (zoom-inclusive): maps pointer travel to row steps. */
+  screenRowH: number;
+  /** Field order when the drag started; what `from`/`to` index into. */
+  committed: string[];
+  handle: HTMLElement;
+}
+
 export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldInfo[] }) {
   const edits = useSchemaStore((s) => s.fieldEdits.get(nodeId));
   const toggleFieldHidden = useSchemaStore((s) => s.toggleFieldHidden);
@@ -56,14 +88,14 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
 
   const [swatchFor, setSwatchFor] = useState<string | null>(null);
 
-  // Pointer-drag reorder: rows are uniform height, so target index is
-  // derived from vertical distance travelled since pointerdown.
-  const [dragOrder, setDragOrder] = useState<string[] | null>(null);
-  // dragInfo is a ref (mutating it doesn't trigger a re-render); isDragging below
-  // only reflects its current value correctly because every handler that sets/clears
-  // dragInfo.current also calls setDragOrder in the same call, which forces the render.
-  const dragInfo = useRef<{ name: string; startY: number; rowH: number } | null>(null);
-  const startOrder = useRef<string[]>([]);
+  // Pointer-drag reorder (issue #101). Rows always render in the committed
+  // order and the drag is shown purely with translateY, so React never moves
+  // the handle's DOM node mid-drag: a captured element that is moved loses
+  // pointer capture, which is what left rows "stuck" to the pointer before.
+  // `drag` is state so a change re-renders the shifted rows; `dragInfo` is the
+  // ref the window listeners read at event time, so they never go stale.
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const dragInfo = useRef<DragInfo | null>(null);
 
   // Close the swatch popover on any pointerdown outside it (and outside the
   // toggle buttons, so clicking a different row's ▣ can still open that one).
@@ -83,48 +115,114 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
   }, [swatchFor]);
 
   const displayed = orderedFields(fields, edits);
-  const byName = new Map(displayed.map((f) => [f.name, f]));
-  const rowNames = dragOrder ?? displayed.map((f) => f.name);
+  const committed = displayed.map((f) => f.name);
+  const visualOrder = drag ? moveItem(committed, drag.from, drag.to) : committed;
 
-  // Rows move during a drag-reorder without changing node height; tell React
+  // Rows shift during a drag-reorder without changing node height; tell React
   // Flow to re-measure the anchor handles so edges follow the row live.
   const updateNodeInternals = useUpdateNodeInternals();
-  const rowKey = rowNames.join(" ");
+  const rowKey = visualOrder.join(" ");
   useEffect(() => {
     updateNodeInternals(nodeId);
   }, [nodeId, rowKey, updateNodeInternals]);
 
-  const onHandleDown = (e: React.PointerEvent<HTMLSpanElement>, name: string) => {
-    const row = (e.currentTarget as HTMLElement).closest("[data-fieldrow]") as HTMLElement | null;
-    // getBoundingClientRect is transform-inclusive (reflects React Flow's zoom scale),
-    // unlike offsetHeight which is in untransformed layout pixels.
-    const rect = row?.getBoundingClientRect();
-    const rowH = rect && rect.height > 0 ? rect.height : 22;
-    dragInfo.current = { name, startY: e.clientY, rowH };
-    startOrder.current = displayed.map((f) => f.name);
-    setDragOrder(startOrder.current);
-    setSwatchFor(null);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const onHandleMove = (e: React.PointerEvent<HTMLSpanElement>) => {
+  /** Drop drag state without committing. Safe to call when no drag is active. */
+  const endDrag = useCallback(() => {
     const d = dragInfo.current;
-    if (!d) return;
-    const from = startOrder.current.indexOf(d.name);
-    const delta = Math.round((e.clientY - d.startY) / d.rowH);
-    const to = Math.max(0, Math.min(startOrder.current.length - 1, from + delta));
-    const next = [...startOrder.current];
-    next.splice(from, 1);
-    next.splice(to, 0, d.name);
-    setDragOrder(next);
+    dragInfo.current = null;
+    setDrag(null);
+    if (d && d.handle.hasPointerCapture(d.pointerId)) {
+      d.handle.releasePointerCapture(d.pointerId);
+    }
+  }, []);
+
+  // For the duration of a drag, listen on window so the release is seen no
+  // matter which element ends up under the pointer. Escape, pointercancel and
+  // a lost capture all cancel: the committed order is what is already rendered.
+  const isDragging = drag !== null;
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onMove = (e: PointerEvent) => {
+      const d = dragInfo.current;
+      if (!d || e.pointerId !== d.pointerId) return;
+      const delta = Math.round((e.clientY - d.startY) / d.screenRowH);
+      const to = Math.max(0, Math.min(d.committed.length - 1, d.from + delta));
+      if (to === d.to) return;
+      d.to = to;
+      setDrag({ name: d.name, from: d.from, to, layoutRowH: d.layoutRowH });
+    };
+    const onUp = (e: PointerEvent) => {
+      const d = dragInfo.current;
+      if (!d || e.pointerId !== d.pointerId) return;
+      const order = moveItem(d.committed, d.from, d.to);
+      endDrag();
+      setFieldOrder(nodeId, order, fields.map((f) => f.name));
+    };
+    const onCancel = (e: PointerEvent) => {
+      const d = dragInfo.current;
+      if (d && e.pointerId === d.pointerId) endDrag();
+    };
+    const onLostCapture = (e: Event) => {
+      if (dragInfo.current && e.target === dragInfo.current.handle) endDrag();
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") endDrag();
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("lostpointercapture", onLostCapture);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("lostpointercapture", onLostCapture);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isDragging, nodeId, fields, setFieldOrder, endDrag]);
+
+  const onHandleDown = (e: React.PointerEvent<HTMLElement>, name: string) => {
+    if (e.button !== 0) return;
+    // A drag whose release we never saw must not leak into this one.
+    if (dragInfo.current) endDrag();
+
+    const handle = e.currentTarget;
+    const row = handle.closest("[data-fieldrow]") as HTMLElement | null;
+    // getBoundingClientRect is transform-inclusive (reflects React Flow's zoom scale),
+    // unlike offsetHeight which is in untransformed layout pixels. Pointer travel is
+    // measured in the former; the translateY on rows is applied in the latter.
+    const rect = row?.getBoundingClientRect();
+    const screenRowH = rect && rect.height > 0 ? rect.height : DEFAULT_ROW_HEIGHT;
+    const layoutRowH = row && row.offsetHeight > 0 ? row.offsetHeight : DEFAULT_ROW_HEIGHT;
+    const from = committed.indexOf(name);
+    if (from < 0) return;
+
+    dragInfo.current = {
+      name,
+      from,
+      to: from,
+      pointerId: e.pointerId,
+      startY: e.clientY,
+      screenRowH,
+      layoutRowH,
+      committed,
+      handle,
+    };
+    setDrag({ name, from, to: from, layoutRowH });
+    setSwatchFor(null);
+    handle.setPointerCapture(e.pointerId);
   };
 
-  const onHandleUp = () => {
-    if (dragInfo.current && dragOrder) {
-      setFieldOrder(nodeId, dragOrder, fields.map((f) => f.name));
-    }
-    dragInfo.current = null;
-    setDragOrder(null);
+  /** Vertical offset (layout px) a row renders at while a drag is in flight. */
+  const rowShift = (index: number): number => {
+    if (!drag) return 0;
+    if (index === drag.from) return (drag.to - drag.from) * drag.layoutRowH;
+    if (drag.from < index && index <= drag.to) return -drag.layoutRowH;
+    if (drag.to <= index && index < drag.from) return drag.layoutRowH;
+    return 0;
   };
 
   return (
@@ -132,29 +230,30 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
       {displayed.length === 0 ? (
         <div className="px-2 py-0.5 text-xs text-gray-400">no fields</div>
       ) : (
-        rowNames.map((name) => {
-          const f = byName.get(name);
-          if (!f) return null;
+        displayed.map((f, index) => {
+          const name = f.name;
           const hidden = edits?.hiddenFields.includes(name) ?? false;
           const color = edits?.fieldColors[name];
-          const isDragging = dragInfo.current?.name === name;
+          const isDragged = drag?.name === name;
+          const shift = rowShift(index);
           return (
             <div
               key={name}
-              data-fieldrow
+              data-fieldrow={name}
+              data-dragging={isDragged ? "true" : undefined}
               className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
                 f.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
-              } ${hidden ? "opacity-40" : ""} ${isDragging ? "bg-blue-50 shadow-sm" : ""}`}
-              style={color ? { backgroundColor: `${color}4D` } : undefined}
+              } ${hidden ? "opacity-40" : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm" : ""}`}
+              style={{
+                ...(color ? { backgroundColor: `${color}4D` } : undefined),
+                ...(shift !== 0 ? { transform: `translateY(${shift}px)` } : undefined),
+              }}
             >
               <AnchorHandle id={fieldHandleId(name)} />
               <span
                 className="cursor-grab touch-none select-none px-0.5 text-gray-400 active:cursor-grabbing"
                 title="Drag to reorder"
                 onPointerDown={(e) => onHandleDown(e, name)}
-                onPointerMove={onHandleMove}
-                onPointerUp={onHandleUp}
-                onPointerCancel={onHandleUp}
               >
                 ≡
               </span>
