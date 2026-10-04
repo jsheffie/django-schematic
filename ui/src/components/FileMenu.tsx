@@ -1,10 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { backdropClick } from "../lib/backdrop";
-import { toPng } from "html-to-image";
 import { useReactFlow } from "@xyflow/react";
-import { exportConfig, importConfig } from "../lib/config";
-import { injectTextChunk, extractTextChunk } from "../lib/pngEmbed";
+import { collectModelPositions, exportConfig, importConfig } from "../lib/config";
+import { extractTextChunk } from "../lib/pngEmbed";
+import { captureCanvasPng } from "../lib/pngExport";
 import { useSchemaStore } from "../store/schemaStore";
 import type { Viewport } from "@xyflow/react";
 
@@ -124,7 +124,7 @@ export default function FileMenu() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
-  const { getNodes, setViewport } = useReactFlow();
+  const { getNodes, setNodes, setViewport } = useReactFlow();
 
   // Close on outside click
   useEffect(() => {
@@ -146,11 +146,7 @@ export default function FileMenu() {
   function confirmExportJson(basename: string) {
     setDialog({ kind: "closed" });
     // Capture all current display positions, not just manually pinned ones
-    const positions: Record<string, { x: number; y: number }> = {};
-    getNodes().forEach((n) => {
-      positions[n.id] = n.position;
-    });
-    const json = exportConfig(positions);
+    const json = exportConfig(collectModelPositions(getNodes()));
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -190,31 +186,7 @@ export default function FileMenu() {
 
   async function confirmExportPng(basename: string) {
     setDialog({ kind: "closed" });
-    const positions: Record<string, { x: number; y: number }> = {};
-    getNodes().forEach((n) => {
-      positions[n.id] = n.position;
-    });
-    const json = exportConfig(positions);
-
-    const flowEl = document.querySelector(".react-flow") as HTMLElement | null;
-    if (!flowEl) return;
-
-    const dataUrl = await toPng(flowEl, {
-      backgroundColor: "#ffffff",
-      filter: (node: Element) =>
-        !node.classList?.contains("react-flow__minimap") &&
-        !node.classList?.contains("minimap-close"),
-    });
-
-    // Convert base64 dataURL → Uint8Array
-    const base64 = dataUrl.split(",")[1];
-    const binaryStr = atob(base64);
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-
-    const pngWithMeta = injectTextChunk(bytes, "schematic", json);
+    const pngWithMeta = await captureCanvasPng({ getNodes, setNodes });
     const blob = new Blob([pngWithMeta.buffer as ArrayBuffer], { type: "image/png" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -17,6 +17,12 @@ export const RELATION_MARKERS: Record<
   proxy:    {                                   markerEnd: "triangle-open-amber" },
 };
 
+/** Annotation arrows (issue #100): filled heads, ink and selected-blue variants. */
+export const ARROW_MARKER = "annotation-arrow";
+export const ARROW_MARKER_SELECTED = "annotation-arrow-selected";
+export const ARROW_COLOR = "#1f2937";
+export const ARROW_COLOR_SELECTED = "#2563eb";
+
 /** Shared marker attributes */
 const MARKER_PROPS = {
   viewBox: "0 0 10 10",
@@ -96,6 +102,23 @@ export function MarkerDefs() {
           orient="auto"
         >
           <path d="M 0 0 L 9 5 L 0 10 Z" fill="white" stroke="#d97706" strokeWidth="1.5" />
+        </marker>
+
+        {/* Filled arrowhead - annotation arrows. auto-start-reverse so the same
+            marker serves as an optional start head. */}
+        <marker
+          id={ARROW_MARKER}
+          {...MARKER_PROPS}
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill={ARROW_COLOR} />
+        </marker>
+        <marker
+          id={ARROW_MARKER_SELECTED}
+          {...MARKER_PROPS}
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill={ARROW_COLOR_SELECTED} />
         </marker>
       </defs>
     </svg>
