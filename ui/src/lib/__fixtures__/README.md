@@ -27,8 +27,10 @@ disk, those tests fail.
 | `config-v2.json` | 2 | 2026-04-26 | Real File → Export JSON from the testbed (allauth / wagtail apps). Has `canvasHidePositions` but no `canvasSize`. |
 | `config-v3.json` | 3 | 2026-08-23 | Real File → Export JSON from the testbed `library` app, the day v3 shipped. `fieldEdits` on `library.Book` carries `hiddenFields`, a non-null `fieldOrder` and `fieldColors`. |
 | `config-v4.json` | 4 | 2026-08-25 | The `schematic` tEXt payload of `export-v4.png`, byte for byte. No standalone v4 JSON export was on hand; Export JSON and Export PNG embed the same `exportConfig()` output, so this is what Export JSON would have written at that moment. |
+| `config-v5.json` | 5 | 2026-10-04 | Real File → Export JSON from the testbed `library` app, the day v5 shipped. `annotations` holds a `note` and a `title` text block, an arrow attached note → `library.Book` with a `label`, `startHead` and a bezier `offset`, and an arrow with a free start end and a `label` attached to `library.Author`. Byte-identical to the `schematic` tEXt payload of `export-v5.png`, exported seconds apart with nothing changed between. |
 | `export-v2.png` | 2 | 2026-04-28 | Real File → Export PNG from the testbed `library` app, dagre-tb layout, `schema-graph` palette. v2 is the format most existing PNGs on disk use. |
 | `export-v3.png` | 3 | 2026-08-23 | Real File → Export PNG, `library` + `socialaccount` apps, four nodes with `fieldEdits` including colors and a `null` order. |
 | `export-v4.png` | 4 | 2026-08-25 | Real File → Export PNG, `tracker` app + `auth.User`, four `edgeOffsets` (one on a self-referencing FK), `canvasHidePositions`, and `pinnedPositions` for nodes that are not visible. |
 
 The "Produced" date is the file's modification time when it was copied in.
+| `export-v5.png` | 5 | 2026-10-04 | Real File → Export PNG of the same scene as `config-v5.json`. The image shows the title, the note with its folded corner and both arrows, and none of the editing chrome (grips, toolbars, resize handles). |

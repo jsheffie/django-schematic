@@ -35,6 +35,7 @@ describe.each([
   ["export-v2.png", 2],
   ["export-v3.png", 3],
   ["export-v4.png", 4],
+  ["export-v5.png", 5],
 ])("%s", (file, version) => {
   it("is a well-formed PNG with the config in a tEXt chunk before IEND", () => {
     const bytes = pngFixture(file);
@@ -137,6 +138,21 @@ describe("export-v4.png", () => {
       x: 274.50378886269175,
       y: 5.528255374840114,
     });
+  });
+});
+
+describe("export-v5.png", () => {
+  it("carries exactly the bytes committed as config-v5.json", () => {
+    expect(extractTextChunk(pngFixture("export-v5.png"), "schematic")).toBe(textFixture("config-v5.json"));
+  });
+
+  it("restores the annotations the way File → Import PNG does", () => {
+    importConfig(extractTextChunk(pngFixture("export-v5.png"), "schematic")!);
+    const s = useSchemaStore.getState();
+    expect(s.textBlocks.size).toBe(2);
+    expect(s.textBlocks.get("tb_muu6m94ohv0d17")?.style).toBe("title");
+    expect(s.arrows.get("ar_muu6i3ksv56l6k")?.to).toEqual({ nodeId: "library.Book" });
+    expect(s.arrows.get("ar_muu6nil9hedchv")?.from).toEqual({ x: 690, y: 367.66666666666663 });
   });
 });
 
