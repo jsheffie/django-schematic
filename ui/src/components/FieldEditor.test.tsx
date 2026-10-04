@@ -37,7 +37,7 @@ const MIXED: FieldInfo[] = [
   typed("notes", "TextField"),
   typed("status", "CharField"),
 ];
-const MIXED_SORTED = ["id", "customer", "is_paid", "status", "notes", "created_at"];
+const MIXED_SORTED = ["id", "customer", "status", "notes", "is_paid", "created_at"];
 
 // jsdom does not implement pointer capture; FieldEditor calls these on the handle.
 beforeAll(() => {
@@ -240,7 +240,7 @@ describe("FieldEditor sort by type", () => {
     fireEvent.pointerMove(window, { ...pointer, clientY: -ROW_H * 2 });
     fireEvent.pointerUp(window, { ...pointer, buttons: 0, clientY: -ROW_H * 2 });
 
-    const expected = ["id", "customer", "is_paid", "created_at", "status", "notes"];
+    const expected = ["id", "customer", "status", "created_at", "notes", "is_paid"];
     expect(domOrder()).toEqual(expected);
     expect(storedOrder()).toEqual(expected);
   });
@@ -284,7 +284,7 @@ describe("FieldEditor sort by type", () => {
   it("explains the ordering in its tooltip", () => {
     const { sortButton } = renderEditor(MIXED);
     expect(sortButton().title).toBe(
-      "Primary key, then relations, then fields grouped by type, dates and times last",
+      "Primary key, then relations, then fields grouped by type, then booleans, dates and times last",
     );
   });
 });

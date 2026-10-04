@@ -124,7 +124,7 @@ describe("isEmptyEdits", () => {
 });
 
 describe("autoFieldOrder", () => {
-  it("orders the issue #111 shop.Order example: pk, relations, grouped types, dates last", () => {
+  it("orders the issue #111 shop.Order example: pk, relations, grouped types, booleans, dates last", () => {
     const fields = [
       typed("created_at", "DateTimeField"),
       rel("customer", "ForeignKey"),
@@ -141,7 +141,8 @@ describe("autoFieldOrder", () => {
     expect(autoFieldOrder(fields)).toEqual([
       "id",
       "customer", "warehouse",
-      "is_paid", "reference", "status", "total", "notes",
+      "reference", "status", "total", "notes",
+      "is_paid",
       "created_at", "shipped_at", "updated_at",
     ]);
   });
@@ -177,10 +178,29 @@ describe("autoFieldOrder", () => {
       typed("zeta", "CharField"),
       typed("amount", "DecimalField"),
       typed("alpha", "CharField"),
-      typed("active", "BooleanField"),
       typed("body", "TextField"),
     ];
-    expect(autoFieldOrder(fields)).toEqual(["active", "alpha", "zeta", "amount", "body"]);
+    expect(autoFieldOrder(fields)).toEqual(["alpha", "zeta", "amount", "body"]);
+  });
+
+  it("puts booleans after the other fields and directly above the date/time fields", () => {
+    const fields = [
+      typed("updated_at", "DateTimeField"),
+      typed("is_active", "BooleanField"),
+      typed("zeta", "TextField"),
+      typed("archived", "BooleanField"),
+      typed("alpha", "CharField"),
+    ];
+    expect(autoFieldOrder(fields)).toEqual(["alpha", "zeta", "archived", "is_active", "updated_at"]);
+  });
+
+  it("classifies the boolean bucket on internal_type so custom subclasses join it", () => {
+    const fields = [
+      typed("flag", "FlagField", { internal_type: "BooleanField" }),
+      typed("zzz", "TextField"),
+      typed("when", "DateField"),
+    ];
+    expect(autoFieldOrder(fields)).toEqual(["zzz", "flag", "when"]);
   });
 
   it("puts all four date/time types last, grouped by type then name", () => {

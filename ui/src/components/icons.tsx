@@ -40,3 +40,15 @@ export function IconPanelRight({ open = false, className = "w-4 h-4" }: { open?:
     </svg>
   );
 }
+
+// Sort by type (FieldEditor footer): three rows shrinking downward, the
+// conventional "sorted" glyph, drawn at the same stroke as the eye icons.
+export function IconSortByType({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <line x1="4" y1="6" x2="20" y2="6"/>
+      <line x1="4" y1="12" x2="15" y2="12"/>
+      <line x1="4" y1="18" x2="10" y2="18"/>
+    </svg>
+  );
+}
