@@ -11,7 +11,7 @@ from .settings import get_setting
 def _is_visible(request: HttpRequest) -> bool:
     visible = get_setting("visible")
     if callable(visible):
-        return visible(request)
+        return bool(visible(request))
     return bool(visible)
 
 

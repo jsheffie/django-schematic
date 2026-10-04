@@ -29,3 +29,23 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v
+
+  typecheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Matches [tool.mypy] python_version in pyproject.toml.
+          python-version: "3.12"
+
+      - name: Install dependencies
+        # `ci` is included so the playwright call site in update_diagrams is
+        # checked against real stubs rather than skipped via the mypy override.
+        run: pip install -e ".[dev,ci]"
+
+      - name: Type check
+        run: mypy schematic/

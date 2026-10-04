@@ -35,8 +35,10 @@ classifiers = [
 dev = [
     "pytest",
     "pytest-django",
-    "mypy",
-    "django-stubs",
+    # Pinned so `mypy schematic/` is reproducible locally and in CI. The
+    # `compatible-mypy` extra makes pip fail loudly if the two drift apart.
+    "mypy~=2.3.0",
+    "django-stubs[compatible-mypy]~=6.1.0",
 ]
 ci = [
     "playwright",
@@ -76,6 +78,12 @@ pythonpath = ["."]
 python_version = "3.12"
 strict = true
 plugins = ["mypy_django_plugin.main"]
+
+# `playwright` ships in the optional `ci` extra and is imported lazily by the
+# update_diagrams command. Don't require it just to type-check the package.
+[[tool.mypy.overrides]]
+module = "playwright.*"
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "tests.settings"
