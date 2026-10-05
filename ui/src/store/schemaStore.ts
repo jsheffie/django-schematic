@@ -44,6 +44,11 @@ interface SchemaStore {
   textBlocks: Map<string, TextBlock>;
   arrows: Map<string, Arrow>;
 
+  // Basename of the file last imported or exported; the default export name.
+  // Not part of the config, and resetConfig leaves it alone.
+  documentName: string | null;
+  setDocumentName: (name: string | null) => void;
+
   // Node visibility
   setAllVisible: (ids: string[]) => void;
   toggleNodeVisibility: (id: string) => void;
@@ -143,6 +148,9 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   edgeOffsets: new Map(),
   textBlocks: new Map(),
   arrows: new Map(),
+  documentName: null,
+
+  setDocumentName: (documentName) => set({ documentName }),
 
   setAllVisible: (ids) => set({ visibleNodeIds: new Set(ids), schemaInitialized: true }),
 

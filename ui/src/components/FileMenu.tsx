@@ -1,12 +1,14 @@
-import { useRef, useState, useEffect } from "react";
+import { useId, useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { backdropClick } from "../lib/backdrop";
 import { useReactFlow } from "@xyflow/react";
 import { collectModelPositions, exportConfig, importConfig } from "../lib/config";
+import { basenameFromFile, defaultExportBasename } from "../lib/exportFilename";
 import { extractTextChunk } from "../lib/pngEmbed";
 import { captureCanvasPng } from "../lib/pngExport";
 import { useSchemaStore } from "../store/schemaStore";
 import type { Viewport } from "@xyflow/react";
+import type { SchemaGraph } from "../lib/types";
 
 interface FilenameDialogProps {
   open: boolean;
@@ -20,6 +22,8 @@ interface FilenameDialogProps {
 function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCancel }: FilenameDialogProps) {
   const [name, setName] = useState(defaultName);
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = useId();
+  const inputId = useId();
 
   // Reset + auto-select on open
   useEffect(() => {
@@ -38,8 +42,10 @@ function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCanc
   }, [open, onCancel]);
 
   function confirm() {
-    const trimmed = name.trim() || defaultName;
-    onConfirm(trimmed);
+    // "orders.png" typed into the box would otherwise download as orders.png.png.
+    const typed = name.trim();
+    const withoutExt = typed.toLowerCase().endsWith(extension) ? typed.slice(0, -extension.length).trim() : typed;
+    onConfirm(withoutExt || defaultName);
   }
 
   if (!open) return null;
@@ -50,16 +56,23 @@ function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCanc
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onCancel)} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
+          <h2 id={titleId} className="text-sm font-semibold text-gray-800">{title}</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
         </div>
         <div className="px-5 py-4 flex flex-col gap-4">
-          <label className="text-xs text-gray-600 font-medium">Filename</label>
+          <label htmlFor={inputId} className="text-xs text-gray-600 font-medium">Filename</label>
           <div className="flex items-stretch text-sm border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
             <input
               ref={inputRef}
+              id={inputId}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -116,14 +129,17 @@ function ErrorDialog({ message, onClose }: ErrorDialogProps) {
   );
 }
 
-type DialogState = { kind: "closed" } | { kind: "json" } | { kind: "png" };
+// The default name is fixed when the dialog opens: the dialog resets its input
+// whenever defaultName changes, so a live value would wipe what the user typed.
+type DialogState = { kind: "closed" } | { kind: "json" | "png"; defaultName: string };
 
-export default function FileMenu() {
+export default function FileMenu({ schema }: { schema: SchemaGraph }) {
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogState>({ kind: "closed" });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
+  const setDocumentName = useSchemaStore((s) => s.setDocumentName);
   const { getNodes, setNodes, setViewport } = useReactFlow();
 
   // Close on outside click
@@ -138,13 +154,30 @@ export default function FileMenu() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  function handleExport() {
+  function openExportDialog(kind: "json" | "png") {
     setOpen(false);
-    setDialog({ kind: "json" });
+    const { documentName, textBlocks, schemaInitialized, visibleNodeIds } = useSchemaStore.getState();
+    // Same fallback as SchemaCanvas: before the store is populated every model is shown.
+    const visibleIds = schemaInitialized ? visibleNodeIds : new Set(schema.nodes.map((n) => n.id));
+    const defaultName = defaultExportBasename({
+      documentName,
+      textBlocks,
+      nodes: schema.nodes,
+      edges: schema.edges,
+      visibleIds,
+    });
+    setDialog({ kind, defaultName });
+  }
+
+  // Only a name the user chose becomes the document name; accepting the derived
+  // default must not pin it, or a title added later would never take over.
+  function rememberChosenName(basename: string) {
+    if (dialog.kind !== "closed" && basename !== dialog.defaultName) setDocumentName(basename);
   }
 
   function confirmExportJson(basename: string) {
     setDialog({ kind: "closed" });
+    rememberChosenName(basename);
     // Capture all current display positions, not just manually pinned ones
     const json = exportConfig(collectModelPositions(getNodes()));
     const blob = new Blob([json], { type: "application/json" });
@@ -170,6 +203,7 @@ export default function FileMenu() {
           const viewport = importConfig(ev.target?.result as string);
           // Restore the exact viewport saved at export time
           setViewport(viewport as Viewport);
+          setDocumentName(basenameFromFile(file.name));
         } catch {
           setErrorMsg("Invalid config file.");
         }
@@ -179,13 +213,9 @@ export default function FileMenu() {
     input.click();
   }
 
-  function handleExportPng() {
-    setOpen(false);
-    setDialog({ kind: "png" });
-  }
-
   async function confirmExportPng(basename: string) {
     setDialog({ kind: "closed" });
+    rememberChosenName(basename);
     const pngWithMeta = await captureCanvasPng({ getNodes, setNodes });
     const blob = new Blob([pngWithMeta.buffer as ArrayBuffer], { type: "image/png" });
     const url = URL.createObjectURL(blob);
@@ -216,6 +246,7 @@ export default function FileMenu() {
         try {
           const viewport = importConfig(json);
           setViewport(viewport as Viewport);
+          setDocumentName(basenameFromFile(file.name));
         } catch {
           setErrorMsg("Failed to restore config from PNG.");
         }
@@ -246,10 +277,10 @@ export default function FileMenu() {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[110px] py-1">
+        <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[110px] w-max py-1 flex flex-col">
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            onClick={handleExport}
+            onClick={() => openExportDialog("json")}
           >
             Export config
           </button>
@@ -261,7 +292,7 @@ export default function FileMenu() {
           </button>
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            onClick={handleExportPng}
+            onClick={() => openExportDialog("png")}
           >
             Export PNG
           </button>
@@ -283,7 +314,7 @@ export default function FileMenu() {
 
       <FilenameDialog
         open={dialog.kind === "json"}
-        defaultName="schematic-config"
+        defaultName={dialog.kind === "json" ? dialog.defaultName : ""}
         extension=".json"
         title="Export config"
         onConfirm={confirmExportJson}
@@ -291,7 +322,7 @@ export default function FileMenu() {
       />
       <FilenameDialog
         open={dialog.kind === "png"}
-        defaultName="schematic"
+        defaultName={dialog.kind === "png" ? dialog.defaultName : ""}
         extension=".png"
         title="Export PNG"
         onConfirm={confirmExportPng}

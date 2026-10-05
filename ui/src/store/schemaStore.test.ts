@@ -286,3 +286,19 @@ describe("annotations", () => {
     expect(s().arrows.has(ar)).toBe(true);
   });
 });
+
+describe("documentName", () => {
+  const s = () => useSchemaStore.getState();
+
+  it("starts unset and is set by setDocumentName", () => {
+    useSchemaStore.setState({ documentName: null });
+    s().setDocumentName("orders");
+    expect(s().documentName).toBe("orders");
+  });
+
+  it("resetConfig keeps it: the canvas is still the same document", () => {
+    s().setDocumentName("orders");
+    s().resetConfig();
+    expect(s().documentName).toBe("orders");
+  });
+});
