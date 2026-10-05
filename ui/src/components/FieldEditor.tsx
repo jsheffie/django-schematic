@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useUpdateNodeInternals } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
@@ -78,15 +78,67 @@ interface DragInfo extends DragState {
   handle: HTMLElement;
 }
 
-export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldInfo[] }) {
+/** Keyboard reorder bindings (issue #102): rows to move by, or null for an unbound key. */
+function reorderDelta(e: KeyboardEvent): number | null {
+  switch (e.key) {
+    case "ArrowUp":
+      return -1;
+    case "ArrowDown":
+      return 1;
+    case "Home":
+      return -Infinity;
+    case "End":
+      return Infinity;
+  }
+  // Match the letter, then Shift, so Caps Lock "K" still moves one row.
+  const letter = e.key.toLowerCase();
+  if (letter === "k") return e.shiftKey ? -Infinity : -1;
+  if (letter === "j") return e.shiftKey ? Infinity : 1;
+  return null;
+}
+
+/** True when a key event belongs to something else: typing, a shortcut, or an open dialog. */
+function isForeignKeyEvent(e: KeyboardEvent): boolean {
+  if (e.metaKey || e.ctrlKey || e.altKey) return true;
+  const target = e.target;
+  if (target instanceof HTMLElement) {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return true;
+    if (target.isContentEditable) return true;
+  }
+  return document.querySelector("[data-dialog-backdrop]") !== null;
+}
+
+export function FieldEditor({
+  nodeId,
+  fields,
+  accentColor,
+}: {
+  nodeId: string;
+  fields: FieldInfo[];
+  /** The node's border color; rings the row selected for a keyboard move. */
+  accentColor?: string;
+}) {
   const edits = useSchemaStore((s) => s.fieldEdits.get(nodeId));
   const toggleFieldHidden = useSchemaStore((s) => s.toggleFieldHidden);
   const setFieldColor = useSchemaStore((s) => s.setFieldColor);
   const resetFieldEdits = useSchemaStore((s) => s.resetFieldEdits);
   const setFieldOrder = useSchemaStore((s) => s.setFieldOrder);
+  const moveField = useSchemaStore((s) => s.moveField);
   const setEditingNode = usePhysicsStore((s) => s.setEditingNode);
 
   const [swatchFor, setSwatchFor] = useState<string | null>(null);
+
+  // Keyboard reorder (issue #102). One row per node is selected for a move by
+  // clicking it, pressing its handle or tabbing to it; `announcement` feeds
+  // the aria-live region.
+  const [selected, setSelected] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const listRef = useRef<HTMLDivElement>(null);
+  const handleRefs = useRef(new Map<string, HTMLButtonElement>());
+  // Set by a keyboard move made while a handle had focus. React re-inserts a
+  // row that moves down, which blurs its handle, so focus is put back after
+  // the re-render.
+  const refocusAfterMove = useRef(false);
 
   // Pointer-drag reorder (issue #101). Rows always render in the committed
   // order and the drag is shown purely with translateY, so React never moves
@@ -126,6 +178,12 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
     updateNodeInternals(nodeId);
   }, [nodeId, rowKey, updateNodeInternals]);
 
+  const announceMove = useCallback(
+    (name: string, index: number, count: number) =>
+      setAnnouncement(`${name} moved to position ${index + 1} of ${count}`),
+    [],
+  );
+
   /** Drop drag state without committing. Safe to call when no drag is active. */
   const endDrag = useCallback(() => {
     const d = dragInfo.current;
@@ -158,6 +216,7 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
       const order = moveItem(d.committed, d.from, d.to);
       endDrag();
       setFieldOrder(nodeId, order, fields.map((f) => f.name));
+      if (d.to !== d.from) announceMove(d.name, d.to, order.length);
     };
     const onCancel = (e: PointerEvent) => {
       const d = dragInfo.current;
@@ -182,7 +241,58 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
       window.removeEventListener("lostpointercapture", onLostCapture);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [isDragging, nodeId, fields, setFieldOrder, endDrag]);
+  }, [isDragging, nodeId, fields, setFieldOrder, endDrag, announceMove]);
+
+  // Keys for the selected row. On window, so they work wherever focus is
+  // except in form fields; `nokey` on the editor root keeps React Flow from
+  // also nudging the node with the arrow keys.
+  const committedKey = committed.join(" ");
+  useEffect(() => {
+    if (selected === null || isDragging) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isForeignKeyEvent(e)) return;
+      if (e.key === "Escape") {
+        setSelected(null);
+        return;
+      }
+      const delta = reorderDelta(e);
+      if (delta === null) return;
+      e.preventDefault();
+
+      const order = committedKey.split(" ");
+      const from = order.indexOf(selected);
+      if (from < 0) return;
+      const to = Math.max(0, Math.min(order.length - 1, from + delta));
+      if (to === from) return;
+      const focused = document.activeElement;
+      refocusAfterMove.current =
+        focused instanceof HTMLButtonElement && handleRefs.current.get(selected) === focused;
+      moveField(nodeId, selected, delta, fields.map((f) => f.name));
+      announceMove(selected, to, order.length);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selected, isDragging, committedKey, nodeId, fields, moveField, announceMove]);
+
+  useLayoutEffect(() => {
+    if (!refocusAfterMove.current || selected === null) return;
+    refocusAfterMove.current = false;
+    handleRefs.current.get(selected)?.focus({ preventScroll: true });
+  }, [selected, committedKey]);
+
+  // A pointerdown anywhere outside the list ends the selection, so the keys
+  // stop moving rows once the user has moved on. Capture phase for the same
+  // reason as the swatch popover above.
+  useEffect(() => {
+    if (selected === null) return;
+    const onPointerDownOutside = (e: PointerEvent) => {
+      if (listRef.current?.contains(e.target as Node)) return;
+      setSelected(null);
+    };
+    document.addEventListener("pointerdown", onPointerDownOutside, true);
+    return () => document.removeEventListener("pointerdown", onPointerDownOutside, true);
+  }, [selected]);
 
   const onHandleDown = (e: React.PointerEvent<HTMLElement>, name: string) => {
     if (e.button !== 0) return;
@@ -212,6 +322,7 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
       handle,
     };
     setDrag({ name, from, to: from, layoutRowH });
+    setSelected(name);
     setSwatchFor(null);
     handle.setPointerCapture(e.pointerId);
   };
@@ -225,69 +336,101 @@ export function FieldEditor({ nodeId, fields }: { nodeId: string; fields: FieldI
     return 0;
   };
 
+  /** Row click selects it for a keyboard move, except on its eye / swatch controls. */
+  const onRowClick = (e: React.MouseEvent<HTMLElement>, name: string) => {
+    const target = e.target as Element;
+    if (target.closest("[data-swatch-popover]")) return;
+    const button = target.closest("button");
+    if (button && !button.hasAttribute("data-reorder-handle")) return;
+    setSelected(name);
+    handleRefs.current.get(name)?.focus({ preventScroll: true });
+  };
+
+  const modelName = nodeId.slice(nodeId.lastIndexOf(".") + 1);
+
   return (
-    <div className="py-1">
+    <div className="nokey py-1">
       {displayed.length === 0 ? (
         <div className="px-2 py-0.5 text-xs text-gray-400">no fields</div>
       ) : (
-        displayed.map((f, index) => {
-          const name = f.name;
-          const hidden = edits?.hiddenFields.includes(name) ?? false;
-          const color = edits?.fieldColors[name];
-          const isDragged = drag?.name === name;
-          const shift = rowShift(index);
-          return (
-            <div
-              key={name}
-              data-fieldrow={name}
-              data-dragging={isDragged ? "true" : undefined}
-              className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
-                f.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
-              } ${hidden ? "opacity-40" : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm" : ""}`}
-              style={{
-                ...(color ? { backgroundColor: `${color}4D` } : undefined),
-                ...(shift !== 0 ? { transform: `translateY(${shift}px)` } : undefined),
-              }}
-            >
-              <AnchorHandle id={fieldHandleId(name)} />
-              <span
-                className="cursor-grab touch-none select-none px-0.5 text-gray-400 active:cursor-grabbing"
-                title="Drag to reorder"
-                onPointerDown={(e) => onHandleDown(e, name)}
+        <div ref={listRef} role="listbox" aria-label={`Fields of ${modelName}`}>
+          {displayed.map((f, index) => {
+            const name = f.name;
+            const hidden = edits?.hiddenFields.includes(name) ?? false;
+            const color = edits?.fieldColors[name];
+            const isDragged = drag?.name === name;
+            const isSelected = selected === name;
+            const shift = rowShift(index);
+            return (
+              <div
+                key={name}
+                role="option"
+                aria-selected={isSelected}
+                data-fieldrow={name}
+                data-dragging={isDragged ? "true" : undefined}
+                className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
+                  f.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
+                } ${hidden ? "opacity-40" : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm" : ""}`}
+                style={{
+                  ...(color ? { backgroundColor: `${color}4D` } : undefined),
+                  ...(shift !== 0 ? { transform: `translateY(${shift}px)` } : undefined),
+                  ...(isSelected
+                    ? { outline: `2px solid ${accentColor ?? "#3b82f6"}`, outlineOffset: -2 }
+                    : undefined),
+                }}
+                onClick={(e) => onRowClick(e, name)}
               >
-                ≡
-              </span>
-              <button
-                className="shrink-0 select-none text-gray-500 hover:text-gray-800"
-                onClick={() => toggleFieldHidden(nodeId, name)}
-                title={hidden ? "Show field" : "Hide field"}
-                aria-label={hidden ? "Show field" : "Hide field"}
-              >
-                {hidden ? <IconEyeSlash className="w-3.5 h-3.5" /> : <IconEye className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                data-swatch-toggle
-                className="h-3 w-3 shrink-0 rounded-sm border border-gray-400"
-                style={{ backgroundColor: color ?? "#ffffff" }}
-                onClick={() => setSwatchFor(swatchFor === name ? null : name)}
-                title="Field color"
-                aria-label="Field color"
-              />
-              <span className="flex-1 truncate">{name}</span>
-              <span className="text-gray-400 shrink-0">{f.field_type}</span>
-              {swatchFor === name && (
-                <SwatchPopover
-                  current={color}
-                  onPick={(c) => {
-                    setFieldColor(nodeId, name, c);
-                    setSwatchFor(null);
+                <AnchorHandle id={fieldHandleId(name)} />
+                <button
+                  type="button"
+                  ref={(el) => {
+                    if (el) handleRefs.current.set(name, el);
+                    else handleRefs.current.delete(name);
                   }}
+                  data-reorder-handle
+                  className="cursor-grab touch-none select-none px-0.5 text-gray-400 outline-none active:cursor-grabbing"
+                  title="Drag, or select and press ↑ ↓ (j k), to reorder"
+                  aria-label={`Reorder ${name}`}
+                  onPointerDown={(e) => onHandleDown(e, name)}
+                  onFocus={() => setSelected(name)}
+                >
+                  ≡
+                </button>
+                <button
+                  className="shrink-0 select-none text-gray-500 hover:text-gray-800"
+                  onClick={() => toggleFieldHidden(nodeId, name)}
+                  title={hidden ? "Show field" : "Hide field"}
+                  aria-label={hidden ? "Show field" : "Hide field"}
+                >
+                  {hidden ? <IconEyeSlash className="w-3.5 h-3.5" /> : <IconEye className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  data-swatch-toggle
+                  className="h-3 w-3 shrink-0 rounded-sm border border-gray-400"
+                  style={{ backgroundColor: color ?? "#ffffff" }}
+                  onClick={() => setSwatchFor(swatchFor === name ? null : name)}
+                  title="Field color"
+                  aria-label="Field color"
                 />
-              )}
-            </div>
-          );
-        })
+                <span className="flex-1 truncate">{name}</span>
+                <span className="text-gray-400 shrink-0">{f.field_type}</span>
+                {swatchFor === name && (
+                  <SwatchPopover
+                    current={color}
+                    onPick={(c) => {
+                      setFieldColor(nodeId, name, c);
+                      setSwatchFor(null);
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
+      <div aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
       <div className="mt-1 flex items-center justify-end gap-2 border-t border-gray-200 px-2 pt-1">
         <button
           className="mr-auto inline-flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:bg-white"

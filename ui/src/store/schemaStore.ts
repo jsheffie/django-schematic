@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { EMPTY_FIELD_EDITS, autoFieldOrder, isEmptyEdits, type FieldEdits } from "../lib/fieldEdits";
+import {
+  EMPTY_FIELD_EDITS,
+  autoFieldOrder,
+  isEmptyEdits,
+  orderedFields,
+  type FieldEdits,
+} from "../lib/fieldEdits";
 import type { NodeInfo } from "../lib/types";
 import {
   isAttached,
@@ -67,6 +73,9 @@ interface SchemaStore {
   // Field editing
   toggleFieldHidden: (nodeId: string, fieldName: string) => void;
   setFieldOrder: (nodeId: string, order: string[], naturalOrder: string[]) => void;
+  // Keyboard reorder (issue #102): move one field by `delta` rows in the current
+  // order, clamped to the ends (±Infinity moves to the top / bottom).
+  moveField: (nodeId: string, fieldName: string, delta: number, naturalOrder: string[]) => void;
   // "Sort all tables by type" (issue #117): autoFieldOrder on every node, in one update.
   sortAllFieldsByType: (nodes: ReadonlyArray<Pick<NodeInfo, "id" | "fields">>) => void;
   setFieldColor: (nodeId: string, fieldName: string, color: string | null) => void;
@@ -243,6 +252,20 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   setFieldOrder: (nodeId, order, naturalOrder) =>
     set((s) => {
       const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
+      const fieldOrder = normalizeFieldOrder(order, naturalOrder);
+      return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldOrder }) };
+    }),
+
+  moveField: (nodeId, fieldName, delta, naturalOrder) =>
+    set((s) => {
+      const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
+      const order = orderedFields(naturalOrder.map((name) => ({ name })), cur).map((f) => f.name);
+      const from = order.indexOf(fieldName);
+      if (from < 0) return {};
+      const to = Math.max(0, Math.min(order.length - 1, from + delta));
+      if (to === from) return {};
+      order.splice(from, 1);
+      order.splice(to, 0, fieldName);
       const fieldOrder = normalizeFieldOrder(order, naturalOrder);
       return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldOrder }) };
     }),

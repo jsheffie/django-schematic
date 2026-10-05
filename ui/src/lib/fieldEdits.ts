@@ -39,10 +39,10 @@ export function isEmptyEdits(edits: FieldEdits): boolean {
  * Drift-safe: order entries naming unknown fields are ignored; fields missing
  * from the saved order are appended at the end in natural order.
  */
-export function orderedFields(fields: FieldInfo[], edits?: FieldEdits): FieldInfo[] {
+export function orderedFields<T extends { name: string }>(fields: T[], edits?: FieldEdits): T[] {
   if (!edits?.fieldOrder) return fields;
   const byName = new Map(fields.map((f) => [f.name, f]));
-  const ordered: FieldInfo[] = [];
+  const ordered: T[] = [];
   for (const name of edits.fieldOrder) {
     const field = byName.get(name);
     if (field) {

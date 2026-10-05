@@ -176,7 +176,7 @@ export const ModelNode = memo(function ModelNode({
       {/* Field list / editor */}
       {isEditing ? (
         <div className="nodrag nopan cursor-default">
-          <FieldEditor nodeId={data.nodeId} fields={data.fields} />
+          <FieldEditor nodeId={data.nodeId} fields={data.fields} accentColor={borderColor} />
         </div>
       ) : (
         isExpanded && (

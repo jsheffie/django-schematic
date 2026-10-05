@@ -53,21 +53,27 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
+const ACCENT = "#123456";
+
 function renderEditor(fields: FieldInfo[] = FIELDS) {
   const utils = render(
     <ReactFlowProvider>
-      <FieldEditor nodeId={NODE} fields={fields} />
+      <FieldEditor nodeId={NODE} fields={fields} accentColor={ACCENT} />
     </ReactFlowProvider>,
   );
   const rows = () => [...utils.container.querySelectorAll("[data-fieldrow]")] as HTMLElement[];
   const domOrder = () => rows().map((r) => r.getAttribute("data-fieldrow"));
+  const row = (name: string) => rows().find((r) => r.getAttribute("data-fieldrow") === name)!;
   const handle = (name: string) =>
-    rows()
-      .find((r) => r.getAttribute("data-fieldrow") === name)!
-      .querySelector("[title='Drag to reorder']") as HTMLElement;
+    utils.getByRole("button", { name: `Reorder ${name}` }) as HTMLButtonElement;
   const draggingRows = () => rows().filter((r) => r.getAttribute("data-dragging") === "true");
   const sortButton = () => utils.getByRole("button", { name: "Sort by type" }) as HTMLButtonElement;
-  return { ...utils, rows, domOrder, handle, draggingRows, sortButton };
+  const selectedRows = () =>
+    rows()
+      .filter((r) => r.getAttribute("aria-selected") === "true")
+      .map((r) => r.getAttribute("data-fieldrow"));
+  const liveText = () => utils.container.querySelector("[aria-live]")?.textContent ?? "";
+  return { ...utils, rows, row, domOrder, handle, draggingRows, sortButton, selectedRows, liveText };
 }
 
 const storedOrder = () => useSchemaStore.getState().fieldEdits.get(NODE)?.fieldOrder ?? null;
@@ -286,5 +292,215 @@ describe("FieldEditor sort by type", () => {
     expect(sortButton().title).toBe(
       "Primary key, then relations, then fields grouped by type, then booleans, dates and times last",
     );
+  });
+});
+
+describe("FieldEditor keyboard reorder", () => {
+  const key = (k: string, init: KeyboardEventInit = {}) =>
+    fireEvent.keyDown(document.activeElement ?? window, { key: k, ...init });
+
+  it("exposes listbox semantics with one labelled reorder button per row", () => {
+    const { getByRole, rows, handle } = renderEditor();
+    expect(getByRole("listbox").getAttribute("aria-label")).toBe("Fields of Order");
+    expect(rows().map((r) => r.getAttribute("role"))).toEqual(["option", "option", "option", "option"]);
+    expect(rows().map((r) => r.getAttribute("aria-selected"))).toEqual(["false", "false", "false", "false"]);
+    expect(handle("c").tagName).toBe("BUTTON");
+    expect(handle("c").type).toBe("button");
+  });
+
+  it("clicking a row selects it, rings it in the accent color and focuses its handle", () => {
+    const { row, handle, selectedRows } = renderEditor();
+    fireEvent.click(row("b").querySelector(".flex-1")!);
+
+    expect(selectedRows()).toEqual(["b"]);
+    expect(row("b").style.outline).toBe("2px solid #123456");
+    expect(row("a").style.outline).toBe("");
+    expect(document.activeElement).toBe(handle("b"));
+
+    fireEvent.click(row("d"));
+    expect(selectedRows()).toEqual(["d"]);
+  });
+
+  it("clicking the eye or swatch button does not select the row", () => {
+    const { row, selectedRows } = renderEditor();
+    fireEvent.click(row("b").querySelector("[aria-label='Hide field']")!);
+    fireEvent.click(row("c").querySelector("[aria-label='Field color']")!);
+    expect(selectedRows()).toEqual([]);
+  });
+
+  it("focusing a handle with Tab selects its row", () => {
+    const { handle, selectedRows } = renderEditor();
+    fireEvent.focus(handle("c"));
+    expect(selectedRows()).toEqual(["c"]);
+  });
+
+  it("j / k and the arrow keys move the selected field one row, edges and focus follow", () => {
+    const { row, handle, domOrder, selectedRows } = renderEditor();
+    fireEvent.click(row("a"));
+
+    key("j");
+    expect(domOrder()).toEqual(["b", "a", "c", "d"]);
+    key("ArrowDown");
+    expect(domOrder()).toEqual(["b", "c", "a", "d"]);
+    expect(storedOrder()).toEqual(["b", "c", "a", "d"]);
+    key("k");
+    expect(domOrder()).toEqual(["b", "a", "c", "d"]);
+    key("ArrowUp");
+    expect(domOrder()).toEqual(NATURAL);
+    expect(storedOrder()).toBeNull();
+
+    // The row stays selected and keeps focus through every move.
+    expect(selectedRows()).toEqual(["a"]);
+    expect(document.activeElement).toBe(handle("a"));
+  });
+
+  it("Home / End and Shift+K / Shift+J move to the top and bottom", () => {
+    const { row, domOrder } = renderEditor();
+    fireEvent.click(row("b"));
+
+    key("End");
+    expect(domOrder()).toEqual(["a", "c", "d", "b"]);
+    key("Home");
+    expect(domOrder()).toEqual(["b", "a", "c", "d"]);
+    key("J", { shiftKey: true });
+    expect(domOrder()).toEqual(["a", "c", "d", "b"]);
+    key("K", { shiftKey: true });
+    expect(domOrder()).toEqual(["b", "a", "c", "d"]);
+  });
+
+  it("Caps Lock K without Shift moves one row, not to the top", () => {
+    const { row, domOrder } = renderEditor();
+    fireEvent.click(row("d"));
+    key("K");
+    expect(domOrder()).toEqual(["a", "b", "d", "c"]);
+  });
+
+  it("prevents the default scroll for handled keys only", () => {
+    const { row } = renderEditor();
+    fireEvent.click(row("b"));
+    expect(key("ArrowDown")).toBe(false); // fireEvent returns !defaultPrevented
+    expect(key("x")).toBe(true);
+  });
+
+  it("announces the new position, and nothing for a move past the end", () => {
+    const { row, liveText } = renderEditor();
+    fireEvent.click(row("a"));
+    key("j");
+    expect(liveText()).toBe("a moved to position 2 of 4");
+    key("End");
+    expect(liveText()).toBe("a moved to position 4 of 4");
+    key("j");
+    expect(liveText()).toBe("a moved to position 4 of 4");
+    expect(storedOrder()).toEqual(["b", "c", "d", "a"]);
+  });
+
+  it("steps over hidden rows", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([[NODE, { hiddenFields: ["b"], fieldOrder: null, fieldColors: {} }]]),
+    });
+    const { row, domOrder } = renderEditor();
+    fireEvent.click(row("a"));
+    key("j");
+    expect(domOrder()).toEqual(["b", "a", "c", "d"]);
+  });
+
+  it("Escape deselects and later keys do nothing", () => {
+    const { row, domOrder, selectedRows } = renderEditor();
+    fireEvent.click(row("a"));
+    key("Escape");
+    expect(selectedRows()).toEqual([]);
+    key("j");
+    expect(domOrder()).toEqual(NATURAL);
+  });
+
+  it("a pointerdown outside the list deselects", () => {
+    const { row, selectedRows, sortButton } = renderEditor();
+    fireEvent.click(row("a"));
+    fireEvent.pointerDown(document.body);
+    expect(selectedRows()).toEqual([]);
+
+    fireEvent.click(row("a"));
+    fireEvent.pointerDown(sortButton());
+    expect(selectedRows()).toEqual([]);
+
+    fireEvent.click(row("a"));
+    fireEvent.pointerDown(row("c"));
+    expect(selectedRows()).toEqual(["a"]);
+  });
+
+  it("does nothing with no row selected", () => {
+    const { domOrder } = renderEditor();
+    fireEvent.keyDown(window, { key: "j" });
+    fireEvent.keyDown(window, { key: "ArrowDown" });
+    expect(domOrder()).toEqual(NATURAL);
+  });
+
+  it("ignores keys typed into form fields and with modifiers held", () => {
+    const { row, domOrder } = renderEditor();
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    try {
+      fireEvent.click(row("a"));
+      fireEvent.keyDown(input, { key: "j" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      expect(domOrder()).toEqual(NATURAL);
+
+      key("j", { metaKey: true });
+      key("ArrowDown", { ctrlKey: true });
+      key("j", { altKey: true });
+      expect(domOrder()).toEqual(NATURAL);
+    } finally {
+      input.remove();
+    }
+  });
+
+  it("ignores keys while a dialog is open", () => {
+    const { row, domOrder } = renderEditor();
+    const backdrop = document.createElement("div");
+    backdrop.setAttribute("data-dialog-backdrop", "");
+    document.body.appendChild(backdrop);
+    try {
+      fireEvent.click(row("a"));
+      key("j");
+      expect(domOrder()).toEqual(NATURAL);
+    } finally {
+      backdrop.remove();
+    }
+  });
+
+  it("works from the window when focus is not on a handle", () => {
+    const { row, domOrder } = renderEditor();
+    fireEvent.click(row("a"));
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.keyDown(window, { key: "j" });
+    expect(domOrder()).toEqual(["b", "a", "c", "d"]);
+  });
+
+  it("keeps React Flow from handling keys inside the editor (nokey)", () => {
+    const { getByRole } = renderEditor();
+    expect(getByRole("listbox").closest(".nokey")).not.toBeNull();
+  });
+
+  it("a drag selects the dragged row and announces where it landed", () => {
+    const { handle, selectedRows, liveText, domOrder } = renderEditor();
+    fireEvent.pointerDown(handle("a"), { ...pointer, clientY: 0 });
+    fireEvent.pointerMove(window, { ...pointer, clientY: ROW_H * 2 });
+    fireEvent.pointerUp(window, { ...pointer, buttons: 0, clientY: ROW_H * 2 });
+
+    expect(selectedRows()).toEqual(["a"]);
+    expect(liveText()).toBe("a moved to position 3 of 4");
+
+    // Keys pick up where the drag left off.
+    key("j");
+    expect(domOrder()).toEqual(["b", "c", "d", "a"]);
+  });
+
+  it("ignores keys while a drag is in flight", () => {
+    const { handle, domOrder } = renderEditor();
+    fireEvent.pointerDown(handle("a"), { ...pointer, clientY: 0 });
+    fireEvent.keyDown(window, { key: "j" });
+    expect(domOrder()).toEqual(NATURAL);
+    fireEvent.pointerUp(window, { ...pointer, buttons: 0, clientY: 0 });
+    expect(storedOrder()).toBeNull();
   });
 });

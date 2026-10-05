@@ -44,6 +44,71 @@ describe("setFieldOrder", () => {
   });
 });
 
+describe("moveField", () => {
+  const s = () => useSchemaStore.getState();
+  const order = () => s().fieldEdits.get(NODE)?.fieldOrder ?? null;
+
+  it("moves a field down and up one position", () => {
+    s().moveField(NODE, "id", 1, NATURAL);
+    expect(order()).toEqual(["customer", "id", "total", "notes"]);
+    s().moveField(NODE, "total", -1, NATURAL);
+    expect(order()).toEqual(["customer", "total", "id", "notes"]);
+  });
+
+  it("moves from the current custom order, not the natural one", () => {
+    s().setFieldOrder(NODE, ["notes", "total", "customer", "id"], NATURAL);
+    s().moveField(NODE, "customer", -1, NATURAL);
+    expect(order()).toEqual(["notes", "customer", "total", "id"]);
+  });
+
+  it("moves to the top and bottom with infinite deltas", () => {
+    s().moveField(NODE, "total", -Infinity, NATURAL);
+    expect(order()).toEqual(["total", "id", "customer", "notes"]);
+    s().moveField(NODE, "total", Infinity, NATURAL);
+    expect(order()).toEqual(["id", "customer", "notes", "total"]);
+  });
+
+  it("clamps at both ends and leaves state untouched for a no-op", () => {
+    s().moveField(NODE, "id", -1, NATURAL);
+    expect(s().fieldEdits.has(NODE)).toBe(false);
+
+    s().moveField(NODE, "notes", 5, NATURAL);
+    expect(s().fieldEdits.has(NODE)).toBe(false);
+
+    s().moveField(NODE, "customer", 10, NATURAL);
+    expect(order()).toEqual(["id", "total", "notes", "customer"]);
+    const before = s().fieldEdits;
+    s().moveField(NODE, "customer", 1, NATURAL);
+    expect(s().fieldEdits).toBe(before);
+  });
+
+  it("steps over a hidden field like any other row and keeps it hidden", () => {
+    s().toggleFieldHidden(NODE, "customer");
+    s().moveField(NODE, "id", 1, NATURAL);
+    expect(order()).toEqual(["customer", "id", "total", "notes"]);
+    expect(s().fieldEdits.get(NODE)?.hiddenFields).toEqual(["customer"]);
+  });
+
+  it("drops the order override when a move restores the natural order", () => {
+    s().moveField(NODE, "id", 1, NATURAL);
+    s().moveField(NODE, "id", -1, NATURAL);
+    expect(s().fieldEdits.has(NODE)).toBe(false);
+  });
+
+  it("includes fields missing from a stored order, after the ordered ones", () => {
+    // A stored order from an older schema that lacks "notes".
+    s().setFieldOrder(NODE, ["total", "id", "customer"], NATURAL);
+    s().moveField(NODE, "notes", -1, NATURAL);
+    expect(order()).toEqual(["total", "id", "notes", "customer"]);
+  });
+
+  it("ignores an unknown field name", () => {
+    const before = s().fieldEdits;
+    s().moveField(NODE, "nope", 1, NATURAL);
+    expect(s().fieldEdits).toBe(before);
+  });
+});
+
 describe("setFieldColor", () => {
   it("sets and clears a color, removing the entry when empty again", () => {
     const s = () => useSchemaStore.getState();
