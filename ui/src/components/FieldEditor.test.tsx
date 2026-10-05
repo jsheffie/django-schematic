@@ -404,6 +404,21 @@ describe("FieldEditor keyboard reorder", () => {
     expect(domOrder()).toEqual(["b", "a", "c", "d"]);
   });
 
+  it("a hidden row fades its contents, not its selection ring or tint", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([
+        [NODE, { hiddenFields: ["b"], fieldOrder: null, fieldColors: { b: "#ef4444" } }],
+      ]),
+    });
+    const { row } = renderEditor();
+    fireEvent.click(row("b"));
+
+    expect(row("b").classList.contains("opacity-40")).toBe(false);
+    expect(row("b").className).toContain("[&>*:not([data-swatch-popover])]:opacity-40");
+    expect(row("b").style.outline).not.toBe("");
+    expect(row("b").style.backgroundColor).toBe("rgba(239, 68, 68, 0.12)");
+  });
+
   it("Escape deselects and later keys do nothing", () => {
     const { row, domOrder, selectedRows } = renderEditor();
     fireEvent.click(row("a"));

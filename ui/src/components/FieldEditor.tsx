@@ -11,6 +11,11 @@ import { fieldHandleId } from "../lib/smartEdge";
 // Fallback when a row has no layout yet (or in jsdom), matching a text-xs row.
 const DEFAULT_ROW_HEIGHT = 22;
 
+// A hidden row fades its contents, not itself, so the selection ring and the
+// swatch popover stay at full strength. Its tint drops from 30% to 12% alpha
+// (30% at 40% opacity) to keep the faded look.
+const HIDDEN_ROW_FADE = "[&>*:not([data-swatch-popover])]:opacity-40";
+
 function SwatchPopover({
   current,
   onPick,
@@ -370,9 +375,9 @@ export function FieldEditor({
                 data-dragging={isDragged ? "true" : undefined}
                 className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
                   f.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
-                } ${hidden ? "opacity-40" : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm" : ""}`}
+                } ${hidden ? HIDDEN_ROW_FADE : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm" : ""}`}
                 style={{
-                  ...(color ? { backgroundColor: `${color}4D` } : undefined),
+                  ...(color ? { backgroundColor: `${color}${hidden ? "1F" : "4D"}` } : undefined),
                   ...(shift !== 0 ? { transform: `translateY(${shift}px)` } : undefined),
                   ...(isSelected
                     ? { outline: `2px solid ${accentColor ?? "#3b82f6"}`, outlineOffset: -2 }
