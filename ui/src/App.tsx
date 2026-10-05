@@ -30,7 +30,10 @@ export default function App() {
 
   return (
     <ReactFlowProvider>
-      <div className="relative h-full w-full overflow-hidden">
+      {/* overflow-clip, not overflow-hidden: a hidden box can still be scrolled, and
+          focusing a control in the closed settings drawer (parked off the right
+          edge) would scroll the whole app sideways. */}
+      <div className="relative h-full w-full overflow-clip">
         <SidebarDrawer schema={schema} />
         <SettingsHandle />
         <Toolbar schema={schema} />
