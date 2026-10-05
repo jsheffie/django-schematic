@@ -169,9 +169,15 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
     setDialog({ kind, defaultName });
   }
 
+  // Only a name the user chose becomes the document name; accepting the derived
+  // default must not pin it, or a title added later would never take over.
+  function rememberChosenName(basename: string) {
+    if (dialog.kind !== "closed" && basename !== dialog.defaultName) setDocumentName(basename);
+  }
+
   function confirmExportJson(basename: string) {
     setDialog({ kind: "closed" });
-    setDocumentName(basename);
+    rememberChosenName(basename);
     // Capture all current display positions, not just manually pinned ones
     const json = exportConfig(collectModelPositions(getNodes()));
     const blob = new Blob([json], { type: "application/json" });
@@ -209,7 +215,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
 
   async function confirmExportPng(basename: string) {
     setDialog({ kind: "closed" });
-    setDocumentName(basename);
+    rememberChosenName(basename);
     const pngWithMeta = await captureCanvasPng({ getNodes, setNodes });
     const blob = new Blob([pngWithMeta.buffer as ArrayBuffer], { type: "image/png" });
     const url = URL.createObjectURL(blob);

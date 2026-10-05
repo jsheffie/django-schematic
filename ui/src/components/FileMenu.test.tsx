@@ -124,10 +124,24 @@ describe("FileMenu document name", () => {
     expect(useSchemaStore.getState().documentName).toBe("orders");
   });
 
-  it("exporting under a new name makes it the default next time, without a doubled extension", () => {
+  function stubDownload() {
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
     URL.createObjectURL = vi.fn(() => "blob:x");
     URL.revokeObjectURL = vi.fn();
+  }
+
+  it("accepting the derived default does not pin it: a later title still wins", () => {
+    stubDownload();
+    const utils = renderMenu();
+    expect(openDialog(utils, "Export config").value).toBe("order");
+    fireEvent.click(utils.getByRole("button", { name: "Export" }));
+    expect(useSchemaStore.getState().documentName).toBeNull();
+    useSchemaStore.setState({ textBlocks: new Map([["tb_1", title("Shop Orders")]]) });
+    expect(openDialog(utils, "Export config").value).toBe("shop-orders");
+  });
+
+  it("exporting under a new name makes it the default next time, without a doubled extension", () => {
+    stubDownload();
     const utils = renderMenu();
     const input = openDialog(utils, "Export config");
     fireEvent.change(input, { target: { value: "renamed.json" } });
