@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useSchemaStore } from "./schemaStore";
 import { usePhysicsStore } from "./physicsStore";
 import type { FieldInfo } from "../lib/types";
+import type { FieldEdits } from "../lib/fieldEdits";
 
 const NODE = "testapp.Order";
 const NATURAL = ["id", "customer", "total", "notes"];
@@ -412,6 +413,43 @@ describe("typeColors", () => {
     s().setTypeColor("CharField", "#22c55e");
     s().resetConfig();
     expect(s().typeColors).toEqual({ CharField: "#22c55e" });
+  });
+});
+
+describe("clearAllFieldColors", () => {
+  const s = () => useSchemaStore.getState();
+
+  it("removes every field color on every table in one update, keeping order and hidden fields", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map<string, FieldEdits>([
+        ["shop.Order", { hiddenFields: ["notes"], fieldOrder: ["id", "total", "notes"], fieldColors: { id: "#6b7280" } }],
+        ["shop.Tag", { hiddenFields: [], fieldOrder: ["name", "code"], fieldColors: { name: "#ef4444", code: "#6366f1" } }],
+      ]),
+    });
+    let updates = 0;
+    const unsub = useSchemaStore.subscribe(() => updates++);
+    s().clearAllFieldColors();
+    unsub();
+
+    expect(updates).toBe(1);
+    expect(s().fieldEdits.get("shop.Order")).toEqual({
+      hiddenFields: ["notes"], fieldOrder: ["id", "total", "notes"], fieldColors: {},
+    });
+    expect(s().fieldEdits.get("shop.Tag")?.fieldColors).toEqual({});
+  });
+
+  it("drops entries that held nothing but colors, keeping the map sparse", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([["shop.Genre", { hiddenFields: [], fieldOrder: null, fieldColors: { id: "#6b7280" } }]]),
+    });
+    s().clearAllFieldColors();
+    expect(s().fieldEdits.size).toBe(0);
+  });
+
+  it("leaves the type color map alone", () => {
+    useSchemaStore.setState({ typeColors: { CharField: "#a855f7" } });
+    s().clearAllFieldColors();
+    expect(s().typeColors).toEqual({ CharField: "#a855f7" });
   });
 });
 

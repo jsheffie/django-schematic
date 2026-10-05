@@ -37,6 +37,14 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
   const typeColors = useSchemaStore((s) => s.typeColors);
   const setTypeColor = useSchemaStore((s) => s.setTypeColor);
   const resetTypeColors = useSchemaStore((s) => s.resetTypeColors);
+  const clearAllFieldColors = useSchemaStore((s) => s.clearAllFieldColors);
+  // Tables that carry at least one field color, whether from a sort or picked by hand.
+  const coloredTables = useSchemaStore((s) => {
+    let n = 0;
+    for (const e of s.fieldEdits.values()) if (Object.keys(e.fieldColors).length > 0) n++;
+    return n;
+  });
+  const [confirmClear, setConfirmClear] = useState(false);
   const colorByType = usePhysicsStore((s) => s.colorByType);
   const setColorByType = usePhysicsStore((s) => s.setColorByType);
   const [picking, setPicking] = useState<string | null>(null);
@@ -159,6 +167,46 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
         >
           Restore defaults
         </button>
+      </section>
+
+      <section>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          Table colors
+        </p>
+        {confirmClear && coloredTables > 0 ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
+            <p>
+              Remove the field colors from {coloredTables} {coloredTables === 1 ? "table" : "tables"}? Order and
+              hidden fields stay.
+            </p>
+            <div className="mt-2 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmClear(false)}
+                className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-gray-600 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  clearAllFieldColors();
+                  setConfirmClear(false);
+                }}
+                className="rounded-md bg-red-600 px-2.5 py-1 text-white hover:bg-red-700"
+              >
+                Clear colors
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmClear(true)}
+            disabled={coloredTables === 0}
+            title={coloredTables === 0 ? "No table has field colors" : undefined}
+            className="w-full rounded-md border border-gray-200 py-1.5 text-xs text-gray-600 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
+          >
+            Clear colors on all tables
+          </button>
+        )}
       </section>
     </>
   );

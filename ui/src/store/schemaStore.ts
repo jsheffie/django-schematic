@@ -91,6 +91,8 @@ interface SchemaStore {
     opts?: SortByTypeOptions,
   ) => void;
   setFieldColor: (nodeId: string, fieldName: string, color: string | null) => void;
+  // Settings → Fields: every table back to no field colors; order and hidden fields stay.
+  clearAllFieldColors: () => void;
 
   // Type colors
   setTypeColor: (key: string, color: string | null) => void; // null = back to default / Auto
@@ -328,6 +330,16 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       if (color === null) delete fieldColors[fieldName];
       else fieldColors[fieldName] = color;
       return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldColors }) };
+    }),
+
+  clearAllFieldColors: () =>
+    set((s) => {
+      let next = s.fieldEdits;
+      for (const [nodeId, cur] of s.fieldEdits) {
+        if (Object.keys(cur.fieldColors).length === 0) continue;
+        next = commitFieldEdits(next, nodeId, { ...cur, fieldColors: {} });
+      }
+      return { fieldEdits: next };
     }),
 
   setTypeColor: (key, color) =>

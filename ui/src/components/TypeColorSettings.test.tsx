@@ -5,6 +5,7 @@ import TypeColorSettings from "./TypeColorSettings";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import type { FieldInfo, SchemaGraph } from "../lib/types";
+import type { FieldEdits } from "../lib/fieldEdits";
 
 const field = (name: string, field_type: string, extra: Partial<FieldInfo> = {}): FieldInfo => ({
   name,
@@ -111,5 +112,56 @@ describe("TypeColorSettings", () => {
     fireEvent.click(toggle);
     expect(usePhysicsStore.getState().colorByType).toBe(true);
     expect(toggle.getAttribute("aria-checked")).toBe("true");
+  });
+
+  describe("Clear colors on all tables", () => {
+    const colored = () =>
+      new Map<string, FieldEdits>([
+        ["shop.Order", { hiddenFields: [], fieldOrder: ["id", "status"], fieldColors: { id: "#6b7280" } }],
+        ["shop.Tag", { hiddenFields: [], fieldOrder: null, fieldColors: { name: "#ef4444" } }],
+        ["shop.Plain", { hiddenFields: ["x"], fieldOrder: null, fieldColors: {} }],
+      ]);
+
+    it("is disabled when no table has a field color", () => {
+      useSchemaStore.setState({ fieldEdits: new Map() });
+      const { getByRole } = render(<TypeColorSettings schema={SCHEMA} />);
+      expect((getByRole("button", { name: "Clear colors on all tables" }) as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it("asks first, naming how many tables, and Cancel changes nothing", () => {
+      useSchemaStore.setState({ fieldEdits: colored() });
+      const { getByRole, getByText, queryByRole } = render(<TypeColorSettings schema={SCHEMA} />);
+
+      fireEvent.click(getByRole("button", { name: "Clear colors on all tables" }));
+      expect(getByText("Remove the field colors from 2 tables? Order and hidden fields stay.")).toBeTruthy();
+      expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldColors).toEqual({ id: "#6b7280" });
+
+      fireEvent.click(getByRole("button", { name: "Cancel" }));
+      expect(queryByRole("button", { name: "Clear colors" })).toBeNull();
+      expect(useSchemaStore.getState().fieldEdits.get("shop.Tag")?.fieldColors).toEqual({ name: "#ef4444" });
+    });
+
+    it("confirming clears every table's colors and keeps everything else", () => {
+      useSchemaStore.setState({ fieldEdits: colored() });
+      const { getByRole } = render(<TypeColorSettings schema={SCHEMA} />);
+
+      fireEvent.click(getByRole("button", { name: "Clear colors on all tables" }));
+      fireEvent.click(getByRole("button", { name: "Clear colors" }));
+
+      const edits = useSchemaStore.getState().fieldEdits;
+      expect(edits.get("shop.Order")).toEqual({ hiddenFields: [], fieldOrder: ["id", "status"], fieldColors: {} });
+      expect(edits.has("shop.Tag")).toBe(false);
+      expect(edits.get("shop.Plain")?.hiddenFields).toEqual(["x"]);
+      expect((getByRole("button", { name: "Clear colors on all tables" }) as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it("says 1 table, not 1 tables", () => {
+      useSchemaStore.setState({
+        fieldEdits: new Map([["shop.Tag", { hiddenFields: [], fieldOrder: null, fieldColors: { name: "#ef4444" } }]]),
+      });
+      const { getByRole, getByText } = render(<TypeColorSettings schema={SCHEMA} />);
+      fireEvent.click(getByRole("button", { name: "Clear colors on all tables" }));
+      expect(getByText("Remove the field colors from 1 table? Order and hidden fields stay.")).toBeTruthy();
+    });
   });
 });
