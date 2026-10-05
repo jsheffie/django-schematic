@@ -5,6 +5,7 @@ export type { ColorPalette };
 export type EdgeStyle = "step" | "bezier" | "floating";
 export type AppMode = "stiff" | "normal" | "fun" | "excitation";
 export type BackgroundStyle = "dots" | "lines" | "none";
+export type SettingsTab = "appearance" | "fields" | "physics";
 
 export interface ForceParams {
   alphaDecay: number;      // d3 default: 0.0228
@@ -65,9 +66,11 @@ interface PhysicsStore {
   sidebarOpen: boolean;
   minimapVisible: boolean;
   appMode: AppMode;
-  settingsTab: "appearance" | "physics";
+  settingsTab: SettingsTab;
   colorPalette: ColorPalette;
   backgroundStyle: BackgroundStyle;
+  // "Sort by type" also colors each field by its type group (issue #115).
+  colorByType: boolean;
 
   // Node currently in field-edit mode (at most one at a time; null = none).
   editingNodeId: string | null;
@@ -85,9 +88,10 @@ interface PhysicsStore {
   setHelpOpen: (v: boolean) => void;
   setSidebarOpen: (v: boolean) => void;
   setMinimapVisible: (v: boolean) => void;
-  setSettingsTab: (tab: "appearance" | "physics") => void;
+  setSettingsTab: (tab: SettingsTab) => void;
   setColorPalette: (p: ColorPalette) => void;
   setBackgroundStyle: (s: BackgroundStyle) => void;
+  setColorByType: (v: boolean) => void;
   setEditingNode: (id: string | null) => void;
   setAnnotationTool: (tool: "arrow" | null) => void;
   setEditingTextBlock: (id: string | null) => void;
@@ -108,6 +112,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   settingsTab: "appearance",
   colorPalette: "pastel",
   backgroundStyle: "dots",
+  colorByType: false,
   editingNodeId: null,
   annotationTool: null,
   editingTextBlockId: null,
@@ -125,6 +130,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setSettingsTab: (settingsTab) => set({ settingsTab }),
   setColorPalette: (colorPalette) => set({ colorPalette }),
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
+  setColorByType: (colorByType) => set({ colorByType }),
   setEditingNode: (editingNodeId) => set({ editingNodeId }),
   setAnnotationTool: (annotationTool) => set({ annotationTool }),
   setEditingTextBlock: (editingTextBlockId) => set({ editingTextBlockId }),

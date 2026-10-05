@@ -189,6 +189,54 @@ describe("Toolbar sort all: confirmation when a custom order exists", () => {
   });
 });
 
+describe("Toolbar sort all: color by type (issue #115)", () => {
+  beforeEach(() => {
+    usePhysicsStore.setState({ colorByType: false });
+    useSchemaStore.setState({
+      typeColors: {},
+      fieldEdits: new Map([
+        ["shop.Order", { hiddenFields: [], fieldOrder: null, fieldColors: { status: "#a855f7" } }],
+      ]),
+    });
+  });
+
+  const open = () => {
+    const utils = renderToolbar();
+    fireEvent.click(utils.getByRole("button", { name: "Sort all tables by type" }));
+    const dialog = utils.getByRole("dialog", { name: "Sort all tables by type" });
+    const checkbox = utils.getByRole("checkbox", { name: "Also color fields by type" }) as HTMLInputElement;
+    return { ...utils, dialog, checkbox };
+  };
+
+  it("offers the shared Color by type preference, off by default, and keeps colors when off", () => {
+    const { dialog, checkbox, getByRole } = open();
+    expect(checkbox.checked).toBe(false);
+    expect(dialog.textContent).toContain("Hidden fields and colors are kept.");
+
+    fireEvent.click(getByRole("button", { name: "Sort all tables" }));
+    expect(useSchemaStore.getState().fieldEdits.get("shop.Order")?.fieldColors).toEqual({ status: "#a855f7" });
+  });
+
+  it("checked, it colors every table by type, replacing existing colors, and remembers the choice", () => {
+    const { dialog, checkbox, getByRole } = open();
+    fireEvent.click(checkbox);
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+    expect(dialog.textContent).toContain("Hidden fields are kept; every field's color is replaced by its type color.");
+
+    fireEvent.click(getByRole("button", { name: "Sort all tables" }));
+    const edits = useSchemaStore.getState().fieldEdits;
+    expect(edits.get("shop.Order")?.fieldColors).toEqual({
+      id: "#6b7280", customer: "#3b82f6", status: "#ef4444", created_at: "#f59e0b",
+    });
+    expect(edits.get("shop.Tag")?.fieldColors).toEqual({ name: "#ef4444", code: "#6366f1" });
+  });
+
+  it("starts checked when the preference is already on (from a table's footer toggle)", () => {
+    usePhysicsStore.setState({ colorByType: true });
+    expect(open().checkbox.checked).toBe(true);
+  });
+});
+
 describe("Toolbar sort all: double-click must not dismiss the confirmation", () => {
   beforeEach(() => {
     useSchemaStore.setState({

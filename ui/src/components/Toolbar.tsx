@@ -58,6 +58,8 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   const sortAllFieldsByType = useSchemaStore((s) => s.sortAllFieldsByType);
   const fieldEdits = useSchemaStore((s) => s.fieldEdits);
   const [confirmSortAll, setConfirmSortAll] = useState(false);
+  const colorByType = usePhysicsStore((s) => s.colorByType);
+  const setColorByType = usePhysicsStore((s) => s.setColorByType);
 
   // Tables whose custom order (drag or an earlier sort) the global sort would
   // replace, for the confirmation. Shown by model name; by "app.Model" when
@@ -76,7 +78,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
   }
   function confirmSortAllNow() {
     setConfirmSortAll(false);
-    sortAllFieldsByType(schema.nodes);
+    sortAllFieldsByType(schema.nodes, { withColors: colorByType });
   }
 
   const physicsEnabled = usePhysicsStore((s) => s.physicsEnabled);
@@ -240,6 +242,8 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
       <SortAllDialog
         open={confirmSortAll}
         affected={affected}
+        colorByType={colorByType}
+        onColorByTypeChange={setColorByType}
         onConfirm={confirmSortAllNow}
         onCancel={() => setConfirmSortAll(false)}
       />

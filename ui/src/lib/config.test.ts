@@ -4,6 +4,7 @@ vi.stubGlobal("window", { innerWidth: 1200, innerHeight: 800 });
 
 import { collectModelPositions, exportConfig, importConfig } from "./config";
 import { useSchemaStore } from "../store/schemaStore";
+import { usePhysicsStore } from "../store/physicsStore";
 import type { FieldEdits } from "./fieldEdits";
 import type { Arrow, TextBlock } from "./annotations";
 
@@ -32,15 +33,68 @@ beforeEach(() => {
   });
 });
 
-describe("exportConfig v5", () => {
-  it("exports version 5 with fieldEdits, edgeOffsets and annotations", () => {
+describe("exportConfig v6", () => {
+  it("exports version 6 with fieldEdits, edgeOffsets and annotations", () => {
     const config = JSON.parse(exportConfig());
-    expect(config.version).toBe(5);
+    expect(config.version).toBe(6);
     expect(config.fieldEdits).toEqual({ "testapp.Order": EDITS });
     expect(config.edgeOffsets).toEqual({
       "testapp.Order->testapp.Customer:customer": { x: 30, y: -12 },
     });
     expect(config.annotations).toEqual({ textBlocks: { tb_1: BLOCK }, arrows: { ar_1: ARROW } });
+  });
+});
+
+describe("type colors (issue #115)", () => {
+  const MINIMAL = {
+    activeLayout: "elk",
+    visibleNodeIds: ["testapp.Order"],
+    expandedNodeIds: [],
+    pinnedPositions: {},
+    collapsedApps: [],
+    viewport: { x: 0, y: 0, zoom: 1 },
+    physics: { edgeStyle: "bezier", liveDragPhysics: false, forceParams: {}, appMode: "normal" },
+  };
+
+  beforeEach(() => {
+    useSchemaStore.setState({ typeColors: {} });
+    usePhysicsStore.setState({ colorByType: false });
+  });
+
+  it("exports the type color map at the top level and colorByType with the physics prefs", () => {
+    useSchemaStore.setState({ typeColors: { CharField: "#22c55e", pk: "#ef4444" } });
+    usePhysicsStore.setState({ colorByType: true });
+    const config = JSON.parse(exportConfig());
+    expect(config.typeColors).toEqual({ CharField: "#22c55e", pk: "#ef4444" });
+    expect(config.physics.colorByType).toBe(true);
+  });
+
+  it("round-trips both", () => {
+    useSchemaStore.setState({ typeColors: { TextField: "#6366f1" } });
+    usePhysicsStore.setState({ colorByType: true });
+    const json = exportConfig();
+    useSchemaStore.setState({ typeColors: {} });
+    usePhysicsStore.setState({ colorByType: false });
+
+    importConfig(json);
+    expect(useSchemaStore.getState().typeColors).toEqual({ TextField: "#6366f1" });
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+  });
+
+  it("imports a v6 config that omits both: no overrides, toggle untouched", () => {
+    useSchemaStore.setState({ typeColors: { TextField: "#6366f1" } });
+    usePhysicsStore.setState({ colorByType: true });
+    importConfig(JSON.stringify({ version: 6, ...MINIMAL }));
+    expect(useSchemaStore.getState().typeColors).toEqual({});
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+  });
+
+  it("imports a v5 config with no overrides, leaving the toggle as it was", () => {
+    useSchemaStore.setState({ typeColors: { TextField: "#6366f1" } });
+    usePhysicsStore.setState({ colorByType: true });
+    importConfig(JSON.stringify({ version: 5, ...MINIMAL }));
+    expect(useSchemaStore.getState().typeColors).toEqual({});
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
   });
 });
 

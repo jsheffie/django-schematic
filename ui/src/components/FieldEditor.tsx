@@ -2,9 +2,9 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useUpdateNodeInternals } from "@xyflow/react";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
-import { autoFieldOrder, orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
+import { orderedFields, FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
 import type { FieldInfo } from "../lib/types";
-import { IconEye, IconEyeSlash, IconSortByType } from "./icons";
+import { IconColorByType, IconEye, IconEyeSlash, IconSortByType } from "./icons";
 import { AnchorHandle } from "./AnchorHandle";
 import { fieldHandleId } from "../lib/smartEdge";
 
@@ -128,6 +128,9 @@ export function FieldEditor({
   const setFieldColor = useSchemaStore((s) => s.setFieldColor);
   const resetFieldEdits = useSchemaStore((s) => s.resetFieldEdits);
   const setFieldOrder = useSchemaStore((s) => s.setFieldOrder);
+  const sortFieldsByType = useSchemaStore((s) => s.sortFieldsByType);
+  const colorByType = usePhysicsStore((s) => s.colorByType);
+  const setColorByType = usePhysicsStore((s) => s.setColorByType);
   const moveField = useSchemaStore((s) => s.moveField);
   const setEditingNode = usePhysicsStore((s) => s.setEditingNode);
 
@@ -437,15 +440,35 @@ export function FieldEditor({
         {announcement}
       </div>
       <div className="mt-1 flex items-center justify-end gap-2 border-t border-gray-200 px-2 pt-1">
-        <button
-          className="mr-auto inline-flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:bg-white"
-          onClick={() => setFieldOrder(nodeId, autoFieldOrder(fields), fields.map((f) => f.name))}
-          disabled={isDragging}
-          title="Primary key, then relations, then fields grouped by type, then booleans, dates and times last"
-        >
-          <IconSortByType className="h-3.5 w-3.5" />
-          Sort by type
-        </button>
+        <div className="mr-auto inline-flex">
+          <button
+            className="relative inline-flex items-center gap-1 rounded-l border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:z-10 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:bg-white"
+            onClick={() => sortFieldsByType(nodeId, fields, { withColors: colorByType })}
+            disabled={isDragging}
+            title="Primary key, then relations, then fields grouped by type, then booleans, dates and times last"
+          >
+            <IconSortByType className="h-3.5 w-3.5" />
+            Sort by type
+          </button>
+          {/* Color by type (issue #115): one shared preference, also used by "Sort all tables". */}
+          <button
+            className={`relative -ml-px inline-flex items-center rounded-r border px-1 py-0.5 hover:z-10 ${
+              colorByType
+                ? "z-10 border-blue-400 bg-blue-50 hover:border-blue-500"
+                : "border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50"
+            }`}
+            onClick={() => setColorByType(!colorByType)}
+            aria-pressed={colorByType}
+            aria-label="Color by type"
+            title={
+              colorByType
+                ? "Color by type: on. Sort by type also colors each type group"
+                : "Color by type: off. Turn on to also color each type group when sorting"
+            }
+          >
+            <IconColorByType className="h-3.5 w-3.5" on={colorByType} />
+          </button>
+        </div>
         <button
           className="text-xs text-gray-500 hover:text-gray-800"
           onClick={() => resetFieldEdits(nodeId)}

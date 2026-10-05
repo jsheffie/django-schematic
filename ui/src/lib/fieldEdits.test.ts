@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest";
 import {
   applyFieldEdits,
+  autoFieldColors,
   autoFieldOrder,
+  fieldGroupKey,
   orderedFields,
+  typeColorGroups,
+  AUTO_TYPE_COLORS,
+  DEFAULT_TYPE_COLORS,
+  FIELD_COLOR_SWATCHES,
   isEmptyEdits,
   EMPTY_FIELD_EDITS,
   type FieldEdits,
@@ -258,5 +264,154 @@ describe("autoFieldOrder", () => {
     const before = fields.map((x) => x.name);
     autoFieldOrder(fields);
     expect(fields.map((x) => x.name)).toEqual(before);
+  });
+});
+
+// --- Color by type (issue #115) ----------------------------------------------
+
+const GRAY = "#6b7280";
+const BLUE = "#3b82f6";
+const GREEN = "#22c55e";
+const AMBER = "#f59e0b";
+const RED = "#ef4444";
+const ORANGE = "#f97316";
+const INDIGO = "#6366f1";
+const PURPLE = "#a855f7";
+
+/** Colors in sorted display order, so tests read top to bottom like the table. */
+const colorsInOrder = (fields: FieldInfo[], typeColors = {}) => {
+  const colors = autoFieldColors(fields, typeColors);
+  return autoFieldOrder(fields).map((name) => [name, colors[name]]);
+};
+
+describe("type color defaults", () => {
+  it("are all existing swatches, with the auto cycle disjoint from the fixed buckets", () => {
+    const fixed = Object.values(DEFAULT_TYPE_COLORS);
+    for (const c of [...fixed, ...AUTO_TYPE_COLORS]) expect(FIELD_COLOR_SWATCHES).toContain(c);
+    expect(DEFAULT_TYPE_COLORS).toEqual({ pk: GRAY, relation: BLUE, boolean: GREEN, datetime: AMBER });
+    expect(AUTO_TYPE_COLORS.filter((c) => fixed.includes(c))).toEqual([]);
+    expect([...AUTO_TYPE_COLORS, ...fixed].sort()).toEqual([...FIELD_COLOR_SWATCHES].sort());
+    // Ordered so that plain cycling never puts two look-alike hues next to each other.
+    expect(AUTO_TYPE_COLORS).toEqual([RED, INDIGO, ORANGE, PURPLE]);
+  });
+});
+
+describe("fieldGroupKey", () => {
+  it("names the four buckets and keys the rest by the shown type", () => {
+    expect(fieldGroupKey(pk("id", "BigAutoField"))).toBe("pk");
+    expect(fieldGroupKey(rel("author", "ForeignKey"))).toBe("relation");
+    expect(fieldGroupKey(pk("book_ptr", "OneToOneField", { is_relation: true }))).toBe("pk");
+    expect(fieldGroupKey(typed("flag", "FlagField", { internal_type: "BooleanField" }))).toBe("boolean");
+    expect(fieldGroupKey(typed("created", "AutoCreatedField", { internal_type: "DateTimeField" }))).toBe("datetime");
+    expect(fieldGroupKey(typed("elapsed", "DurationField"))).toBe("datetime");
+    expect(fieldGroupKey(typed("title", "CharField"))).toBe("CharField");
+    // Shown type, not internal type: the sort groups the middle bucket on field_type too.
+    expect(fieldGroupKey(typed("slug", "AutoSlugField", { internal_type: "SlugField" }))).toBe("AutoSlugField");
+  });
+});
+
+describe("typeColorGroups", () => {
+  it("lists the distinct middle-bucket types alphabetically, using the same classifier as the sort", () => {
+    const fields = [
+      typed("title", "CharField"),
+      pk("id", "UUIDField"), // a UUIDField that is the pk is not a UUIDField group
+      rel("author", "ForeignKey"),
+      typed("flag", "FlagField", { internal_type: "BooleanField" }),
+      typed("body", "TextField"),
+      typed("name", "CharField"),
+      typed("amount", "decimalField"),
+      typed("when", "DateField"),
+    ];
+    expect(typeColorGroups(fields)).toEqual(["CharField", "decimalField", "TextField"]);
+    for (const key of typeColorGroups(fields)) {
+      expect(fields.some((x) => fieldGroupKey(x) === key)).toBe(true);
+    }
+  });
+});
+
+describe("autoFieldColors", () => {
+  const ORDER_FIELDS = [
+    typed("created_at", "DateTimeField"),
+    rel("customer", "ForeignKey"),
+    pk("id", "BigAutoField"),
+    typed("is_paid", "BooleanField"),
+    typed("notes", "TextField"),
+    typed("reference", "CharField"),
+    typed("shipped_at", "DateField"),
+    typed("status", "CharField"),
+    typed("total", "DecimalField"),
+    rel("warehouse", "ForeignKey"),
+  ];
+
+  it("colors the issue #111 shop.Order example by group", () => {
+    expect(colorsInOrder(ORDER_FIELDS)).toEqual([
+      ["id", GRAY],
+      ["customer", BLUE], ["warehouse", BLUE],
+      ["reference", RED], ["status", RED],
+      ["total", INDIGO],
+      ["notes", ORANGE],
+      ["is_paid", GREEN],
+      ["shipped_at", AMBER], ["created_at", AMBER], // the whole date/time bucket is one group
+    ]);
+  });
+
+  it("colors every field, including ones the caller will show as hidden", () => {
+    expect(Object.keys(autoFieldColors(ORDER_FIELDS)).sort()).toEqual(ORDER_FIELDS.map((x) => x.name).sort());
+  });
+
+  it("cycles the auto colors and never gives two adjacent groups the same color", () => {
+    const fields = ["A", "B", "C", "D", "E", "F", "G", "H", "I"].map((t) => typed(t.toLowerCase(), `${t}Field`));
+    const colors = colorsInOrder(fields).map(([, c]) => c);
+    expect(colors).toEqual([RED, INDIGO, ORANGE, PURPLE, RED, INDIGO, ORANGE, PURPLE, RED]);
+  });
+
+  it("uses an explicit type color for that type wherever it appears", () => {
+    const fields = [typed("a", "CharField"), typed("b", "TextField")];
+    expect(colorsInOrder(fields, { TextField: GREEN })).toEqual([["a", RED], ["b", GREEN]]);
+  });
+
+  it("lets the map override the bucket defaults", () => {
+    const fields = [pk("id", "AutoField"), rel("owner", "ForeignKey"), typed("ok", "BooleanField"), typed("at", "DateField")];
+    const map = { pk: PURPLE, relation: RED, boolean: INDIGO, datetime: ORANGE };
+    expect(colorsInOrder(fields, map)).toEqual([["id", PURPLE], ["owner", RED], ["ok", INDIGO], ["at", ORANGE]]);
+  });
+
+  it("steps an auto group past the color of the group before it", () => {
+    // CharField is pinned to red, so TextField (auto) must not also start at red.
+    const fields = [typed("a", "CharField"), typed("b", "TextField")];
+    expect(colorsInOrder(fields, { CharField: RED }).map(([, c]) => c)).toEqual([RED, INDIGO]);
+  });
+
+  it("steps an auto group past a fixed color in the group after it", () => {
+    // TextField is pinned to red; CharField (auto) comes first and would otherwise take red too.
+    const fields = [typed("a", "CharField"), typed("b", "TextField")];
+    expect(colorsInOrder(fields, { TextField: RED }).map(([, c]) => c)).toEqual([INDIGO, RED]);
+  });
+
+  it("steps past a bucket color the user moved into the auto range", () => {
+    const fields = [rel("owner", "ForeignKey"), typed("a", "CharField")];
+    expect(colorsInOrder(fields, { relation: RED }).map(([, c]) => c)).toEqual([RED, INDIGO]);
+  });
+
+  it("steps past a color that looks like a neighbour, not only an equal one", () => {
+    // The third type would cycle to orange (~ the amber dates below), then purple (~ the
+    // indigo above), so it takes red.
+    const fields = [typed("a", "CharField"), typed("b", "TextField"), typed("c", "UUIDField"), typed("at", "DateField")];
+    expect(colorsInOrder(fields).map(([, c]) => c)).toEqual([RED, INDIGO, RED, AMBER]);
+  });
+
+  it("settles for merely different when every auto color looks like a neighbour", () => {
+    // Between orange and indigo: red ~ orange, indigo and orange are taken, purple ~ indigo.
+    const fields = [typed("a", "AField"), typed("b", "BField"), typed("c", "CField")];
+    expect(colorsInOrder(fields, { AField: ORANGE, CField: INDIGO }).map(([, c]) => c)).toEqual([ORANGE, RED, INDIGO]);
+  });
+
+  it("ignores map entries that are not swatches", () => {
+    const fields = [typed("a", "CharField")];
+    expect(colorsInOrder(fields, { CharField: "not-a-color" })).toEqual([["a", RED]]);
+  });
+
+  it("returns an empty map for no fields", () => {
+    expect(autoFieldColors([])).toEqual({});
   });
 });

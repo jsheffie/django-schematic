@@ -1,12 +1,21 @@
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore, type EdgeStyle, type ForceParams, type ColorPalette, type BackgroundStyle } from "../store/physicsStore";
 import SliderInput from "./SliderInput";
+import TypeColorSettings from "./TypeColorSettings";
+import type { SchemaGraph } from "../lib/types";
 
 interface Props {
+  schema: SchemaGraph;
   onReheat: (params: ForceParams) => void;
 }
 
-export default function SettingsDrawer({ onReheat }: Props) {
+const TABS = [
+  { value: "appearance", label: "Appearance" },
+  { value: "fields", label: "Fields" },
+  { value: "physics", label: "Physics" },
+] as const;
+
+export default function SettingsDrawer({ schema, onReheat }: Props) {
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
@@ -66,26 +75,19 @@ export default function SettingsDrawer({ onReheat }: Props) {
 
         {/* Tab bar */}
         <div className="flex border-b border-gray-100">
-          <button
-            className={`flex-1 py-2 text-xs font-semibold transition-colors ${
-              activeTab === "appearance"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("appearance")}
-          >
-            Appearance
-          </button>
-          <button
-            className={`flex-1 py-2 text-xs font-semibold transition-colors ${
-              activeTab === "physics"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("physics")}
-          >
-            Physics
-          </button>
+          {TABS.map(({ value, label }) => (
+            <button
+              key={value}
+              className={`flex-1 py-2 text-xs font-semibold transition-colors ${
+                activeTab === value
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setActiveTab(value)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         <div className="px-4 py-3 flex flex-col gap-4">
@@ -205,6 +207,8 @@ export default function SettingsDrawer({ onReheat }: Props) {
               </section>
             </>
           )}
+
+          {activeTab === "fields" && <TypeColorSettings schema={schema} />}
 
           {activeTab === "physics" && (
             <>
