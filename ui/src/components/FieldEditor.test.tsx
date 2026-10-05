@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { FieldEditor } from "./FieldEditor";
 import { useSchemaStore } from "../store/schemaStore";
+import { usePhysicsStore } from "../store/physicsStore";
 import type { FieldInfo } from "../lib/types";
 
 const NODE = "testapp.Order";
@@ -292,6 +293,89 @@ describe("FieldEditor sort by type", () => {
     expect(sortButton().title).toBe(
       "Primary key, then relations, then fields grouped by type, then booleans, dates and times last",
     );
+  });
+});
+
+describe("FieldEditor color by type (issue #115)", () => {
+  // MIXED_SORTED groups: pk, relation, CharField, TextField, boolean, datetime.
+  const TYPE_COLORS = {
+    id: "#6b7280", customer: "#3b82f6", status: "#ef4444", notes: "#6366f1",
+    is_paid: "#22c55e", created_at: "#f59e0b",
+  };
+  const storedColors = () => useSchemaStore.getState().fieldEdits.get(NODE)?.fieldColors ?? {};
+
+  beforeEach(() => {
+    usePhysicsStore.setState({ colorByType: false });
+    useSchemaStore.setState({ typeColors: {} });
+  });
+
+  const toggle = (utils: ReturnType<typeof renderEditor>) =>
+    utils.getByRole("button", { name: "Color by type" }) as HTMLButtonElement;
+
+  it("is an off-by-default toggle next to Sort by type that flips the shared preference", () => {
+    const utils = renderEditor(MIXED);
+    expect(toggle(utils).getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(toggle(utils));
+
+    expect(toggle(utils).getAttribute("aria-pressed")).toBe("true");
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+    // Toggling alone changes nothing on the table.
+    expect(useSchemaStore.getState().fieldEdits.has(NODE)).toBe(false);
+  });
+
+  it("with the toggle on, Sort by type sorts and colors every row by its type group", () => {
+    usePhysicsStore.setState({ colorByType: true });
+    const utils = renderEditor(MIXED);
+
+    fireEvent.click(utils.sortButton());
+
+    expect(utils.domOrder()).toEqual(MIXED_SORTED);
+    expect(storedColors()).toEqual(TYPE_COLORS);
+    // The row tint follows: 30% alpha of the type color.
+    expect(utils.row("status").style.backgroundColor).toBe("rgba(239, 68, 68, 0.3)");
+  });
+
+  it("replaces a row override on re-sort with the toggle on, keeps it with the toggle off", () => {
+    usePhysicsStore.setState({ colorByType: true });
+    const utils = renderEditor(MIXED);
+    fireEvent.click(utils.sortButton());
+    useSchemaStore.getState().setFieldColor(NODE, "status", "#a855f7");
+
+    fireEvent.click(utils.sortButton());
+    expect(storedColors().status).toBe("#ef4444");
+
+    useSchemaStore.getState().setFieldColor(NODE, "status", "#a855f7");
+    fireEvent.click(toggle(utils));
+    fireEvent.click(utils.sortButton());
+    expect(storedColors().status).toBe("#a855f7");
+  });
+
+  it("with the toggle off, Sort by type leaves existing colors alone", () => {
+    useSchemaStore.setState({
+      fieldEdits: new Map([[NODE, { hiddenFields: [], fieldOrder: null, fieldColors: { notes: "#a855f7" } }]]),
+    });
+    const utils = renderEditor(MIXED);
+    fireEvent.click(utils.sortButton());
+    expect(storedColors()).toEqual({ notes: "#a855f7" });
+  });
+
+  it("Reset clears both the order and the type colors", () => {
+    usePhysicsStore.setState({ colorByType: true });
+    const utils = renderEditor(MIXED);
+    fireEvent.click(utils.sortButton());
+
+    fireEvent.click(utils.getByRole("button", { name: "Reset" }));
+
+    expect(useSchemaStore.getState().fieldEdits.has(NODE)).toBe(false);
+    expect(utils.domOrder()).toEqual(MIXED.map((f) => f.name));
+  });
+
+  it("says what it does in its tooltip, on and off", () => {
+    const utils = renderEditor(MIXED);
+    expect(toggle(utils).title).toBe("Color by type: off. Turn on to also color each type group when sorting");
+    fireEvent.click(toggle(utils));
+    expect(toggle(utils).title).toBe("Color by type: on. Sort by type also colors each type group");
   });
 });
 

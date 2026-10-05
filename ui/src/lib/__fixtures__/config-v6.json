@@ -1,0 +1,1548 @@
+{
+  "version": 6,
+  "activeLayout": "elk",
+  "visibleNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member"
+  ],
+  "expandedNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member"
+  ],
+  "pinnedPositions": {
+    "library.Author": {
+      "x": 598,
+      "y": 12
+    },
+    "library.Book": {
+      "x": 301,
+      "y": 22.166666666666664
+    },
+    "library.Genre": {
+      "x": 598,
+      "y": 193
+    },
+    "library.Loan": {
+      "x": 12,
+      "y": 45.666666666666664
+    },
+    "library.Member": {
+      "x": 301,
+      "y": 243.16666666666666
+    }
+  },
+  "collapsedApps": [],
+  "viewport": {
+    "x": 69,
+    "y": 259.83333333333337,
+    "zoom": 2
+  },
+  "canvasSize": {
+    "width": 1720,
+    "height": 1272
+  },
+  "canvasHidePositions": {},
+  "fieldEdits": {
+    "account.EmailAddress": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user",
+        "email",
+        "primary",
+        "verified"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "user": "#3b82f6",
+        "email": "#ef4444",
+        "primary": "#22c55e",
+        "verified": "#22c55e"
+      }
+    },
+    "account.EmailConfirmation": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "email_address",
+        "key",
+        "created",
+        "sent"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "email_address": "#3b82f6",
+        "key": "#a855f7",
+        "created": "#f59e0b",
+        "sent": "#f59e0b"
+      }
+    },
+    "admin.LogEntry": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_type",
+        "user",
+        "object_repr",
+        "action_flag",
+        "change_message",
+        "object_id",
+        "action_time"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_type": "#3b82f6",
+        "user": "#3b82f6",
+        "object_repr": "#a855f7",
+        "action_flag": "#ef4444",
+        "change_message": "#6366f1",
+        "object_id": "#6366f1",
+        "action_time": "#f59e0b"
+      }
+    },
+    "auth.Group": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "permissions",
+        "name"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "permissions": "#3b82f6",
+        "name": "#a855f7"
+      }
+    },
+    "auth.Permission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_type",
+        "codename",
+        "name"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_type": "#3b82f6",
+        "codename": "#a855f7",
+        "name": "#a855f7"
+      }
+    },
+    "auth.User": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "groups",
+        "user_permissions",
+        "first_name",
+        "last_name",
+        "password",
+        "username",
+        "email",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+        "date_joined",
+        "last_login"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "groups": "#3b82f6",
+        "user_permissions": "#3b82f6",
+        "first_name": "#a855f7",
+        "last_name": "#a855f7",
+        "password": "#a855f7",
+        "username": "#a855f7",
+        "email": "#ef4444",
+        "is_active": "#22c55e",
+        "is_staff": "#22c55e",
+        "is_superuser": "#22c55e",
+        "date_joined": "#f59e0b",
+        "last_login": "#f59e0b"
+      }
+    },
+    "contenttypes.ContentType": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "app_label",
+        "model"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "app_label": "#a855f7",
+        "model": "#a855f7"
+      }
+    },
+    "django_celery_beat.ClockedSchedule": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "clocked_time"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "clocked_time": "#f59e0b"
+      }
+    },
+    "django_celery_beat.CrontabSchedule": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "day_of_month",
+        "day_of_week",
+        "hour",
+        "minute",
+        "month_of_year",
+        "timezone"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "day_of_month": "#a855f7",
+        "day_of_week": "#a855f7",
+        "hour": "#a855f7",
+        "minute": "#a855f7",
+        "month_of_year": "#a855f7",
+        "timezone": "#ef4444"
+      }
+    },
+    "django_celery_beat.IntervalSchedule": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "period",
+        "every"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "period": "#a855f7",
+        "every": "#ef4444"
+      }
+    },
+    "django_celery_beat.PeriodicTask": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "clocked",
+        "crontab",
+        "interval",
+        "solar",
+        "exchange",
+        "name",
+        "queue",
+        "routing_key",
+        "task",
+        "expire_seconds",
+        "priority",
+        "total_run_count",
+        "args",
+        "description",
+        "headers",
+        "kwargs",
+        "enabled",
+        "one_off",
+        "date_changed",
+        "expires",
+        "last_run_at",
+        "start_time"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "clocked": "#3b82f6",
+        "crontab": "#3b82f6",
+        "interval": "#3b82f6",
+        "solar": "#3b82f6",
+        "exchange": "#a855f7",
+        "name": "#a855f7",
+        "queue": "#a855f7",
+        "routing_key": "#a855f7",
+        "task": "#a855f7",
+        "expire_seconds": "#ef4444",
+        "priority": "#ef4444",
+        "total_run_count": "#ef4444",
+        "args": "#6366f1",
+        "description": "#6366f1",
+        "headers": "#6366f1",
+        "kwargs": "#6366f1",
+        "enabled": "#22c55e",
+        "one_off": "#22c55e",
+        "date_changed": "#f59e0b",
+        "expires": "#f59e0b",
+        "last_run_at": "#f59e0b",
+        "start_time": "#f59e0b"
+      }
+    },
+    "django_celery_beat.PeriodicTasks": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "ident": "#6b7280",
+        "last_update": "#f59e0b"
+      }
+    },
+    "django_celery_beat.SolarSchedule": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "event",
+        "latitude",
+        "longitude"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "event": "#a855f7",
+        "latitude": "#ef4444",
+        "longitude": "#ef4444"
+      }
+    },
+    "guardian.GroupObjectPermission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_object",
+        "content_type",
+        "group",
+        "permission",
+        "object_pk"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "group": "#3b82f6",
+        "permission": "#3b82f6",
+        "object_pk": "#a855f7"
+      }
+    },
+    "guardian.UserObjectPermission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_object",
+        "content_type",
+        "permission",
+        "user",
+        "object_pk"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "permission": "#3b82f6",
+        "user": "#3b82f6",
+        "object_pk": "#a855f7"
+      }
+    },
+    "library.Author": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "first_name",
+        "last_name",
+        "bio",
+        "born_on"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "first_name": "#a855f7",
+        "last_name": "#a855f7",
+        "bio": "#ef4444",
+        "born_on": "#f59e0b"
+      }
+    },
+    "library.Book": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "authors",
+        "genre",
+        "isbn",
+        "title",
+        "description",
+        "published_on"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "authors": "#3b82f6",
+        "genre": "#3b82f6",
+        "isbn": "#a855f7",
+        "title": "#a855f7",
+        "description": "#ef4444",
+        "published_on": "#f59e0b"
+      }
+    },
+    "library.Genre": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "id": "#6b7280",
+        "name": "#a855f7"
+      }
+    },
+    "library.Loan": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "book",
+        "member",
+        "status",
+        "details",
+        "due_on",
+        "loaned_on",
+        "returned_on"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "book": "#3b82f6",
+        "member": "#3b82f6",
+        "status": "#a855f7",
+        "details": "#ef4444",
+        "due_on": "#f59e0b",
+        "loaned_on": "#f59e0b",
+        "returned_on": "#f59e0b"
+      }
+    },
+    "library.Member": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user",
+        "notes",
+        "joined_on"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "user": "#3b82f6",
+        "notes": "#ef4444",
+        "joined_on": "#f59e0b"
+      }
+    },
+    "sessions.Session": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "session_key",
+        "session_data",
+        "expire_date"
+      ],
+      "fieldColors": {
+        "session_key": "#6b7280",
+        "session_data": "#ef4444",
+        "expire_date": "#f59e0b"
+      }
+    },
+    "sites.Site": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "domain",
+        "name"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "domain": "#a855f7",
+        "name": "#a855f7"
+      }
+    },
+    "socialaccount.SocialAccount": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user",
+        "provider",
+        "uid",
+        "extra_data",
+        "date_joined",
+        "last_login"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "user": "#3b82f6",
+        "provider": "#a855f7",
+        "uid": "#a855f7",
+        "extra_data": "#ef4444",
+        "date_joined": "#f59e0b",
+        "last_login": "#f59e0b"
+      }
+    },
+    "socialaccount.SocialApp": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "sites",
+        "client_id",
+        "key",
+        "name",
+        "provider",
+        "provider_id",
+        "secret",
+        "settings"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "sites": "#3b82f6",
+        "client_id": "#a855f7",
+        "key": "#a855f7",
+        "name": "#a855f7",
+        "provider": "#a855f7",
+        "provider_id": "#a855f7",
+        "secret": "#a855f7",
+        "settings": "#ef4444"
+      }
+    },
+    "socialaccount.SocialToken": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "account",
+        "app",
+        "token",
+        "token_secret",
+        "expires_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "account": "#3b82f6",
+        "app": "#3b82f6",
+        "token": "#ef4444",
+        "token_secret": "#ef4444",
+        "expires_at": "#f59e0b"
+      }
+    },
+    "store.Category": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "parent",
+        "name"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "parent": "#3b82f6",
+        "name": "#a855f7"
+      }
+    },
+    "store.Customer": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user",
+        "phone",
+        "address"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "user": "#3b82f6",
+        "phone": "#a855f7",
+        "address": "#ef4444"
+      }
+    },
+    "store.Order": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "customer",
+        "products",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "customer": "#3b82f6",
+        "products": "#3b82f6",
+        "status": "#a855f7",
+        "created_at": "#f59e0b",
+        "updated_at": "#f59e0b"
+      }
+    },
+    "store.OrderItem": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "order",
+        "product",
+        "unit_price",
+        "quantity"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "order": "#3b82f6",
+        "product": "#3b82f6",
+        "unit_price": "#ef4444",
+        "quantity": "#6366f1"
+      }
+    },
+    "store.Product": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "category",
+        "tags",
+        "name",
+        "price",
+        "stock",
+        "description",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "category": "#3b82f6",
+        "tags": "#3b82f6",
+        "name": "#a855f7",
+        "price": "#ef4444",
+        "stock": "#6366f1",
+        "description": "#ef4444",
+        "created_at": "#f59e0b"
+      }
+    },
+    "store.Review": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "customer",
+        "product",
+        "rating",
+        "body",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "customer": "#3b82f6",
+        "product": "#3b82f6",
+        "rating": "#ef4444",
+        "body": "#6366f1",
+        "created_at": "#f59e0b"
+      }
+    },
+    "store.Tag": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "id": "#6b7280",
+        "name": "#a855f7"
+      }
+    },
+    "taggit.Tag": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "id": "#6b7280",
+        "name": "#a855f7",
+        "slug": "#ef4444"
+      }
+    },
+    "taggit.TaggedItem": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_object",
+        "content_type",
+        "tag",
+        "object_id"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "tag": "#3b82f6",
+        "object_id": "#ef4444"
+      }
+    },
+    "tracker.Comment": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "author",
+        "task",
+        "body",
+        "created_at",
+        "updated_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "author": "#3b82f6",
+        "task": "#3b82f6",
+        "body": "#ef4444",
+        "created_at": "#f59e0b",
+        "updated_at": "#f59e0b"
+      }
+    },
+    "tracker.Project": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "owner",
+        "name",
+        "description",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "owner": "#3b82f6",
+        "name": "#a855f7",
+        "description": "#ef4444",
+        "created_at": "#f59e0b"
+      }
+    },
+    "tracker.Tag": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "id": "#6b7280",
+        "name": "#a855f7"
+      }
+    },
+    "tracker.Task": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "assignee",
+        "parent",
+        "project",
+        "tags",
+        "status",
+        "title",
+        "priority",
+        "description",
+        "due_date",
+        "created_at",
+        "updated_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "assignee": "#3b82f6",
+        "parent": "#3b82f6",
+        "project": "#3b82f6",
+        "tags": "#3b82f6",
+        "status": "#a855f7",
+        "title": "#a855f7",
+        "priority": "#ef4444",
+        "description": "#6366f1",
+        "due_date": "#f59e0b",
+        "created_at": "#f59e0b",
+        "updated_at": "#f59e0b"
+      }
+    },
+    "wagtailadmin.Admin": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "id": "#6b7280"
+      }
+    },
+    "wagtailadmin.EditingSession": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_object",
+        "content_type",
+        "user",
+        "object_id",
+        "is_editing",
+        "last_seen_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "user": "#3b82f6",
+        "object_id": "#a855f7",
+        "is_editing": "#22c55e",
+        "last_seen_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.Collection": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "name",
+        "path",
+        "depth",
+        "numchild"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "name": "#a855f7",
+        "path": "#a855f7",
+        "depth": "#ef4444",
+        "numchild": "#ef4444"
+      }
+    },
+    "wagtailcore.CollectionViewRestriction": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "collection",
+        "groups",
+        "password",
+        "restriction_type"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "collection": "#3b82f6",
+        "groups": "#3b82f6",
+        "password": "#a855f7",
+        "restriction_type": "#a855f7"
+      }
+    },
+    "wagtailcore.Comment": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "page",
+        "resolved_by",
+        "revision_created",
+        "user",
+        "contentpath",
+        "position",
+        "text",
+        "created_at",
+        "resolved_at",
+        "updated_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "page": "#3b82f6",
+        "resolved_by": "#3b82f6",
+        "revision_created": "#3b82f6",
+        "user": "#3b82f6",
+        "contentpath": "#ef4444",
+        "position": "#ef4444",
+        "text": "#ef4444",
+        "created_at": "#f59e0b",
+        "resolved_at": "#f59e0b",
+        "updated_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.CommentReply": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "comment",
+        "user",
+        "text",
+        "created_at",
+        "updated_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "comment": "#3b82f6",
+        "user": "#3b82f6",
+        "text": "#ef4444",
+        "created_at": "#f59e0b",
+        "updated_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.GroupApprovalTask": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "task_ptr",
+        "content_type",
+        "groups",
+        "name",
+        "active"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "task_ptr": "#6b7280",
+        "content_type": "#3b82f6",
+        "groups": "#3b82f6",
+        "name": "#a855f7",
+        "active": "#22c55e"
+      }
+    },
+    "wagtailcore.GroupCollectionPermission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "collection",
+        "group",
+        "permission"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "collection": "#3b82f6",
+        "group": "#3b82f6",
+        "permission": "#3b82f6"
+      }
+    },
+    "wagtailcore.GroupPagePermission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "group",
+        "page",
+        "permission"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "group": "#3b82f6",
+        "page": "#3b82f6",
+        "permission": "#3b82f6"
+      }
+    },
+    "wagtailcore.GroupSitePermission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "group",
+        "permission",
+        "site"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "group": "#3b82f6",
+        "permission": "#3b82f6",
+        "site": "#3b82f6"
+      }
+    },
+    "wagtailcore.Locale": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "id": "#6b7280",
+        "language_code": "#a855f7"
+      }
+    },
+    "wagtailcore.ModelLogEntry": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_type",
+        "revision",
+        "user",
+        "action",
+        "object_id",
+        "data",
+        "label",
+        "uuid",
+        "content_changed",
+        "deleted",
+        "timestamp"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_type": "#3b82f6",
+        "revision": "#3b82f6",
+        "user": "#3b82f6",
+        "action": "#a855f7",
+        "object_id": "#a855f7",
+        "data": "#ef4444",
+        "label": "#6366f1",
+        "uuid": "#f97316",
+        "content_changed": "#22c55e",
+        "deleted": "#22c55e",
+        "timestamp": "#f59e0b"
+      }
+    },
+    "wagtailcore.Page": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "_revisions",
+        "_specific_workflow_states",
+        "_workflow_states",
+        "alias_of",
+        "content_type",
+        "index_entries",
+        "latest_revision",
+        "live_revision",
+        "locale",
+        "locked_by",
+        "owner",
+        "draft_title",
+        "path",
+        "seo_title",
+        "title",
+        "depth",
+        "numchild",
+        "slug",
+        "search_description",
+        "url_path",
+        "translation_key",
+        "expired",
+        "has_unpublished_changes",
+        "live",
+        "locked",
+        "show_in_menus",
+        "expire_at",
+        "first_published_at",
+        "go_live_at",
+        "last_published_at",
+        "latest_revision_created_at",
+        "locked_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "_revisions": "#3b82f6",
+        "_specific_workflow_states": "#3b82f6",
+        "_workflow_states": "#3b82f6",
+        "alias_of": "#3b82f6",
+        "content_type": "#3b82f6",
+        "index_entries": "#3b82f6",
+        "latest_revision": "#3b82f6",
+        "live_revision": "#3b82f6",
+        "locale": "#3b82f6",
+        "locked_by": "#3b82f6",
+        "owner": "#3b82f6",
+        "draft_title": "#a855f7",
+        "path": "#a855f7",
+        "seo_title": "#a855f7",
+        "title": "#a855f7",
+        "depth": "#ef4444",
+        "numchild": "#ef4444",
+        "slug": "#6366f1",
+        "search_description": "#f97316",
+        "url_path": "#f97316",
+        "translation_key": "#a855f7",
+        "expired": "#22c55e",
+        "has_unpublished_changes": "#22c55e",
+        "live": "#22c55e",
+        "locked": "#22c55e",
+        "show_in_menus": "#22c55e",
+        "expire_at": "#f59e0b",
+        "first_published_at": "#f59e0b",
+        "go_live_at": "#f59e0b",
+        "last_published_at": "#f59e0b",
+        "latest_revision_created_at": "#f59e0b",
+        "locked_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.PageLogEntry": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_type",
+        "page",
+        "revision",
+        "user",
+        "action",
+        "data",
+        "label",
+        "uuid",
+        "content_changed",
+        "deleted",
+        "timestamp"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_type": "#3b82f6",
+        "page": "#3b82f6",
+        "revision": "#3b82f6",
+        "user": "#3b82f6",
+        "action": "#a855f7",
+        "data": "#ef4444",
+        "label": "#6366f1",
+        "uuid": "#f97316",
+        "content_changed": "#22c55e",
+        "deleted": "#22c55e",
+        "timestamp": "#f59e0b"
+      }
+    },
+    "wagtailcore.PageSubscription": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "page",
+        "user",
+        "comment_notifications"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "page": "#3b82f6",
+        "user": "#3b82f6",
+        "comment_notifications": "#22c55e"
+      }
+    },
+    "wagtailcore.PageViewRestriction": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "groups",
+        "page",
+        "password",
+        "restriction_type"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "groups": "#3b82f6",
+        "page": "#3b82f6",
+        "password": "#a855f7",
+        "restriction_type": "#a855f7"
+      }
+    },
+    "wagtailcore.ReferenceIndex": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "base_content_type",
+        "content_type",
+        "to_content_type",
+        "object_id",
+        "to_object_id",
+        "content_path",
+        "model_path",
+        "content_path_hash"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "base_content_type": "#3b82f6",
+        "content_type": "#3b82f6",
+        "to_content_type": "#3b82f6",
+        "object_id": "#a855f7",
+        "to_object_id": "#a855f7",
+        "content_path": "#ef4444",
+        "model_path": "#ef4444",
+        "content_path_hash": "#6366f1"
+      }
+    },
+    "wagtailcore.Revision": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "base_content_type",
+        "content_object",
+        "content_type",
+        "user",
+        "object_id",
+        "content",
+        "object_str",
+        "approved_go_live_at",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "base_content_type": "#3b82f6",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "user": "#3b82f6",
+        "object_id": "#a855f7",
+        "content": "#ef4444",
+        "object_str": "#6366f1",
+        "approved_go_live_at": "#f59e0b",
+        "created_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.Site": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "root_page",
+        "hostname",
+        "site_name",
+        "port",
+        "is_default_site"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "root_page": "#3b82f6",
+        "hostname": "#a855f7",
+        "site_name": "#a855f7",
+        "port": "#ef4444",
+        "is_default_site": "#22c55e"
+      }
+    },
+    "wagtailcore.Task": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_type",
+        "name",
+        "active"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_type": "#3b82f6",
+        "name": "#a855f7",
+        "active": "#22c55e"
+      }
+    },
+    "wagtailcore.TaskState": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_type",
+        "finished_by",
+        "revision",
+        "task",
+        "workflow_state",
+        "status",
+        "comment",
+        "finished_at",
+        "started_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_type": "#3b82f6",
+        "finished_by": "#3b82f6",
+        "revision": "#3b82f6",
+        "task": "#3b82f6",
+        "workflow_state": "#3b82f6",
+        "status": "#a855f7",
+        "comment": "#ef4444",
+        "finished_at": "#f59e0b",
+        "started_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.UploadedFile": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "for_content_type",
+        "uploaded_by_user",
+        "file"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "for_content_type": "#3b82f6",
+        "uploaded_by_user": "#3b82f6",
+        "file": "#ef4444"
+      }
+    },
+    "wagtailcore.Workflow": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "name",
+        "active"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "name": "#a855f7",
+        "active": "#22c55e"
+      }
+    },
+    "wagtailcore.WorkflowContentType": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "content_type": "#6b7280",
+        "workflow": "#3b82f6"
+      }
+    },
+    "wagtailcore.WorkflowPage": {
+      "hiddenFields": [],
+      "fieldOrder": null,
+      "fieldColors": {
+        "page": "#6b7280",
+        "workflow": "#3b82f6"
+      }
+    },
+    "wagtailcore.WorkflowState": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "base_content_type",
+        "content_object",
+        "content_type",
+        "current_task_state",
+        "requested_by",
+        "workflow",
+        "object_id",
+        "status",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "base_content_type": "#3b82f6",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "current_task_state": "#3b82f6",
+        "requested_by": "#3b82f6",
+        "workflow": "#3b82f6",
+        "object_id": "#a855f7",
+        "status": "#a855f7",
+        "created_at": "#f59e0b"
+      }
+    },
+    "wagtailcore.WorkflowTask": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "task",
+        "workflow",
+        "sort_order"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "task": "#3b82f6",
+        "workflow": "#3b82f6",
+        "sort_order": "#ef4444"
+      }
+    },
+    "wagtaildocs.Document": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "collection",
+        "index_entries",
+        "tagged_items",
+        "tags",
+        "uploaded_by_user",
+        "file_hash",
+        "title",
+        "file",
+        "file_size",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "collection": "#3b82f6",
+        "index_entries": "#3b82f6",
+        "tagged_items": "#3b82f6",
+        "tags": "#3b82f6",
+        "uploaded_by_user": "#3b82f6",
+        "file_hash": "#a855f7",
+        "title": "#a855f7",
+        "file": "#ef4444",
+        "file_size": "#6366f1",
+        "created_at": "#f59e0b"
+      }
+    },
+    "wagtailembeds.Embed": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "hash",
+        "type",
+        "height",
+        "width",
+        "max_width",
+        "author_name",
+        "html",
+        "provider_name",
+        "thumbnail_url",
+        "title",
+        "url",
+        "cache_until",
+        "last_updated"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "hash": "#a855f7",
+        "type": "#a855f7",
+        "height": "#ef4444",
+        "width": "#ef4444",
+        "max_width": "#6366f1",
+        "author_name": "#ef4444",
+        "html": "#ef4444",
+        "provider_name": "#ef4444",
+        "thumbnail_url": "#ef4444",
+        "title": "#ef4444",
+        "url": "#ef4444",
+        "cache_until": "#f59e0b",
+        "last_updated": "#f59e0b"
+      }
+    },
+    "wagtailforms.FormSubmission": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "page",
+        "form_data",
+        "submit_time"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "page": "#3b82f6",
+        "form_data": "#ef4444",
+        "submit_time": "#f59e0b"
+      }
+    },
+    "wagtailimages.Image": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "collection",
+        "index_entries",
+        "tagged_items",
+        "tags",
+        "uploaded_by_user",
+        "description",
+        "file_hash",
+        "title",
+        "height",
+        "width",
+        "file_size",
+        "focal_point_height",
+        "focal_point_width",
+        "focal_point_x",
+        "focal_point_y",
+        "file",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "collection": "#3b82f6",
+        "index_entries": "#3b82f6",
+        "tagged_items": "#3b82f6",
+        "tags": "#3b82f6",
+        "uploaded_by_user": "#3b82f6",
+        "description": "#a855f7",
+        "file_hash": "#a855f7",
+        "title": "#a855f7",
+        "height": "#ef4444",
+        "width": "#ef4444",
+        "file_size": "#6366f1",
+        "focal_point_height": "#6366f1",
+        "focal_point_width": "#6366f1",
+        "focal_point_x": "#6366f1",
+        "focal_point_y": "#6366f1",
+        "file": "#ef4444",
+        "created_at": "#f59e0b"
+      }
+    },
+    "wagtailimages.Rendition": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "image",
+        "filter_spec",
+        "focal_point_key",
+        "height",
+        "width",
+        "file"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "image": "#3b82f6",
+        "filter_spec": "#a855f7",
+        "focal_point_key": "#a855f7",
+        "height": "#ef4444",
+        "width": "#ef4444",
+        "file": "#6366f1"
+      }
+    },
+    "wagtailredirects.Redirect": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "redirect_page",
+        "site",
+        "old_path",
+        "redirect_page_route_path",
+        "redirect_link",
+        "automatically_created",
+        "is_permanent",
+        "created_at"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "redirect_page": "#3b82f6",
+        "site": "#3b82f6",
+        "old_path": "#a855f7",
+        "redirect_page_route_path": "#a855f7",
+        "redirect_link": "#ef4444",
+        "automatically_created": "#22c55e",
+        "is_permanent": "#22c55e",
+        "created_at": "#f59e0b"
+      }
+    },
+    "wagtailsearch.IndexEntry": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "content_object",
+        "content_type",
+        "object_id",
+        "title_norm",
+        "autocomplete",
+        "body",
+        "title"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "content_object": "#3b82f6",
+        "content_type": "#3b82f6",
+        "object_id": "#a855f7",
+        "title_norm": "#ef4444",
+        "autocomplete": "#6366f1",
+        "body": "#6366f1",
+        "title": "#6366f1"
+      }
+    },
+    "wagtailsearch.SQLiteFTSIndexEntry": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "index_entry",
+        "autocomplete",
+        "body",
+        "title"
+      ],
+      "fieldColors": {
+        "index_entry": "#6b7280",
+        "autocomplete": "#ef4444",
+        "body": "#ef4444",
+        "title": "#ef4444"
+      }
+    },
+    "wagtailusers.UserProfile": {
+      "hiddenFields": [],
+      "fieldOrder": [
+        "id",
+        "user",
+        "contrast",
+        "current_time_zone",
+        "density",
+        "preferred_language",
+        "theme",
+        "avatar",
+        "dismissibles",
+        "approved_notifications",
+        "keyboard_shortcuts",
+        "rejected_notifications",
+        "submitted_notifications",
+        "updated_comments_notifications"
+      ],
+      "fieldColors": {
+        "id": "#6b7280",
+        "user": "#3b82f6",
+        "contrast": "#a855f7",
+        "current_time_zone": "#a855f7",
+        "density": "#a855f7",
+        "preferred_language": "#a855f7",
+        "theme": "#a855f7",
+        "avatar": "#ef4444",
+        "dismissibles": "#6366f1",
+        "approved_notifications": "#22c55e",
+        "keyboard_shortcuts": "#22c55e",
+        "rejected_notifications": "#22c55e",
+        "submitted_notifications": "#22c55e",
+        "updated_comments_notifications": "#22c55e"
+      }
+    }
+  },
+  "edgeOffsets": {},
+  "annotations": {
+    "textBlocks": {},
+    "arrows": {}
+  },
+  "typeColors": {
+    "CharField": "#a855f7"
+  },
+  "physics": {
+    "edgeStyle": "bezier",
+    "liveDragPhysics": false,
+    "forceParams": {
+      "alphaDecay": 0.0228,
+      "alphaMin": 0.001,
+      "velocityDecay": 0.4,
+      "chargeStrength": -400,
+      "linkDistance": 180,
+      "collisionRadius": 80
+    },
+    "appMode": "normal",
+    "colorPalette": "pastel",
+    "backgroundStyle": "dots",
+    "minimapVisible": true,
+    "sidebarOpen": false,
+    "colorByType": true
+  }
+}

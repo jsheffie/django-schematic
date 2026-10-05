@@ -36,6 +36,7 @@ describe.each([
   ["export-v3.png", 3],
   ["export-v4.png", 4],
   ["export-v5.png", 5],
+  ["export-v6.png", 6],
 ])("%s", (file, version) => {
   it("is a well-formed PNG with the config in a tEXt chunk before IEND", () => {
     const bytes = pngFixture(file);
@@ -153,6 +154,19 @@ describe("export-v5.png", () => {
     expect(s.textBlocks.get("tb_muu6m94ohv0d17")?.style).toBe("title");
     expect(s.arrows.get("ar_muu6i3ksv56l6k")?.to).toEqual({ nodeId: "library.Book" });
     expect(s.arrows.get("ar_muu6nil9hedchv")?.from).toEqual({ x: 690, y: 367.66666666666663 });
+  });
+});
+
+describe("export-v6.png", () => {
+  it("carries exactly the bytes committed as config-v6.json", () => {
+    expect(extractTextChunk(pngFixture("export-v6.png"), "schematic")).toBe(textFixture("config-v6.json"));
+  });
+
+  it("restores the type colors the way File → Import PNG does", () => {
+    importConfig(extractTextChunk(pngFixture("export-v6.png"), "schematic")!);
+    const s = useSchemaStore.getState();
+    expect(s.typeColors).toEqual({ CharField: "#a855f7" });
+    expect(s.fieldEdits.get("library.Genre")?.fieldColors).toEqual({ id: "#6b7280", name: "#a855f7" });
   });
 });
 

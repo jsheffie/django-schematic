@@ -289,6 +289,141 @@ describe("sortAllFieldsByType", () => {
   });
 });
 
+describe("sort by type with colors (issue #115)", () => {
+  const field = (name: string, field_type: string, extra: Partial<FieldInfo> = {}): FieldInfo => ({
+    name,
+    field_type,
+    internal_type: field_type,
+    is_relation: false,
+    null: false,
+    unique: false,
+    primary_key: false,
+    ...extra,
+  });
+  const fields = [
+    field("created_at", "DateTimeField"),
+    field("customer", "ForeignKey", { is_relation: true }),
+    field("id", "BigAutoField", { primary_key: true }),
+    field("is_paid", "BooleanField"),
+    field("status", "CharField"),
+  ];
+  const TYPE_COLORS = {
+    id: "#6b7280", customer: "#3b82f6", status: "#ef4444", is_paid: "#22c55e", created_at: "#f59e0b",
+  };
+  const s = () => useSchemaStore.getState();
+
+  beforeEach(() => {
+    useSchemaStore.setState({ fieldEdits: new Map(), typeColors: {} });
+  });
+
+  it("sorts and colors in a single store update", () => {
+    let updates = 0;
+    const unsub = useSchemaStore.subscribe(() => updates++);
+    s().sortFieldsByType("shop.Order", fields, { withColors: true });
+    unsub();
+
+    expect(updates).toBe(1);
+    expect(s().fieldEdits.get("shop.Order")).toEqual({
+      hiddenFields: [],
+      fieldOrder: ["id", "customer", "status", "is_paid", "created_at"],
+      fieldColors: TYPE_COLORS,
+    });
+  });
+
+  it("replaces a row's override when run again with colors on", () => {
+    s().sortFieldsByType("shop.Order", fields, { withColors: true });
+    s().setFieldColor("shop.Order", "status", "#a855f7");
+    s().setFieldColor("shop.Order", "ghost", "#a855f7"); // a field no longer in the schema
+    s().sortFieldsByType("shop.Order", fields, { withColors: true });
+    expect(s().fieldEdits.get("shop.Order")?.fieldColors).toEqual(TYPE_COLORS);
+  });
+
+  it("leaves colors alone with colors off", () => {
+    s().sortFieldsByType("shop.Order", fields, { withColors: true });
+    s().setFieldColor("shop.Order", "status", "#a855f7");
+    s().sortFieldsByType("shop.Order", fields, { withColors: false });
+    expect(s().fieldEdits.get("shop.Order")?.fieldColors).toEqual({ ...TYPE_COLORS, status: "#a855f7" });
+  });
+
+  it("keeps hidden fields, and colors them too", () => {
+    s().toggleFieldHidden("shop.Order", "status");
+    s().sortFieldsByType("shop.Order", fields, { withColors: true });
+    const e = s().fieldEdits.get("shop.Order");
+    expect(e?.hiddenFields).toEqual(["status"]);
+    expect(e?.fieldColors.status).toBe("#ef4444");
+  });
+
+  it("reads the type color map from the store", () => {
+    s().setTypeColor("CharField", "#6366f1");
+    s().setTypeColor("pk", "#a855f7");
+    s().sortFieldsByType("shop.Order", fields, { withColors: true });
+    expect(s().fieldEdits.get("shop.Order")?.fieldColors).toMatchObject({ status: "#6366f1", id: "#a855f7" });
+  });
+
+  it("sorts and colors every node at once from the toolbar", () => {
+    const tag = { id: "shop.Tag", fields: [field("code", "SlugField"), field("name", "CharField")] };
+    let updates = 0;
+    const unsub = useSchemaStore.subscribe(() => updates++);
+    s().sortAllFieldsByType([{ id: "shop.Order", fields }, tag], { withColors: true });
+    unsub();
+
+    expect(updates).toBe(1);
+    expect(s().fieldEdits.get("shop.Order")?.fieldColors).toEqual(TYPE_COLORS);
+    expect(s().fieldEdits.get("shop.Tag")).toEqual({
+      hiddenFields: [],
+      fieldOrder: ["name", "code"],
+      fieldColors: { name: "#ef4444", code: "#6366f1" },
+    });
+  });
+
+  it("keeps a node whose natural order is already sorted when it gains colors", () => {
+    const author = {
+      id: "shop.Author",
+      fields: [field("id", "BigAutoField", { primary_key: true }), field("name", "CharField")],
+    };
+    s().sortAllFieldsByType([author], { withColors: true });
+    expect(s().fieldEdits.get("shop.Author")).toEqual({
+      hiddenFields: [],
+      fieldOrder: null,
+      fieldColors: { id: "#6b7280", name: "#ef4444" },
+    });
+  });
+});
+
+describe("typeColors", () => {
+  const s = () => useSchemaStore.getState();
+  beforeEach(() => useSchemaStore.setState({ typeColors: {} }));
+
+  it("stores and clears one entry at a time, staying sparse", () => {
+    s().setTypeColor("CharField", "#22c55e");
+    s().setTypeColor("pk", "#ef4444");
+    expect(s().typeColors).toEqual({ CharField: "#22c55e", pk: "#ef4444" });
+    s().setTypeColor("CharField", null);
+    expect(s().typeColors).toEqual({ pk: "#ef4444" });
+  });
+
+  it("restores defaults by clearing every entry", () => {
+    s().setTypeColor("CharField", "#22c55e");
+    s().resetTypeColors();
+    expect(s().typeColors).toEqual({});
+  });
+
+  it("is a setting, so File > Reset leaves it alone", () => {
+    s().setTypeColor("CharField", "#22c55e");
+    s().resetConfig();
+    expect(s().typeColors).toEqual({ CharField: "#22c55e" });
+  });
+});
+
+describe("physicsStore.colorByType", () => {
+  it("defaults to off and toggles", () => {
+    expect(usePhysicsStore.getState().colorByType).toBe(false);
+    usePhysicsStore.getState().setColorByType(true);
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+    usePhysicsStore.getState().setColorByType(false);
+  });
+});
+
 describe("annotations", () => {
   beforeEach(() => useSchemaStore.setState({ textBlocks: new Map(), arrows: new Map() }));
   const block = { x: 0, y: 0, width: 200, height: 72, text: "hi", style: "note" as const };

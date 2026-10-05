@@ -22,7 +22,8 @@ beforeEach(() => {
   useSchemaStore.getState().resetConfig();
   useSchemaStore.setState({ visibleNodeIds: new Set(), schemaInitialized: false });
   // Sentinels: a legacy import must not leave these untouched by accident.
-  usePhysicsStore.setState({ edgeStyle: "step", colorPalette: "muted" });
+  usePhysicsStore.setState({ edgeStyle: "step", colorPalette: "muted", colorByType: false });
+  useSchemaStore.setState({ typeColors: {} });
 });
 
 describe("every committed config fixture still imports", () => {
@@ -32,6 +33,7 @@ describe("every committed config fixture still imports", () => {
     expect(files).toEqual(
       expect.arrayContaining([
         "config-v1.json", "config-v2.json", "config-v3.json", "config-v4.json", "config-v5.json",
+        "config-v6.json",
       ]),
     );
   });
@@ -269,6 +271,60 @@ describe("config-v5.json", () => {
     importConfig(fixture("config-v4.json"));
     expect(useSchemaStore.getState().textBlocks.size).toBe(0);
     expect(useSchemaStore.getState().arrows.size).toBe(0);
+  });
+});
+
+describe("config-v6.json", () => {
+  it("restores the type color map, the Color by type toggle and the type-colored tables", () => {
+    const viewport = importConfig(fixture("config-v6.json"));
+    const s = useSchemaStore.getState();
+
+    expect(s.visibleNodeIds).toEqual(
+      new Set(["library.Author", "library.Book", "library.Genre", "library.Loan", "library.Member"]),
+    );
+    expect(viewport).toEqual({
+      x: 69,
+      y: 259.83333333333337,
+      zoom: 2,
+      canvasSize: { width: 1720, height: 1272 },
+    });
+    expect(s.typeColors).toEqual({ CharField: "#a855f7" });
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+
+    // Exported after Sort all tables with "Also color fields by type": every table
+    // in the schema got an entry, not only the visible ones.
+    expect(s.fieldEdits.size).toBe(74);
+    expect(s.fieldEdits.get("library.Loan")).toEqual({
+      hiddenFields: [],
+      fieldOrder: ["id", "book", "member", "status", "details", "due_on", "loaned_on", "returned_on"],
+      fieldColors: {
+        id: "#6b7280",
+        book: "#3b82f6", member: "#3b82f6",
+        status: "#a855f7", // CharField, pinned in the type color map
+        details: "#ef4444", // TextField, Auto
+        due_on: "#f59e0b", loaned_on: "#f59e0b", returned_on: "#f59e0b",
+      },
+    });
+    // Already in sorted order, so no order override, but the colors are stored.
+    expect(s.fieldEdits.get("library.Genre")).toEqual({
+      hiddenFields: [],
+      fieldOrder: null,
+      fieldColors: { id: "#6b7280", name: "#a855f7" },
+    });
+  });
+
+  it("is replaced by a v5 import: no type color overrides, toggle left as it was", () => {
+    importConfig(fixture("config-v6.json"));
+    importConfig(fixture("config-v5.json"));
+    expect(useSchemaStore.getState().typeColors).toEqual({});
+    expect(usePhysicsStore.getState().colorByType).toBe(true);
+  });
+
+  it("keeps its type colors through File > Reset", () => {
+    importConfig(fixture("config-v6.json"));
+    useSchemaStore.getState().resetConfig();
+    expect(useSchemaStore.getState().typeColors).toEqual({ CharField: "#a855f7" });
+    expect(useSchemaStore.getState().fieldEdits.size).toBe(0);
   });
 });
 

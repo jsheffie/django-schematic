@@ -1,12 +1,14 @@
 import { create } from "zustand";
 import {
   EMPTY_FIELD_EDITS,
+  autoFieldColors,
   autoFieldOrder,
   isEmptyEdits,
   orderedFields,
   type FieldEdits,
+  type TypeColorMap,
 } from "../lib/fieldEdits";
-import type { NodeInfo } from "../lib/types";
+import type { FieldInfo, NodeInfo } from "../lib/types";
 import {
   isAttached,
   newArrowId,
@@ -39,6 +41,10 @@ interface SchemaStore {
   // Per-node field presentation edits (issue #93). Sparse: only edited nodes
   // have entries; an entry whose edits are all cleared is removed.
   fieldEdits: Map<string, FieldEdits>;
+
+  // Field type color overrides for "Color by type" (issue #115), sparse: see
+  // TypeColorMap. A setting like the palette, so resetConfig leaves it alone.
+  typeColors: TypeColorMap;
 
   // Per-edge midpoint offsets for the smart bezier style (issue #96), relative
   // to the curve's natural midpoint. Sparse: keyed by React Flow edge id
@@ -76,9 +82,19 @@ interface SchemaStore {
   // Keyboard reorder (issue #102): move one field by `delta` rows in the current
   // order, clamped to the ends (±Infinity moves to the top / bottom).
   moveField: (nodeId: string, fieldName: string, delta: number, naturalOrder: string[]) => void;
-  // "Sort all tables by type" (issue #117): autoFieldOrder on every node, in one update.
-  sortAllFieldsByType: (nodes: ReadonlyArray<Pick<NodeInfo, "id" | "fields">>) => void;
+  // "Sort by type" (issue #111): autoFieldOrder, and with `withColors` (issue
+  // #115) also replace every field color with its type color, in one update.
+  sortFieldsByType: (nodeId: string, fields: FieldInfo[], opts?: SortByTypeOptions) => void;
+  // "Sort all tables by type" (issue #117): sortFieldsByType on every node, in one update.
+  sortAllFieldsByType: (
+    nodes: ReadonlyArray<Pick<NodeInfo, "id" | "fields">>,
+    opts?: SortByTypeOptions,
+  ) => void;
   setFieldColor: (nodeId: string, fieldName: string, color: string | null) => void;
+
+  // Type colors
+  setTypeColor: (key: string, color: string | null) => void; // null = back to default / Auto
+  resetTypeColors: () => void;
   resetFieldEdits: (nodeId: string) => void;
 
   // Edge shaping
@@ -121,6 +137,23 @@ interface SchemaStore {
   resetConfig: () => void;
 }
 
+export interface SortByTypeOptions {
+  withColors?: boolean;
+}
+
+// The edits after "Sort by type" on one node: order from autoFieldOrder, and
+// with `withColors` the colors replaced from scratch (hidden fields kept).
+function sortedEdits(
+  cur: FieldEdits,
+  fields: FieldInfo[],
+  typeColors: TypeColorMap,
+  { withColors = false }: SortByTypeOptions,
+): FieldEdits {
+  const fieldOrder = normalizeFieldOrder(autoFieldOrder(fields), fields.map((f) => f.name));
+  const fieldColors = withColors ? autoFieldColors(fields, typeColors) : cur.fieldColors;
+  return { ...cur, fieldOrder, fieldColors };
+}
+
 // An order identical to the node's natural order is stored as null (no override).
 function normalizeFieldOrder(order: string[], naturalOrder: string[]): string[] | null {
   const isNatural =
@@ -154,6 +187,7 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   canvasHidePositions: new Map(),
   canvasLayoutSuppressVersion: 0,
   fieldEdits: new Map(),
+  typeColors: {},
   edgeOffsets: new Map(),
   textBlocks: new Map(),
   arrows: new Map(),
@@ -270,16 +304,19 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldOrder }) };
     }),
 
-  sortAllFieldsByType: (nodes) =>
+  sortFieldsByType: (nodeId, fields, opts = {}) =>
+    set((s) => {
+      const cur = s.fieldEdits.get(nodeId) ?? EMPTY_FIELD_EDITS;
+      const edits = sortedEdits(cur, fields, s.typeColors, opts);
+      return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, edits) };
+    }),
+
+  sortAllFieldsByType: (nodes, opts = {}) =>
     set((s) => {
       let next = s.fieldEdits;
       for (const node of nodes) {
         const cur = next.get(node.id) ?? EMPTY_FIELD_EDITS;
-        const fieldOrder = normalizeFieldOrder(
-          autoFieldOrder(node.fields),
-          node.fields.map((f) => f.name),
-        );
-        next = commitFieldEdits(next, node.id, { ...cur, fieldOrder });
+        next = commitFieldEdits(next, node.id, sortedEdits(cur, node.fields, s.typeColors, opts));
       }
       return { fieldEdits: next };
     }),
@@ -292,6 +329,16 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
       else fieldColors[fieldName] = color;
       return { fieldEdits: commitFieldEdits(s.fieldEdits, nodeId, { ...cur, fieldColors }) };
     }),
+
+  setTypeColor: (key, color) =>
+    set((s) => {
+      const typeColors = { ...s.typeColors };
+      if (color === null) delete typeColors[key];
+      else typeColors[key] = color;
+      return { typeColors };
+    }),
+
+  resetTypeColors: () => set({ typeColors: {} }),
 
   resetFieldEdits: (nodeId) =>
     set((s) => {

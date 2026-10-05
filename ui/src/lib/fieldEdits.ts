@@ -124,3 +124,131 @@ export function autoFieldOrder(fields: FieldInfo[]): string[] {
     })
     .map((f) => f.name);
 }
+
+// --- Color by type (issue #115) -----------------------------------------------
+
+/**
+ * Field type color overrides, keyed by group key (see `fieldGroupKey`):
+ * "pk", "relation", "boolean", "datetime", or a middle-bucket `field_type`.
+ * Sparse: a missing key means the bucket default, or Auto for a type.
+ */
+export type TypeColorMap = Record<string, string>;
+
+/** Bucket group keys, in sort order around the middle (per-type) bucket. */
+export type BucketKey = "pk" | "relation" | "boolean" | "datetime";
+
+export const DEFAULT_TYPE_COLORS: Readonly<Record<BucketKey, string>> = {
+  pk: "#6b7280", // gray
+  relation: "#3b82f6", // blue
+  boolean: "#22c55e", // green
+  datetime: "#f59e0b", // amber
+};
+
+/**
+ * What Auto types cycle through: every swatch the buckets do not use by
+ * default, ordered so consecutive entries are never close in hue.
+ */
+export const AUTO_TYPE_COLORS: readonly string[] = [
+  "#ef4444", // red
+  "#6366f1", // indigo
+  "#f97316", // orange
+  "#a855f7", // purple
+];
+
+// Swatch pairs that are hard to tell apart as 30% row tints.
+const NEAR_COLORS: ReadonlyArray<readonly [string, string]> = [
+  ["#ef4444", "#f97316"], // red, orange
+  ["#f97316", "#f59e0b"], // orange, amber
+  ["#3b82f6", "#6366f1"], // blue, indigo
+  ["#6366f1", "#a855f7"], // indigo, purple
+];
+
+function looksLike(a: string, b: string | null): boolean {
+  if (b === null) return false;
+  return a === b || NEAR_COLORS.some(([x, y]) => (a === x && b === y) || (a === y && b === x));
+}
+
+const BUCKET_KEYS = ["pk", "relation", "", "boolean", "datetime"] as const;
+
+/**
+ * The color group a field belongs to. Built on the sort's own bucket function
+ * so coloring and sorting can never disagree: one key per bucket, except the
+ * middle bucket, which (like the sort) groups by the shown `field_type`.
+ */
+export function fieldGroupKey(f: FieldInfo): string {
+  const bucket = sortBucket(f);
+  return bucket === 2 ? f.field_type : BUCKET_KEYS[bucket];
+}
+
+function isBucketKey(key: string): key is BucketKey {
+  return Object.hasOwn(DEFAULT_TYPE_COLORS, key);
+}
+
+/** The middle-bucket types among `fields`, distinct and alphabetical: the per-type rows in Settings. */
+export function typeColorGroups(fields: Iterable<FieldInfo>): string[] {
+  const keys = new Set<string>();
+  for (const f of fields) {
+    const key = fieldGroupKey(f);
+    if (!isBucketKey(key)) keys.add(key);
+  }
+  return [...keys].sort(compareNames);
+}
+
+/** The color a group always gets, or null when it is an Auto type. Non-swatch map entries are ignored. */
+export function fixedTypeColor(key: string, typeColors: TypeColorMap): string | null {
+  const picked = Object.hasOwn(typeColors, key) ? typeColors[key] : undefined;
+  if (picked !== undefined && FIELD_COLOR_SWATCHES.includes(picked)) return picked;
+  return isBucketKey(key) ? DEFAULT_TYPE_COLORS[key] : null;
+}
+
+/**
+ * A color for every field (hidden ones included), by type group, for "Sort by
+ * type" with Color by type on. Groups with a fixed color (a bucket, or a type
+ * the user picked a color for) get it; Auto types cycle through
+ * AUTO_TYPE_COLORS in sorted group order, skipping a color that matches or
+ * looks like the group before or a fixed group after, so adjacent groups are
+ * easy to tell apart. Pure.
+ */
+export function autoFieldColors(fields: FieldInfo[], typeColors: TypeColorMap = {}): Record<string, string> {
+  const byName = new Map(fields.map((f) => [f.name, f]));
+  // Groups in display order; autoFieldOrder keeps each group contiguous.
+  const groups: { key: string; names: string[] }[] = [];
+  for (const name of autoFieldOrder(fields)) {
+    const key = fieldGroupKey(byName.get(name)!);
+    const last = groups[groups.length - 1];
+    if (last?.key === key) last.names.push(name);
+    else groups.push({ key, names: [name] });
+  }
+
+  const fixed = groups.map((g) => fixedTypeColor(g.key, typeColors));
+  const colors: Record<string, string> = {};
+  let previous: string | null = null;
+  let cursor = 0;
+  groups.forEach((group, i) => {
+    let color = fixed[i];
+    if (color === null) {
+      const next = fixed[i + 1] ?? null;
+      // Prefer a color unlike either neighbour, then one merely different, in cycle order.
+      const tests = [
+        (c: string) => !looksLike(c, previous) && !looksLike(c, next),
+        (c: string) => c !== previous && c !== next,
+        () => true,
+      ];
+      let index = cursor % AUTO_TYPE_COLORS.length;
+      search: for (const ok of tests) {
+        for (let step = 0; step < AUTO_TYPE_COLORS.length; step++) {
+          const candidate = (cursor + step) % AUTO_TYPE_COLORS.length;
+          if (ok(AUTO_TYPE_COLORS[candidate])) {
+            index = candidate;
+            break search;
+          }
+        }
+      }
+      color = AUTO_TYPE_COLORS[index];
+      cursor = index + 1;
+    }
+    for (const name of group.names) colors[name] = color;
+    previous = color;
+  });
+  return colors;
+}

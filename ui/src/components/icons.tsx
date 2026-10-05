@@ -53,6 +53,20 @@ export function IconSortByType({ className = "w-4 h-4", strokeWidth = 2 }: { cla
   );
 }
 
+/**
+ * Color by type: three type-group bands, faded while `on` is false. Always in
+ * color: gray bars would read as a menu or the row reorder handle.
+ */
+export function IconColorByType({ className = "w-4 h-4", on = false }: { className?: string; on?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" opacity={on ? 1 : 0.4}>
+      {["#3b82f6", "#ef4444", "#f59e0b"].map((fill, i) => (
+        <rect key={fill} x="3" y={3.5 + i * 6.5} width="18" height="4" rx="1.5" fill={fill} />
+      ))}
+    </svg>
+  );
+}
+
 // Toolbar "Annotate" section.
 
 /** Text block: a capital T, the universal "add text" glyph. */

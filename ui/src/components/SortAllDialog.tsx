@@ -6,6 +6,9 @@ interface Props {
   open: boolean;
   /** Labels of the tables whose custom field order the sort would replace. */
   affected: string[];
+  /** The shared "Color by type" preference (issue #115). */
+  colorByType: boolean;
+  onColorByTypeChange: (on: boolean) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -23,7 +26,14 @@ const MAX_NAMES = 6;
  * with a CSS transform, which would make it the containing block for a
  * `fixed` child and pin the modal to the toolbar instead of the viewport.
  */
-export default function SortAllDialog({ open, affected, onConfirm, onCancel }: Props) {
+export default function SortAllDialog({
+  open,
+  affected,
+  colorByType,
+  onColorByTypeChange,
+  onConfirm,
+  onCancel,
+}: Props) {
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -61,8 +71,20 @@ export default function SortAllDialog({ open, affected, onConfirm, onCancel }: P
         <div className="px-5 py-4 flex flex-col gap-3 text-xs text-gray-600">
           <p>
             Every table's fields will be put in the same order: primary key, relations, fields grouped
-            by type, booleans, dates and times last. Hidden fields and colors are kept.
+            by type, booleans, dates and times last.{" "}
+            {colorByType
+              ? "Hidden fields are kept; every field's color is replaced by its type color."
+              : "Hidden fields and colors are kept."}
           </p>
+          <label className="flex items-center gap-2 cursor-pointer text-gray-700">
+            <input
+              type="checkbox"
+              checked={colorByType}
+              onChange={(e) => onColorByTypeChange(e.target.checked)}
+              className="accent-blue-500"
+            />
+            Also color fields by type
+          </label>
           {count === 0 ? (
             <p className="text-gray-500">
               No table has a custom field order yet, so nothing arranged by hand will be replaced.

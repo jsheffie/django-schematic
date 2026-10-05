@@ -531,7 +531,7 @@ export default function SchemaCanvas({ schema }: Props) {
       )}
 
       <ArrowDrawLayer />
-      <SettingsDrawer onReheat={reheat} />
+      <SettingsDrawer schema={schema} onReheat={reheat} />
     </div>
   );
 }
