@@ -277,7 +277,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[110px] py-1 whitespace-nowrap">
+        <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[110px] w-max py-1 flex flex-col">
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
             onClick={() => openExportDialog("json")}
