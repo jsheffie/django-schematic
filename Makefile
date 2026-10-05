@@ -63,6 +63,8 @@ _do-copy-python:
 
 ## Continuous rebuild + auto-copy on each output change.
 ## Requires fswatch (brew install fswatch). Falls back to a polling loop.
+## Vite empties the output dir when a rebuild starts, so events for a missing
+## main.js are skipped; `-l 1` batches the delete/write burst of one rebuild.
 ui-watch:
 	@if [ -z "$(DEPLOY_TARGET)" ]; then \
 		echo "ERROR: DEPLOY_TARGET is not set. See .env.deploy.example."; \
@@ -72,7 +74,9 @@ ui-watch:
 	cd ui && npm run watch &
 	@if command -v fswatch >/dev/null 2>&1; then \
 		echo "Watching $(SRC_DIR)/main.js with fswatch. Copy target: $(DEPLOY_TARGET)"; \
-		fswatch -o $(SRC_DIR)/main.js | xargs -n1 -I{} $(MAKE) _do-copy _do-copy-python; \
+		fswatch -o -l 1 $(SRC_DIR)/main.js | while read -r _; do \
+			if [ -f $(SRC_DIR)/main.js ]; then $(MAKE) _do-copy _do-copy-python; fi; \
+		done; \
 	else \
 		echo "WARNING: fswatch not found. Install it for better performance:"; \
 		echo "  brew install fswatch"; \
@@ -80,7 +84,7 @@ ui-watch:
 		last=""; \
 		while true; do \
 			current=$$(stat -f "%m" $(SRC_DIR)/main.js 2>/dev/null || stat -c "%Y" $(SRC_DIR)/main.js 2>/dev/null); \
-			if [ "$$current" != "$$last" ] && [ -n "$$last" ]; then \
+			if [ "$$current" != "$$last" ] && [ -n "$$last" ] && [ -n "$$current" ]; then \
 				$(MAKE) _do-copy _do-copy-python; \
 			fi; \
 			last="$$current"; \
