@@ -235,7 +235,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
             ?
           </IconBtn>
         </div>
-        <FileMenu />
+        <FileMenu schema={schema} />
       </div>
       <SortAllDialog
         open={confirmSortAll}
