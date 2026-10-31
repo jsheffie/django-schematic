@@ -25,7 +25,12 @@ export default function HelpDialog() {
       />
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-800">Help</h2>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-sm font-semibold text-gray-800">Help</h2>
+            <span data-testid="app-version" className="text-xs text-gray-400 tabular-nums">
+              django-schematic v{__APP_VERSION__}
+            </span>
+          </div>
           <button
             onClick={() => setHelpOpen(false)}
             title="Close help"
