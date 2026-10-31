@@ -9,6 +9,7 @@ import { join } from "node:path";
 
 import { extractTextChunk, injectTextChunk } from "./pngEmbed";
 import { importConfig } from "./config";
+import { NO_SCHEMA_CHANGES } from "./schemaChanges";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 
@@ -51,7 +52,7 @@ describe.each([
 
   it("imports through importConfig like the File → Import PNG menu does", () => {
     const text = extractTextChunk(pngFixture(file), "schematic")!;
-    expect(() => importConfig(text)).not.toThrow();
+    expect(() => importConfig(text, null)).not.toThrow();
     const s = useSchemaStore.getState();
     expect(s.schemaInitialized).toBe(true);
     expect(s.visibleNodeIds.size).toBeGreaterThan(0);
@@ -61,7 +62,8 @@ describe.each([
 
 describe("export-v2.png", () => {
   it("restores the library diagram: dagre-tb layout, schema-graph palette, no field edits", () => {
-    const viewport = importConfig(extractTextChunk(pngFixture("export-v2.png"), "schematic")!);
+    const { schemaChanges, ...viewport } = importConfig(extractTextChunk(pngFixture("export-v2.png"), "schematic")!, null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
     const p = usePhysicsStore.getState();
 
@@ -88,7 +90,7 @@ describe("export-v2.png", () => {
 
 describe("export-v3.png", () => {
   it("restores fieldEdits for four nodes, including colors and a null order", () => {
-    importConfig(extractTextChunk(pngFixture("export-v3.png"), "schematic")!);
+    importConfig(extractTextChunk(pngFixture("export-v3.png"), "schematic")!, null);
     const s = useSchemaStore.getState();
 
     expect(s.visibleNodeIds.size).toBe(8);
@@ -116,7 +118,7 @@ describe("export-v4.png", () => {
   });
 
   it("yields the same store state as importing config-v4.json", () => {
-    importConfig(textFixture("config-v4.json"));
+    importConfig(textFixture("config-v4.json"), null);
     const fromJson = useSchemaStore.getState();
     const snapshot = {
       visibleNodeIds: fromJson.visibleNodeIds,
@@ -130,7 +132,7 @@ describe("export-v4.png", () => {
 
     useSchemaStore.getState().resetConfig();
     useSchemaStore.setState({ visibleNodeIds: new Set() });
-    importConfig(extractTextChunk(pngFixture("export-v4.png"), "schematic")!);
+    importConfig(extractTextChunk(pngFixture("export-v4.png"), "schematic")!, null);
     const fromPng = useSchemaStore.getState();
 
     expect(fromPng).toMatchObject(snapshot);
@@ -148,7 +150,7 @@ describe("export-v5.png", () => {
   });
 
   it("restores the annotations the way File → Import PNG does", () => {
-    importConfig(extractTextChunk(pngFixture("export-v5.png"), "schematic")!);
+    importConfig(extractTextChunk(pngFixture("export-v5.png"), "schematic")!, null);
     const s = useSchemaStore.getState();
     expect(s.textBlocks.size).toBe(2);
     expect(s.textBlocks.get("tb_muu6m94ohv0d17")?.style).toBe("title");
@@ -163,10 +165,16 @@ describe("export-v6.png", () => {
   });
 
   it("restores the type colors the way File → Import PNG does", () => {
-    importConfig(extractTextChunk(pngFixture("export-v6.png"), "schematic")!);
+    importConfig(extractTextChunk(pngFixture("export-v6.png"), "schematic")!, null);
     const s = useSchemaStore.getState();
     expect(s.typeColors).toEqual({ CharField: "#a855f7" });
     expect(s.fieldEdits.get("library.Genre")?.fieldColors).toEqual({ id: "#6b7280", name: "#a855f7" });
+  });
+});
+
+describe("export-v7.png", () => {
+  it("carries exactly the bytes committed as config-v7.json", () => {
+    expect(extractTextChunk(pngFixture("export-v7.png"), "schematic")).toBe(textFixture("config-v7.json"));
   });
 });
 

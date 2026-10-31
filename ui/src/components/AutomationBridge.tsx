@@ -9,16 +9,21 @@ import type { Viewport } from "@xyflow/react";
 import { importConfig } from "../lib/config";
 import { captureCanvasPng } from "../lib/pngExport";
 import { useSchemaStore } from "../store/schemaStore";
+import type { SchemaGraph } from "../lib/types";
+import { hasSchemaChanges } from "../lib/schemaChanges";
 
-export default function AutomationBridge() {
+export default function AutomationBridge({ schema }: { schema: SchemaGraph }) {
   const { getNodes, setNodes, setViewport, fitView } = useReactFlow();
   const setLayout = useSchemaStore((s) => s.setLayout);
 
   useEffect(() => {
     (window as unknown as Record<string, unknown>).__schematic = {
       importConfig(json: string) {
-        const result = importConfig(json);
+        const result = importConfig(json, schema);
         setViewport({ x: result.x, y: result.y, zoom: result.zoom } as Viewport);
+        if (hasSchemaChanges(result.schemaChanges)) {
+          console.warn("[schematic] config was saved against a different schema:", result.schemaChanges);
+        }
         return result.canvasSize ?? null;
       },
 
@@ -34,7 +39,7 @@ export default function AutomationBridge() {
 
       async exportPngBytes(): Promise<string> {
         await fitView({ padding: 0.1, duration: 0 });
-        const png = await captureCanvasPng({ getNodes, setNodes });
+        const png = await captureCanvasPng({ getNodes, setNodes }, schema);
 
         // Chunked btoa to avoid call stack overflow on large PNGs
         let result = "";
@@ -44,7 +49,7 @@ export default function AutomationBridge() {
         return btoa(result);
       },
     };
-  }, [getNodes, setNodes, setViewport, setLayout]);
+  }, [schema, getNodes, setNodes, setViewport, setLayout]);
 
   return null;
 }

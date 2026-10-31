@@ -10,10 +10,11 @@ import { join } from "node:path";
 vi.stubGlobal("window", { innerWidth: 1200, innerHeight: 800 });
 
 import { exportConfig, importConfig } from "./config";
+import { NO_SCHEMA_CHANGES } from "./schemaChanges";
 import { applyFieldEdits, orderedFields } from "./fieldEdits";
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
-import type { FieldInfo } from "./types";
+import type { FieldInfo, SchemaGraph } from "./types";
 
 const FIXTURES = join(__dirname, "__fixtures__");
 const fixture = (name: string): string => readFileSync(join(FIXTURES, name), "utf8");
@@ -33,7 +34,7 @@ describe("every committed config fixture still imports", () => {
     expect(files).toEqual(
       expect.arrayContaining([
         "config-v1.json", "config-v2.json", "config-v3.json", "config-v4.json", "config-v5.json",
-        "config-v6.json",
+        "config-v6.json", "config-v7.json",
       ]),
     );
   });
@@ -41,7 +42,7 @@ describe("every committed config fixture still imports", () => {
   it.each(files)("%s is accepted and reports the version in its filename", (file) => {
     const version = Number(/^config-v(\d+)\.json$/.exec(file)![1]);
     expect(JSON.parse(fixture(file)).version).toBe(version);
-    expect(() => importConfig(fixture(file))).not.toThrow();
+    expect(() => importConfig(fixture(file), null)).not.toThrow();
     expect(useSchemaStore.getState().schemaInitialized).toBe(true);
     expect(useSchemaStore.getState().visibleNodeIds.size).toBeGreaterThan(0);
   });
@@ -49,7 +50,8 @@ describe("every committed config fixture still imports", () => {
 
 describe("config-v1.json", () => {
   it("restores visibility, pins and viewport; leaves layout and physics alone", () => {
-    const viewport = importConfig(fixture("config-v1.json"));
+    const { schemaChanges, ...viewport } = importConfig(fixture("config-v1.json"), null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
 
     expect(s.visibleNodeIds).toEqual(new Set(["library.Author", "library.Book", "library.Genre"]));
@@ -77,7 +79,8 @@ describe("config-v1.json", () => {
 
 describe("config-v2.json", () => {
   it("restores layout, physics and collapsed apps; fieldEdits and edgeOffsets stay empty", () => {
-    const viewport = importConfig(fixture("config-v2.json"));
+    const { schemaChanges, ...viewport } = importConfig(fixture("config-v2.json"), null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
     const p = usePhysicsStore.getState();
 
@@ -132,7 +135,8 @@ describe("config-v2.json", () => {
 
 describe("config-v3.json", () => {
   it("restores fieldEdits with hidden fields, a custom order and colors; edgeOffsets stay empty", () => {
-    const viewport = importConfig(fixture("config-v3.json"));
+    const { schemaChanges, ...viewport } = importConfig(fixture("config-v3.json"), null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
 
     expect(s.visibleNodeIds).toEqual(
@@ -163,7 +167,8 @@ describe("config-v3.json", () => {
 
 describe("config-v4.json", () => {
   it("restores edgeOffsets, canvas-hidden nodes and pins for nodes that are not visible", () => {
-    const viewport = importConfig(fixture("config-v4.json"));
+    const { schemaChanges, ...viewport } = importConfig(fixture("config-v4.json"), null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
 
     expect(s.visibleNodeIds).toEqual(
@@ -213,7 +218,8 @@ describe("config-v4.json", () => {
 
 describe("config-v5.json", () => {
   it("restores text blocks and arrows exactly as exported", () => {
-    const viewport = importConfig(fixture("config-v5.json"));
+    const { schemaChanges, ...viewport } = importConfig(fixture("config-v5.json"), null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
 
     expect(s.visibleNodeIds).toEqual(
@@ -263,12 +269,12 @@ describe("config-v5.json", () => {
   });
 
   it("is what Reset leaves alone and what a v4 import replaces", () => {
-    importConfig(fixture("config-v5.json"));
+    importConfig(fixture("config-v5.json"), null);
     useSchemaStore.getState().resetConfig();
     expect(useSchemaStore.getState().textBlocks.size).toBe(2);
     expect(useSchemaStore.getState().arrows.size).toBe(2);
 
-    importConfig(fixture("config-v4.json"));
+    importConfig(fixture("config-v4.json"), null);
     expect(useSchemaStore.getState().textBlocks.size).toBe(0);
     expect(useSchemaStore.getState().arrows.size).toBe(0);
   });
@@ -276,7 +282,8 @@ describe("config-v5.json", () => {
 
 describe("config-v6.json", () => {
   it("restores the type color map, the Color by type toggle and the type-colored tables", () => {
-    const viewport = importConfig(fixture("config-v6.json"));
+    const { schemaChanges, ...viewport } = importConfig(fixture("config-v6.json"), null)
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES); // no live schema to compare against
     const s = useSchemaStore.getState();
 
     expect(s.visibleNodeIds).toEqual(
@@ -314,17 +321,92 @@ describe("config-v6.json", () => {
   });
 
   it("is replaced by a v5 import: no type color overrides, toggle left as it was", () => {
-    importConfig(fixture("config-v6.json"));
-    importConfig(fixture("config-v5.json"));
+    importConfig(fixture("config-v6.json"), null);
+    importConfig(fixture("config-v5.json"), null);
     expect(useSchemaStore.getState().typeColors).toEqual({});
     expect(usePhysicsStore.getState().colorByType).toBe(true);
   });
 
   it("keeps its type colors through File > Reset", () => {
-    importConfig(fixture("config-v6.json"));
+    importConfig(fixture("config-v6.json"), null);
     useSchemaStore.getState().resetConfig();
     expect(useSchemaStore.getState().typeColors).toEqual({ CharField: "#a855f7" });
     expect(useSchemaStore.getState().fieldEdits.size).toBe(0);
+  });
+});
+
+describe("config-v7.json", () => {
+  const saved = (): Record<string, Record<string, string>> => JSON.parse(fixture("config-v7.json")).schemaSnapshot;
+
+  // The live schema as a SchemaGraph built from the fixture's own snapshot, then edited.
+  function schemaFrom(snapshot: Record<string, Record<string, string>>): SchemaGraph {
+    return {
+      nodes: Object.entries(snapshot).map(([id, fields]) => ({
+        id,
+        name: id.split(".")[1],
+        app_label: id.split(".")[0],
+        app_name: id.split(".")[0],
+        tags: [],
+        fields: Object.entries(fields).map(([name, type]) => ({
+          ...field(name),
+          field_type: type,
+          internal_type: type,
+        })),
+      })),
+      edges: [],
+      app_labels: [],
+      app_names: {},
+    };
+  }
+  const field = (name: string): FieldInfo => ({
+    name,
+    field_type: "CharField",
+    internal_type: "CharField",
+    is_relation: false,
+    null: false,
+    unique: false,
+    primary_key: false,
+  });
+
+  it("carries a snapshot of every model's field types at export", () => {
+    const snapshot = saved();
+    expect(Object.keys(snapshot)).toHaveLength(76);
+    expect(snapshot["library.Loan"]).toEqual({
+      book: "ForeignKey",
+      details: "TextField",
+      due_on: "DateField",
+      id: "BigAutoField",
+      loaned_on: "DateField",
+      member: "ForeignKey",
+      returned_on: "DateField",
+      status: "CharField",
+    });
+  });
+
+  it("reports no changes against the schema it was exported from", () => {
+    const { schemaChanges } = importConfig(fixture("config-v7.json"), schemaFrom(saved()));
+    expect(schemaChanges).toEqual(NO_SCHEMA_CHANGES);
+    expect(useSchemaStore.getState().fieldEdits.get("library.Loan")?.fieldColors.details).toBe("#6366f1");
+  });
+
+  it("reports and drops what the live schema no longer has", () => {
+    const live = saved();
+    delete live["library.Genre"];
+    delete live["library.Loan"].details;
+    live["library.Member"].notes = "CharField";
+
+    const { schemaChanges } = importConfig(fixture("config-v7.json"), schemaFrom(live));
+
+    expect(schemaChanges).toEqual({
+      removedModels: ["library.Genre"],
+      removedFields: [{ model: "library.Loan", field: "details" }],
+      changedFields: [{ model: "library.Member", field: "notes", from: "TextField", to: "CharField" }],
+    });
+    const s = useSchemaStore.getState();
+    expect(s.visibleNodeIds.has("library.Genre")).toBe(false);
+    expect(s.fieldEdits.has("library.Genre")).toBe(false);
+    expect(s.fieldEdits.get("library.Loan")?.fieldOrder).not.toContain("details");
+    expect(s.fieldEdits.get("library.Loan")?.fieldColors).not.toHaveProperty("details");
   });
 });
 
@@ -340,7 +422,7 @@ describe("schema drift against a committed export", () => {
   });
 
   it("drops order entries for fields that no longer exist and appends new ones", () => {
-    importConfig(fixture("config-v4.json"));
+    importConfig(fixture("config-v4.json"), null);
     const edits = useSchemaStore.getState().fieldEdits.get("tracker.Project");
     // The file was exported when tracker.Project had: owner, created_at, description, id, name.
     expect(edits?.fieldOrder).toEqual(["owner", "created_at", "description", "id", "name"]);
@@ -359,8 +441,8 @@ describe("schema drift against a committed export", () => {
 });
 
 describe("version guard", () => {
-  it("has a JSON and a PNG fixture for the version exportConfig() writes today", () => {
-    const current: number = JSON.parse(exportConfig()).version;
+  it("has a JSON and a PNG fixture for the version exportConfig(null) writes today", () => {
+    const current: number = JSON.parse(exportConfig(null)).version;
     const files = readdirSync(FIXTURES);
     // If this fails you bumped ViewConfig.version: export a small diagram from
     // the app and commit it as the two files below. Never edit old fixtures.

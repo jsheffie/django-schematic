@@ -9,6 +9,8 @@ import { captureCanvasPng } from "../lib/pngExport";
 import { useSchemaStore } from "../store/schemaStore";
 import type { Viewport } from "@xyflow/react";
 import type { SchemaGraph } from "../lib/types";
+import type { SchemaChanges } from "../lib/schemaChanges";
+import SchemaChangesDialog from "./SchemaChangesDialog";
 
 interface FilenameDialogProps {
   open: boolean;
@@ -110,9 +112,10 @@ function ErrorDialog({ message, onClose }: ErrorDialogProps) {
 
   if (!message) return null;
 
-  return (
+  // Portaled: the toolbar is transformed, which would make `fixed` relative to it.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onClose)} />
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-800">Import error</h2>
@@ -125,7 +128,8 @@ function ErrorDialog({ message, onClose }: ErrorDialogProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -137,6 +141,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogState>({ kind: "closed" });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [schemaChanges, setSchemaChanges] = useState<SchemaChanges | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
   const setDocumentName = useSchemaStore((s) => s.setDocumentName);
@@ -179,7 +184,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
     setDialog({ kind: "closed" });
     rememberChosenName(basename);
     // Capture all current display positions, not just manually pinned ones
-    const json = exportConfig(collectModelPositions(getNodes()));
+    const json = exportConfig(schema, collectModelPositions(getNodes()));
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -200,10 +205,11 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
-          const viewport = importConfig(ev.target?.result as string);
+          const { schemaChanges: changes, ...viewport } = importConfig(ev.target?.result as string, schema);
           // Restore the exact viewport saved at export time
           setViewport(viewport as Viewport);
           setDocumentName(basenameFromFile(file.name));
+          setSchemaChanges(changes);
         } catch {
           setErrorMsg("Invalid config file.");
         }
@@ -216,7 +222,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
   async function confirmExportPng(basename: string) {
     setDialog({ kind: "closed" });
     rememberChosenName(basename);
-    const pngWithMeta = await captureCanvasPng({ getNodes, setNodes });
+    const pngWithMeta = await captureCanvasPng({ getNodes, setNodes }, schema);
     const blob = new Blob([pngWithMeta.buffer as ArrayBuffer], { type: "image/png" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -244,9 +250,10 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
           return;
         }
         try {
-          const viewport = importConfig(json);
+          const { schemaChanges: changes, ...viewport } = importConfig(json, schema);
           setViewport(viewport as Viewport);
           setDocumentName(basenameFromFile(file.name));
+          setSchemaChanges(changes);
         } catch {
           setErrorMsg("Failed to restore config from PNG.");
         }
@@ -332,6 +339,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
         message={errorMsg}
         onClose={() => setErrorMsg(null)}
       />
+      <SchemaChangesDialog changes={schemaChanges} onClose={() => setSchemaChanges(null)} />
     </div>
   );
 }

@@ -40,7 +40,7 @@ export default function App() {
         <SchemaCanvas schema={schema} />
       </div>
       <HelpDialog />
-      <AutomationBridge />
+      <AutomationBridge schema={schema} />
     </ReactFlowProvider>
   );
 }
