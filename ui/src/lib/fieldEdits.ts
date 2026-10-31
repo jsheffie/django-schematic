@@ -34,6 +34,13 @@ export function isEmptyEdits(edits: FieldEdits): boolean {
   );
 }
 
+/** An order identical to the node's natural order is stored as null (no override). */
+export function normalizeFieldOrder(order: string[], naturalOrder: string[]): string[] | null {
+  const isNatural =
+    order.length === naturalOrder.length && order.every((name, i) => name === naturalOrder[i]);
+  return isNatural ? null : [...order];
+}
+
 /**
  * Fields in display order, hidden fields INCLUDED (edit mode shows them grayed out).
  * Drift-safe: order entries naming unknown fields are ignored; fields missing

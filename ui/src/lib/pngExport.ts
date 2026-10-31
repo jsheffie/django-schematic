@@ -7,6 +7,7 @@ import { toPng } from "html-to-image";
 import type { Node } from "@xyflow/react";
 import { collectModelPositions, exportConfig } from "./config";
 import { injectTextChunk } from "./pngEmbed";
+import type { SchemaGraph } from "./types";
 import { usePhysicsStore } from "../store/physicsStore";
 
 /** UI chrome that must not end up in the image. */
@@ -14,6 +15,7 @@ export function pngExportFilter(el: Element): boolean {
   const cls = el.classList;
   if (!cls) return true;
   if (cls.contains("react-flow__minimap") || cls.contains("minimap-close")) return false;
+  if (cls.contains("react-flow__controls")) return false; // zoom in / out / fit buttons
   // React Flow's resize handles and node toolbars.
   if (cls.contains("react-flow__resize-control") || cls.contains("react-flow__node-toolbar")) return false;
   return !(typeof el.hasAttribute === "function" && el.hasAttribute("data-export-skip"));
@@ -27,7 +29,7 @@ export interface CanvasHandle {
   setNodes(updater: (nodes: Node[]) => Node[]): void;
 }
 
-export async function captureCanvasPng(rf: CanvasHandle): Promise<Uint8Array> {
+export async function captureCanvasPng(rf: CanvasHandle, schema: SchemaGraph): Promise<Uint8Array> {
   // Selection strokes, resize handles and an open text editor are not part of
   // the diagram: clear them and let React Flow repaint before capturing.
   rf.setNodes((nodes) => nodes.map((n) => (n.selected ? { ...n, selected: false } : n)));
@@ -36,7 +38,7 @@ export async function captureCanvasPng(rf: CanvasHandle): Promise<Uint8Array> {
   ui.setEditingTextBlock(null);
   await twoFrames();
 
-  const json = exportConfig(collectModelPositions(rf.getNodes()));
+  const json = exportConfig(schema, collectModelPositions(rf.getNodes()));
 
   const flowEl = document.querySelector(".react-flow") as HTMLElement | null;
   if (!flowEl) throw new Error("React Flow element not found");

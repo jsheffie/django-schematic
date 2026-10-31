@@ -7,7 +7,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import FileMenu from "./FileMenu";
 import { useSchemaStore } from "../store/schemaStore";
 import type { TextBlock } from "../lib/annotations";
-import type { NodeInfo, SchemaGraph } from "../lib/types";
+import type { FieldInfo, NodeInfo, SchemaGraph } from "../lib/types";
 
 const node = (id: string): NodeInfo => ({
   id,
@@ -47,10 +47,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderMenu() {
+function renderMenu(schema: SchemaGraph = SCHEMA) {
   return render(
     <ReactFlowProvider>
-      <FileMenu schema={SCHEMA} />
+      <FileMenu schema={schema} />
     </ReactFlowProvider>,
   );
 }
@@ -124,6 +124,13 @@ describe("FileMenu document name", () => {
     expect(useSchemaStore.getState().documentName).toBe("orders");
   });
 
+  it("shows the import error outside the toolbar too", async () => {
+    const utils = renderMenu();
+    importFile(utils, "Import config", new File(["not json"], "broken.json", { type: "application/json" }));
+    const message = await utils.findByText("Invalid config file.");
+    expect(utils.container.contains(message)).toBe(false);
+  });
+
   function stubDownload() {
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
     URL.createObjectURL = vi.fn(() => "blob:x");
@@ -148,5 +155,90 @@ describe("FileMenu document name", () => {
     fireEvent.click(utils.getByRole("button", { name: "Export" }));
     expect(useSchemaStore.getState().documentName).toBe("renamed");
     expect(openDialog(utils, "Export PNG").value).toBe("renamed");
+  });
+});
+
+describe("FileMenu schema change warning (issue #131)", () => {
+  const field = (name: string, field_type: string): FieldInfo => ({
+    name,
+    field_type,
+    internal_type: field_type,
+    is_relation: false,
+    null: false,
+    unique: false,
+    primary_key: false,
+  });
+  const LIVE: SchemaGraph = {
+    ...SCHEMA,
+    nodes: [
+      { ...node("shop.Order"), fields: [field("id", "BigAutoField"), field("status", "TextField")] },
+      node("shop.Customer"),
+      node("shop.Item"),
+    ],
+  };
+  // Saved when Order still had `notes`, `status` was a CharField and shop.Coupon existed.
+  const older = (version = 7) =>
+    JSON.stringify({
+      version,
+      activeLayout: "elk",
+      visibleNodeIds: ["shop.Order", "shop.Coupon"],
+      expandedNodeIds: [],
+      pinnedPositions: {},
+      collapsedApps: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+      fieldEdits: { "shop.Order": { hiddenFields: ["notes"], fieldOrder: null, fieldColors: {} } },
+      schemaSnapshot: {
+        "shop.Order": { id: "BigAutoField", status: "CharField", notes: "TextField" },
+        "shop.Coupon": { id: "BigAutoField" },
+        "shop.Customer": {},
+        "shop.Item": {},
+      },
+      physics: { edgeStyle: "bezier", liveDragPhysics: false, forceParams: {}, appMode: "normal" },
+    });
+
+  it("lists removed models, removed fields and changed field types", async () => {
+    const utils = renderMenu(LIVE);
+    importFile(utils, "Import config", new File([older()], "orders.json", { type: "application/json" }));
+    const dialog = await utils.findByRole("alertdialog", { name: "The schema has changed" });
+    expect(dialog.textContent).toContain("shop.Coupon");
+    expect(dialog.textContent).toContain("shop.Order.notes");
+    expect(dialog.textContent).toContain("shop.Order.status: CharField to TextField");
+    expect(dialog.textContent).toContain("won't be in future exports");
+  });
+
+  it("still applies the import and drops the removed entries", async () => {
+    const utils = renderMenu(LIVE);
+    importFile(utils, "Import config", new File([older()], "orders.json", { type: "application/json" }));
+    await utils.findByRole("alertdialog");
+    expect(useSchemaStore.getState().documentName).toBe("orders");
+    expect([...useSchemaStore.getState().visibleNodeIds]).toEqual(["shop.Order"]);
+    expect(useSchemaStore.getState().fieldEdits.has("shop.Order")).toBe(false);
+  });
+
+  it("renders outside the toolbar, so the toolbar's transform cannot clip it", async () => {
+    const utils = renderMenu(LIVE);
+    importFile(utils, "Import config", new File([older()], "orders.json", { type: "application/json" }));
+    const dialog = await utils.findByRole("alertdialog");
+    expect(utils.container.contains(dialog)).toBe(false);
+    expect(document.body.contains(dialog)).toBe(true);
+  });
+
+  it("closes with OK", async () => {
+    const utils = renderMenu(LIVE);
+    importFile(utils, "Import config", new File([older()], "orders.json", { type: "application/json" }));
+    await utils.findByRole("alertdialog");
+    fireEvent.click(utils.getByRole("button", { name: "OK" }));
+    expect(utils.queryByRole("alertdialog")).toBeNull();
+  });
+
+  it("shows nothing when the schema has not changed", async () => {
+    const same = JSON.parse(older());
+    same.schemaSnapshot = { "shop.Order": { id: "BigAutoField", status: "TextField" } };
+    same.visibleNodeIds = ["shop.Order"];
+    same.fieldEdits = {};
+    const utils = renderMenu(LIVE);
+    importFile(utils, "Import config", new File([JSON.stringify(same)], "same.json", { type: "application/json" }));
+    await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("same"));
+    expect(utils.queryByRole("alertdialog")).toBeNull();
   });
 });

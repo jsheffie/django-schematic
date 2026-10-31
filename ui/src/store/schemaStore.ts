@@ -4,6 +4,7 @@ import {
   autoFieldColors,
   autoFieldOrder,
   isEmptyEdits,
+  normalizeFieldOrder,
   orderedFields,
   type FieldEdits,
   type TypeColorMap,
@@ -154,13 +155,6 @@ function sortedEdits(
   const fieldOrder = normalizeFieldOrder(autoFieldOrder(fields), fields.map((f) => f.name));
   const fieldColors = withColors ? autoFieldColors(fields, typeColors) : cur.fieldColors;
   return { ...cur, fieldOrder, fieldColors };
-}
-
-// An order identical to the node's natural order is stored as null (no override).
-function normalizeFieldOrder(order: string[], naturalOrder: string[]): string[] | null {
-  const isNatural =
-    order.length === naturalOrder.length && order.every((name, i) => name === naturalOrder[i]);
-  return isNatural ? null : [...order];
 }
 
 // Returns a new map with `edits` stored under `nodeId`, or the entry removed

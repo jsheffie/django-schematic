@@ -51,6 +51,7 @@ import { useAnnotationActions } from "../hooks/useAnnotationActions";
 import { runDagreLayout } from "../hooks/useLayout";
 import { runElkLayout } from "../hooks/useElkLayout";
 import SettingsDrawer from "./SettingsDrawer";
+import { schemaEdgeId } from "../lib/pruneToSchema";
 
 // Model tables, text blocks, and invisible anchors for the free ends of arrows.
 type CanvasNode = ModelNodeData | TextBlockNodeData | AnchorNodeData;
@@ -174,7 +175,7 @@ export default function SchemaCanvas({ schema }: Props) {
     const relations: Edge[] = schema.edges
       .filter((e) => effectiveVisibleIds.has(e.source) && effectiveVisibleIds.has(e.target))
       .map((e) => ({
-        id: `${e.source}->${e.target}:${e.field_name}`,
+        id: schemaEdgeId(e),
         source: e.source,
         target: e.target,
         type: "schema",
