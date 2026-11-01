@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import type { ColorPalette } from "../lib/colors";
+import { readThemePreference, writeThemePreference, type ThemePreference } from "../lib/theme";
 
-export type { ColorPalette };
+export type { ColorPalette, ThemePreference };
 export type EdgeStyle = "step" | "bezier" | "floating";
 export type AppMode = "stiff" | "normal" | "fun" | "excitation";
 export type BackgroundStyle = "dots" | "lines" | "none";
@@ -71,6 +72,8 @@ interface PhysicsStore {
   backgroundStyle: BackgroundStyle;
   // "Sort by type" also colors each field by its type group (issue #115).
   colorByType: boolean;
+  // Per-viewer, kept in localStorage and never exported (issue #132).
+  theme: ThemePreference;
 
   // Node currently in field-edit mode (at most one at a time; null = none).
   editingNodeId: string | null;
@@ -92,6 +95,7 @@ interface PhysicsStore {
   setColorPalette: (p: ColorPalette) => void;
   setBackgroundStyle: (s: BackgroundStyle) => void;
   setColorByType: (v: boolean) => void;
+  setTheme: (theme: ThemePreference) => void;
   setEditingNode: (id: string | null) => void;
   setAnnotationTool: (tool: "arrow" | null) => void;
   setEditingTextBlock: (id: string | null) => void;
@@ -113,6 +117,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   colorPalette: "pastel",
   backgroundStyle: "dots",
   colorByType: false,
+  theme: readThemePreference(),
   editingNodeId: null,
   annotationTool: null,
   editingTextBlockId: null,
@@ -131,6 +136,10 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
   setColorPalette: (colorPalette) => set({ colorPalette }),
   setBackgroundStyle: (backgroundStyle) => set({ backgroundStyle }),
   setColorByType: (colorByType) => set({ colorByType }),
+  setTheme: (theme) => {
+    writeThemePreference(theme);
+    set({ theme });
+  },
   setEditingNode: (editingNodeId) => set({ editingNodeId }),
   setAnnotationTool: (annotationTool) => set({ annotationTool }),
   setEditingTextBlock: (editingTextBlockId) => set({ editingTextBlockId }),

@@ -1,5 +1,6 @@
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore, type EdgeStyle, type ForceParams, type ColorPalette, type BackgroundStyle } from "../store/physicsStore";
+import { THEME_PREFERENCES, type ThemePreference } from "../lib/theme";
 import SliderInput from "./SliderInput";
 import TypeColorSettings from "./TypeColorSettings";
 import type { SchemaGraph } from "../lib/types";
@@ -7,6 +8,51 @@ import type { SchemaGraph } from "../lib/types";
 interface Props {
   schema: SchemaGraph;
   onReheat: (params: ForceParams) => void;
+}
+
+const THEME_LABELS: Record<ThemePreference, string> = { system: "System", light: "Light", dark: "Dark" };
+
+/** Segmented System / Light / Dark control: a radio group with arrow-key navigation (issue #132). */
+function ThemeSetting() {
+  const theme = usePhysicsStore((s) => s.theme);
+  const setTheme = usePhysicsStore((s) => s.setTheme);
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const i = THEME_PREFERENCES.indexOf(theme);
+    const next = THEME_PREFERENCES[(i + step + THEME_PREFERENCES.length) % THEME_PREFERENCES.length];
+    setTheme(next);
+    e.currentTarget.querySelector<HTMLElement>(`[data-value="${next}"]`)?.focus();
+  }
+
+  return (
+    <section>
+      <p id="theme-setting-label" className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        Theme
+      </p>
+      <div role="radiogroup" aria-labelledby="theme-setting-label" className="flex gap-2" onKeyDown={onKeyDown}>
+        {THEME_PREFERENCES.map((value) => (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={theme === value}
+            tabIndex={theme === value ? 0 : -1}
+            data-value={value}
+            onClick={() => setTheme(value)}
+            className={`flex-1 py-1.5 text-xs rounded-md border transition-colors ${
+              theme === value
+                ? "bg-blue-600 border-blue-600 text-white"
+                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            {THEME_LABELS[value]}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 const TABS = [
@@ -94,6 +140,8 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
 
           {activeTab === "appearance" && (
             <>
+              <ThemeSetting />
+
               {/* Color Palette */}
               <section>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
