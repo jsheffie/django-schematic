@@ -12,6 +12,7 @@ import type { SchemaGraph } from "../lib/types";
 import type { SchemaChanges } from "../lib/schemaChanges";
 import SchemaChangesDialog from "./SchemaChangesDialog";
 import FileDropOverlay from "./FileDropOverlay";
+import ImportPngDialog from "./ImportPngDialog";
 
 interface FilenameDialogProps {
   open: boolean;
@@ -143,6 +144,8 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
   const [dialog, setDialog] = useState<DialogState>({ kind: "closed" });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [schemaChanges, setSchemaChanges] = useState<SchemaChanges | null>(null);
+  const [importPngOpen, setImportPngOpen] = useState(false);
+  const [fileDragActive, setFileDragActive] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const resetConfig = useSchemaStore((s) => s.resetConfig);
   const setDocumentName = useSchemaStore((s) => s.setDocumentName);
@@ -197,6 +200,8 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
 
   // One path for both pickers and drag and drop (issue #129).
   async function importFile(file: File) {
+    // Errors and the schema change warning show on their own, not over the dialog.
+    setImportPngOpen(false);
     let read: Awaited<ReturnType<typeof readConfigFile>>;
     try {
       read = await readConfigFile(file);
@@ -283,7 +288,10 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
           </button>
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            onClick={() => pickFile(".png,image/png")}
+            onClick={() => {
+              setOpen(false);
+              setImportPngOpen(true);
+            }}
           >
             Import PNG
           </button>
@@ -318,7 +326,21 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
         onClose={() => setErrorMsg(null)}
       />
       <SchemaChangesDialog changes={schemaChanges} onClose={() => setSchemaChanges(null)} />
-      <FileDropOverlay onDrop={(file) => void importFile(file)} onReject={setErrorMsg} />
+      <ImportPngDialog
+        open={importPngOpen}
+        dragging={fileDragActive}
+        onChoose={() => pickFile(".png,image/png")}
+        onCancel={() => setImportPngOpen(false)}
+      />
+      <FileDropOverlay
+        onDrop={(file) => void importFile(file)}
+        onReject={(message) => {
+          setImportPngOpen(false);
+          setErrorMsg(message);
+        }}
+        quiet={importPngOpen}
+        onActiveChange={setFileDragActive}
+      />
     </div>
   );
 }

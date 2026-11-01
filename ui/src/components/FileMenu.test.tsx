@@ -61,14 +61,19 @@ function openDialog(utils: ReturnType<typeof renderMenu>, item: "Export PNG" | "
   return utils.getByLabelText("Filename") as HTMLInputElement;
 }
 
-/** Runs a FileMenu import item with `file` as the picked file. */
+/**
+ * Runs a FileMenu import item with `file` as the picked file. Import PNG opens
+ * the import dialog first; its Choose file button opens the picker.
+ */
 function importFile(utils: ReturnType<typeof renderMenu>, item: "Import PNG" | "Import config", file: File) {
   const click = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(() => {});
   fireEvent.click(utils.getByRole("button", { name: /^File/ }));
   fireEvent.click(utils.getByRole("button", { name: item }));
+  if (item === "Import PNG") fireEvent.click(utils.getByRole("button", { name: "Choose file…" }));
   const picker = click.mock.contexts[0] as HTMLInputElement;
   Object.defineProperty(picker, "files", { value: [file] });
   fireEvent.change(picker);
+  return picker;
 }
 
 describe("FileMenu export filename default", () => {
@@ -290,5 +295,69 @@ describe("FileMenu import pickers", () => {
     const utils = renderMenu();
     importFile(utils, "Import config", new File([png], "orders.png", { type: "image/png" }));
     await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("orders"));
+  });
+});
+
+describe("FileMenu Import PNG dialog (issue #129)", () => {
+  const png = () => new File([readFileSync(join(FIXTURES, "export-v7.png"))], "orders.png", { type: "image/png" });
+  const fileDrag = (...files: File[]) => ({ dataTransfer: { types: ["Files"], files, dropEffect: "none" } });
+
+  function openImportPng(utils: ReturnType<typeof renderMenu>) {
+    fireEvent.click(utils.getByRole("button", { name: /^File/ }));
+    fireEvent.click(utils.getByRole("button", { name: "Import PNG" }));
+    return utils.getByRole("dialog", { name: "Import PNG" });
+  }
+
+  it("offers a drop zone and a file chooser, outside the toolbar", () => {
+    const utils = renderMenu();
+    const dialog = openImportPng(utils);
+    expect(dialog.textContent).toContain("Drop an exported PNG here");
+    expect(utils.getByRole("button", { name: "Choose file…" })).toBeTruthy();
+    expect(utils.container.contains(dialog)).toBe(false);
+    // Canvas shortcuts (A, Delete) stay off while a modal is open.
+    expect(document.querySelector("[data-dialog-backdrop]")).not.toBeNull();
+  });
+
+  it("Choose file opens a PNG picker, and the picked file imports and closes the dialog", async () => {
+    const utils = renderMenu();
+    const picker = importFile(utils, "Import PNG", png());
+    expect(picker.accept).toBe(".png,image/png");
+    await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("orders"));
+    expect(utils.queryByRole("dialog", { name: "Import PNG" })).toBeNull();
+  });
+
+  it("a file dropped while it is open imports and closes it", async () => {
+    const utils = renderMenu();
+    openImportPng(utils);
+    fireEvent.drop(window, fileDrag(png()));
+    await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("orders"));
+    expect(utils.queryByRole("dialog", { name: "Import PNG" })).toBeNull();
+  });
+
+  it("while a file is dragged, its drop zone lights up instead of the full-screen message", () => {
+    const utils = renderMenu();
+    openImportPng(utils);
+    fireEvent.dragEnter(window, fileDrag());
+    expect(utils.getByText("Release to import")).toBeTruthy();
+    expect(utils.queryByText("Drop anywhere to import")).toBeNull();
+  });
+
+  it("a dropped file that cannot be imported shows the error on its own", async () => {
+    const utils = renderMenu();
+    openImportPng(utils);
+    fireEvent.drop(window, fileDrag(new File(["x"], "notes.txt", { type: "text/plain" })));
+    await utils.findByText('"notes.txt" is not a schematic file. Use a PNG exported from schematic or a JSON config.');
+    expect(utils.queryByRole("dialog", { name: "Import PNG" })).toBeNull();
+  });
+
+  it("Cancel and Escape close it without importing", () => {
+    const utils = renderMenu();
+    openImportPng(utils);
+    fireEvent.click(utils.getByRole("button", { name: "Cancel" }));
+    expect(utils.queryByRole("dialog", { name: "Import PNG" })).toBeNull();
+    openImportPng(utils);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(utils.queryByRole("dialog", { name: "Import PNG" })).toBeNull();
+    expect(useSchemaStore.getState().documentName).toBeNull();
   });
 });

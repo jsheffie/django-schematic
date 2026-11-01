@@ -22,4 +22,12 @@ describe("HelpDialog", () => {
     const { getByText } = render(<HelpDialog />);
     expect(getByText(/^Drag and drop/).parentElement!.textContent).toContain("PNG exported from schematic or a JSON config");
   });
+
+  it("says Import PNG takes a dropped file or one chosen from disk (issue #129)", () => {
+    usePhysicsStore.getState().setHelpOpen(true);
+    const { getByText } = render(<HelpDialog />);
+    const entry = getByText(/^Import PNG/).parentElement!.textContent!;
+    expect(entry).toContain("drop zone");
+    expect(entry).toContain("Choose file");
+  });
 });

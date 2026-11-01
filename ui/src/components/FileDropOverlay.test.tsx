@@ -110,4 +110,35 @@ describe("FileDropOverlay", () => {
     fireEvent.dragEnter(window, { dataTransfer: files() });
     expect(utils.container.contains(overlay())).toBe(false);
   });
+
+  describe("quiet, while the Import PNG dialog shows its own drop zone", () => {
+    it("is still a full-window drop target but draws nothing over the dialog", () => {
+      render(<FileDropOverlay onDrop={vi.fn()} onReject={vi.fn()} quiet />);
+      fireEvent.dragEnter(window, { dataTransfer: files() });
+      expect(shown()).toBe(true);
+      expect(screen.queryByText("Drop anywhere to import")).toBeNull();
+      expect(overlay()!.className).not.toMatch(/backdrop-blur|bg-/);
+    });
+
+    it("turning quiet mid-drag keeps the same element, so the drop still lands", () => {
+      const onDrop = vi.fn();
+      const utils = render(<FileDropOverlay onDrop={onDrop} onReject={vi.fn()} />);
+      fireEvent.dragEnter(window, { dataTransfer: files() });
+      const dropTarget = overlay()!;
+      utils.rerender(<FileDropOverlay onDrop={onDrop} onReject={vi.fn()} quiet />);
+      expect(overlay()).toBe(dropTarget);
+      const file = png();
+      expect(fireEvent.drop(dropTarget, { dataTransfer: files(file) })).toBe(false);
+      expect(onDrop).toHaveBeenCalledWith(file);
+    });
+  });
+
+  it("reports when a file drag starts and ends", () => {
+    const onActiveChange = vi.fn();
+    render(<FileDropOverlay onDrop={vi.fn()} onReject={vi.fn()} onActiveChange={onActiveChange} />);
+    fireEvent.dragEnter(window, { dataTransfer: files() });
+    expect(onActiveChange).toHaveBeenLastCalledWith(true);
+    fireEvent.drop(window, { dataTransfer: files(png()) });
+    expect(onActiveChange).toHaveBeenLastCalledWith(false);
+  });
 });

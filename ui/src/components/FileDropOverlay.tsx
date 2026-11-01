@@ -7,6 +7,13 @@ interface Props {
   onDrop: (file: File) => void;
   /** A drop that cannot be imported; the message is shown to the user. */
   onReject: (message: string) => void;
+  /**
+   * Draw nothing: the Import PNG dialog shows its own drop zone. The overlay
+   * still covers the window as the drop target, so drops anywhere are caught.
+   */
+  quiet?: boolean;
+  /** Called when a file drag over the window starts and ends. */
+  onActiveChange?: (active: boolean) => void;
 }
 
 /** Only drags that carry files from outside are ours; text dragged into a note is left alone. */
@@ -33,7 +40,7 @@ function carriesFiles(e: DragEvent): boolean {
  * received the drop detached from the document, so it never bubbled to the
  * window listener and Chrome opened the file in a new tab instead.
  */
-export default function FileDropOverlay({ onDrop, onReject }: Props) {
+export default function FileDropOverlay({ onDrop, onReject, quiet = false, onActiveChange }: Props) {
   const [active, setActive] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   // Window listeners are registered once; the latest callbacks are read through refs.
@@ -41,6 +48,12 @@ export default function FileDropOverlay({ onDrop, onReject }: Props) {
   const onRejectRef = useRef(onReject);
   onDropRef.current = onDrop;
   onRejectRef.current = onReject;
+  const onActiveChangeRef = useRef(onActiveChange);
+  onActiveChangeRef.current = onActiveChange;
+
+  useEffect(() => {
+    onActiveChangeRef.current?.(active);
+  }, [active]);
 
   useEffect(() => {
     function onDragEnter(e: DragEvent) {
@@ -84,21 +97,25 @@ export default function FileDropOverlay({ onDrop, onReject }: Props) {
 
   // Portaled: FileMenu, which owns the import, sits in the transformed toolbar.
   // z-[60] puts it above the toolbar (z-40) and open dialogs (z-50).
-  // Always mounted, only hidden: see the comment above the component.
+  // Always mounted, only hidden: see the comment above the component. Quiet
+  // changes the classes and children only, never the root element, so going
+  // quiet mid-drag cannot detach the drop target either.
   return createPortal(
     <div
       ref={overlayRef}
       data-testid="file-drop-overlay"
       hidden={!active}
-      className="fixed inset-0 z-[60] bg-blue-50/70 backdrop-blur-[2px]"
+      className={`fixed inset-0 z-[60] ${quiet ? "" : "bg-blue-50/70 backdrop-blur-[2px]"}`}
     >
-      <div className="pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed border-blue-500 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-2xl px-8 py-6 flex flex-col items-center gap-2 text-center">
-          <IconImport className="w-8 h-8 text-blue-600" />
-          <p className="text-sm font-semibold text-gray-800">Drop anywhere to import</p>
-          <p className="text-xs text-gray-500">A PNG exported from schematic, or a JSON config</p>
+      {!quiet && (
+        <div className="pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed border-blue-500 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-2xl px-8 py-6 flex flex-col items-center gap-2 text-center">
+            <IconImport className="w-8 h-8 text-blue-600" />
+            <p className="text-sm font-semibold text-gray-800">Drop anywhere to import</p>
+            <p className="text-xs text-gray-500">A PNG exported from schematic, or a JSON config</p>
+          </div>
         </div>
-      </div>
+      )}
     </div>,
     document.body,
   );
