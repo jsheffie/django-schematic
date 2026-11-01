@@ -13,6 +13,7 @@ function field(name: string, extra: Partial<FieldInfo> = {}): FieldInfo {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
     internal_type: "CharField",
     ...extra,
   };
@@ -27,6 +28,7 @@ const SCHEMA: SchemaGraph = {
       app_label: "store",
       app_name: "store",
       tags: [],
+      db_table: null,
       fields: [field("id", { primary_key: true }), field("customer", { is_relation: true }), field("status")],
     },
     {
@@ -35,6 +37,7 @@ const SCHEMA: SchemaGraph = {
       app_label: "store",
       app_name: "store",
       tags: [],
+      db_table: null,
       fields: [field("id", { primary_key: true }), field("phone")],
     },
   ],
@@ -46,6 +49,7 @@ const SCHEMA: SchemaGraph = {
       field_name: "customer",
       related_name: null,
       target_field: "id",
+      through_db_table: null,
     },
   ],
   app_labels: ["store"],

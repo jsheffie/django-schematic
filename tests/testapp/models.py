@@ -60,3 +60,13 @@ class Isbn(models.Model):
 
     class Meta:
         app_label = "testapp"
+
+
+class LegacyOrder(models.Model):
+    """Renamed table and column, as in a legacy schema (issue #135)."""
+    quantity = models.IntegerField(db_column="qty_ordered")
+    book = models.ForeignKey("Book", on_delete=models.CASCADE)
+
+    class Meta:
+        app_label = "testapp"
+        db_table = "acme_legacy_orders"

@@ -22,6 +22,7 @@ const f = (name: string): FieldInfo => ({
   null: false,
   unique: false,
   primary_key: false,
+  column: name,
   internal_type: "CharField",
 });
 
@@ -34,6 +35,7 @@ const typed = (name: string, field_type: string, extra: Partial<FieldInfo> = {})
   null: false,
   unique: false,
   primary_key: false,
+  column: name,
   ...extra,
 });
 const pk = (name: string, field_type: string, extra: Partial<FieldInfo> = {}) =>

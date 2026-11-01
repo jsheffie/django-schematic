@@ -15,6 +15,7 @@ const field = (name: string, field_type: string, extra: Partial<FieldInfo> = {})
   null: false,
   unique: false,
   primary_key: false,
+  column: name,
   ...extra,
 });
 
@@ -26,6 +27,7 @@ const SCHEMA: SchemaGraph = {
       app_label: "shop",
       app_name: "shop",
       tags: [],
+      db_table: null,
       fields: [
         field("created_at", "DateTimeField"),
         field("customer", "ForeignKey", { is_relation: true }),
@@ -39,6 +41,7 @@ const SCHEMA: SchemaGraph = {
       app_label: "shop",
       app_name: "shop",
       tags: [],
+      db_table: null,
       // Alphabetical [code, name]; sorted by type group is [name (Char), code (Slug)].
       fields: [field("code", "SlugField"), field("name", "CharField")],
     },

@@ -31,6 +31,7 @@ See all your models, fields, and relationships as an interactive, force-directed
 - Click to expand/collapse field lists per model
 - App-based color coding
 - Light and dark themes (Settings > Appearance > Theme; System follows your OS setting)
+- Physical database names in the API and in exports: table, column and m2m through table names (see [Database names](#database-names))
 - Show/hide models and apps via sidebar
 - Django 5.x + Python 3.12+ only
 
@@ -138,6 +139,35 @@ The schema is also available as JSON:
 GET /schema/api/
 GET /schema/api/?apps=myapp,otherapp
 ```
+
+### Database names
+
+Tools that watch the database rather than the ORM (for example a logical
+replication consumer) see table and column names, not model and field names.
+Both the API and every export carry the physical names, read from `_meta`
+with no database connection:
+
+- each node has `db_table` (`Meta.db_table`; `null` for abstract models),
+- each field has `column` (`db_column`, or `company_id` for a `company`
+  ForeignKey; `null` for a ManyToManyField),
+- each `m2m` edge has `through_db_table`, the table holding its links
+  (auto-created or an explicit `through` model).
+
+A PNG or JSON export (config version 8 and later) holds the same names under
+`dbNames`, keyed by model id, so they can be resolved from the file alone:
+
+```json
+"dbNames": {
+  "orders.Order": {
+    "table": "acme_legacy_orders",
+    "columns": { "id": "id", "quantity": "qty_ordered", "company": "company_id" },
+    "through": { "tags": "acme_orders_order_tags" }
+  }
+}
+```
+
+The config is the `schematic` tEXt chunk of an exported PNG. Exports older than
+version 8 have no `dbNames`; fall back to Django's default naming for those.
 
 ## CI/CD Pipeline (optional)
 

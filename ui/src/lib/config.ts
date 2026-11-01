@@ -20,6 +20,7 @@ import {
   type SchemaSnapshot,
 } from "./schemaChanges";
 import type { SchemaGraph } from "./types";
+import { snapshotDbNames, type DbNames } from "./dbNames";
 
 interface PhysicsConfig {
   edgeStyle: EdgeStyle;
@@ -37,7 +38,7 @@ export interface ViewConfig {
   // Bumping this requires a new `__fixtures__/config-v<N>.json` and
   // `__fixtures__/export-v<N>.png` exported from the app; do not edit existing
   // fixtures. See __fixtures__/README.md. config.golden.test.ts enforces it.
-  version: 7;
+  version: 8;
   activeLayout: "organic" | "dagre-lr" | "dagre-tb" | "elk";
   visibleNodeIds: string[];
   expandedNodeIds: string[];
@@ -52,6 +53,12 @@ export interface ViewConfig {
   annotations?: Annotations; // text blocks and arrows
   typeColors?: TypeColorMap; // "Color by type" overrides (issue #115)
   schemaSnapshot?: SchemaSnapshot; // field types at export, to report schema changes on import (issue #131)
+  dbNames?: DbNames; // tables, columns and m2m through tables at export, for database-side tools (issue #135)
+}
+
+// Legacy v7 format (no dbNames)
+interface ViewConfigV7 extends Omit<ViewConfig, "version" | "dbNames"> {
+  version: 7;
 }
 
 // Legacy v6 format (no schemaSnapshot)
@@ -178,7 +185,7 @@ export function exportConfig(
   };
 
   const config: ViewConfig = {
-    version: 7,
+    version: 8,
     activeLayout: s.activeLayout,
     visibleNodeIds: Array.from(s.visibleNodeIds),
     expandedNodeIds: Array.from(s.expandedNodeIds),
@@ -194,7 +201,7 @@ export function exportConfig(
       arrows: Object.fromEntries(s.arrows),
     },
     typeColors: s.typeColors,
-    ...(schema ? { schemaSnapshot: snapshotSchema(schema) } : {}),
+    ...(schema ? { schemaSnapshot: snapshotSchema(schema), dbNames: snapshotDbNames(schema) } : {}),
     physics: {
       edgeStyle: p.edgeStyle,
       liveDragPhysics: p.liveDragPhysics,
@@ -226,9 +233,9 @@ export function importConfig(
   canvasSize?: { width: number; height: number };
   schemaChanges: SchemaChanges;
 } {
-  const raw = JSON.parse(json) as ViewConfig | ViewConfigV6 | ViewConfigV5 | ViewConfigV4 | ViewConfigV3 | ViewConfigV2 | ViewConfigV1;
+  const raw = JSON.parse(json) as ViewConfig | ViewConfigV7 | ViewConfigV6 | ViewConfigV5 | ViewConfigV4 | ViewConfigV3 | ViewConfigV2 | ViewConfigV1;
 
-  if (![1, 2, 3, 4, 5, 6, 7].includes(raw.version)) {
+  if (![1, 2, 3, 4, 5, 6, 7, 8].includes(raw.version)) {
     throw new Error("Unknown config version");
   }
 
@@ -242,7 +249,7 @@ export function importConfig(
   const v4OrHigher = raw.version >= 4 ? (raw as ViewConfigV4 | ViewConfigV5 | ViewConfigV6 | ViewConfig) : null;
   const v5OrHigher = raw.version >= 5 ? (raw as ViewConfigV5 | ViewConfigV6 | ViewConfig) : null;
   const v6OrHigher = raw.version >= 6 ? (raw as ViewConfigV6 | ViewConfig) : null;
-  const v7 = raw.version === 7 ? (raw as ViewConfig) : null;
+  const v7OrHigher = raw.version >= 7 ? (raw as ViewConfigV7 | ViewConfig) : null;
 
   const named = {
     visibleNodeIds: new Set(raw.visibleNodeIds),
@@ -263,7 +270,7 @@ export function importConfig(
 
   // What the config says existed when it was saved; pre-v7 files only name
   // what carries a setting, with no types.
-  const saved = v7?.schemaSnapshot ?? referencedSnapshot(named);
+  const saved = v7OrHigher?.schemaSnapshot ?? referencedSnapshot(named);
   const schemaChanges = schema ? diffSchema(saved, schema) : NO_SCHEMA_CHANGES;
 
   useSchemaStore.setState({

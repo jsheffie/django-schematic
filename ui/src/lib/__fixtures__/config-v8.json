@@ -1,0 +1,1766 @@
+{
+  "version": 8,
+  "activeLayout": "dagre-lr",
+  "visibleNodeIds": [
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member",
+    "admin.LogEntry"
+  ],
+  "expandedNodeIds": [
+    "account.EmailAddress",
+    "account.EmailConfirmation",
+    "admin.LogEntry",
+    "auth.Group",
+    "auth.Permission",
+    "auth.User",
+    "contenttypes.ContentType",
+    "django_celery_beat.ClockedSchedule",
+    "django_celery_beat.CrontabSchedule",
+    "django_celery_beat.IntervalSchedule",
+    "django_celery_beat.PeriodicTask",
+    "django_celery_beat.PeriodicTasks",
+    "django_celery_beat.SolarSchedule",
+    "guardian.GroupObjectPermission",
+    "guardian.UserObjectPermission",
+    "library.Author",
+    "library.Book",
+    "library.Genre",
+    "library.Loan",
+    "library.Member",
+    "sessions.Session",
+    "sites.Site",
+    "socialaccount.SocialAccount",
+    "socialaccount.SocialApp",
+    "socialaccount.SocialToken",
+    "store.Category",
+    "store.Customer",
+    "store.Order",
+    "store.OrderItem",
+    "store.Product",
+    "store.Review",
+    "store.Tag",
+    "taggit.Tag",
+    "taggit.TaggedItem",
+    "tracker.Comment",
+    "tracker.Project",
+    "tracker.Tag",
+    "tracker.Task",
+    "wagtailadmin.Admin",
+    "wagtailadmin.EditingSession",
+    "wagtailadmin.FormState",
+    "wagtailcore.APIToken",
+    "wagtailcore.Collection",
+    "wagtailcore.CollectionViewRestriction",
+    "wagtailcore.Comment",
+    "wagtailcore.CommentReply",
+    "wagtailcore.GroupApprovalTask",
+    "wagtailcore.GroupCollectionPermission",
+    "wagtailcore.GroupPagePermission",
+    "wagtailcore.GroupSitePermission",
+    "wagtailcore.Locale",
+    "wagtailcore.ModelLogEntry",
+    "wagtailcore.Page",
+    "wagtailcore.PageLogEntry",
+    "wagtailcore.PageSubscription",
+    "wagtailcore.PageViewRestriction",
+    "wagtailcore.ReferenceIndex",
+    "wagtailcore.Revision",
+    "wagtailcore.Site",
+    "wagtailcore.Task",
+    "wagtailcore.TaskState",
+    "wagtailcore.UploadedFile",
+    "wagtailcore.Workflow",
+    "wagtailcore.WorkflowContentType",
+    "wagtailcore.WorkflowPage",
+    "wagtailcore.WorkflowState",
+    "wagtailcore.WorkflowTask",
+    "wagtaildocs.Document",
+    "wagtailembeds.Embed",
+    "wagtailforms.FormSubmission",
+    "wagtailimages.Image",
+    "wagtailimages.Rendition",
+    "wagtailredirects.Redirect",
+    "wagtailsearch.IndexEntry",
+    "wagtailsearch.SQLiteFTSIndexEntry",
+    "wagtailusers.UserProfile"
+  ],
+  "pinnedPositions": {
+    "admin.LogEntry": {
+      "x": 0,
+      "y": 0
+    },
+    "library.Author": {
+      "x": 661,
+      "y": 249
+    },
+    "library.Book": {
+      "x": 366,
+      "y": 154.5
+    },
+    "library.Genre": {
+      "x": 678.5,
+      "y": 130
+    },
+    "library.Loan": {
+      "x": 39.5,
+      "y": 239
+    },
+    "library.Member": {
+      "x": 395.5,
+      "y": 373.5
+    }
+  },
+  "collapsedApps": [],
+  "viewport": {
+    "x": 115.5,
+    "y": 245.5,
+    "zoom": 2
+  },
+  "canvasSize": {
+    "width": 1911,
+    "height": 1475
+  },
+  "canvasHidePositions": {},
+  "fieldEdits": {},
+  "edgeOffsets": {},
+  "annotations": {
+    "textBlocks": {},
+    "arrows": {}
+  },
+  "typeColors": {},
+  "schemaSnapshot": {
+    "account.EmailAddress": {
+      "email": "EmailField",
+      "id": "AutoField",
+      "primary": "BooleanField",
+      "user": "ForeignKey",
+      "verified": "BooleanField"
+    },
+    "account.EmailConfirmation": {
+      "created": "DateTimeField",
+      "email_address": "ForeignKey",
+      "id": "AutoField",
+      "key": "CharField",
+      "sent": "DateTimeField"
+    },
+    "admin.LogEntry": {
+      "action_flag": "PositiveSmallIntegerField",
+      "action_time": "DateTimeField",
+      "change_message": "TextField",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "object_id": "TextField",
+      "object_repr": "CharField",
+      "user": "ForeignKey"
+    },
+    "auth.Group": {
+      "id": "AutoField",
+      "name": "CharField",
+      "permissions": "ManyToManyField"
+    },
+    "auth.Permission": {
+      "codename": "CharField",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "name": "CharField"
+    },
+    "auth.User": {
+      "date_joined": "DateTimeField",
+      "email": "EmailField",
+      "first_name": "CharField",
+      "groups": "ManyToManyField",
+      "id": "AutoField",
+      "is_active": "BooleanField",
+      "is_staff": "BooleanField",
+      "is_superuser": "BooleanField",
+      "last_login": "DateTimeField",
+      "last_name": "CharField",
+      "password": "CharField",
+      "user_permissions": "ManyToManyField",
+      "username": "CharField"
+    },
+    "contenttypes.ContentType": {
+      "app_label": "CharField",
+      "id": "AutoField",
+      "model": "CharField"
+    },
+    "django_celery_beat.ClockedSchedule": {
+      "clocked_time": "DateTimeField",
+      "id": "AutoField"
+    },
+    "django_celery_beat.CrontabSchedule": {
+      "day_of_month": "CharField",
+      "day_of_week": "CharField",
+      "hour": "CharField",
+      "id": "AutoField",
+      "minute": "CharField",
+      "month_of_year": "CharField",
+      "timezone": "TimeZoneField"
+    },
+    "django_celery_beat.IntervalSchedule": {
+      "every": "IntegerField",
+      "id": "AutoField",
+      "period": "CharField"
+    },
+    "django_celery_beat.PeriodicTask": {
+      "args": "TextField",
+      "clocked": "ForeignKey",
+      "crontab": "ForeignKey",
+      "date_changed": "DateTimeField",
+      "description": "TextField",
+      "enabled": "BooleanField",
+      "exchange": "CharField",
+      "expire_seconds": "PositiveIntegerField",
+      "expires": "DateTimeField",
+      "headers": "TextField",
+      "id": "AutoField",
+      "interval": "ForeignKey",
+      "kwargs": "TextField",
+      "last_run_at": "DateTimeField",
+      "name": "CharField",
+      "one_off": "BooleanField",
+      "priority": "PositiveIntegerField",
+      "queue": "CharField",
+      "routing_key": "CharField",
+      "solar": "ForeignKey",
+      "start_time": "DateTimeField",
+      "task": "CharField",
+      "total_run_count": "PositiveIntegerField"
+    },
+    "django_celery_beat.PeriodicTasks": {
+      "ident": "SmallIntegerField",
+      "last_update": "DateTimeField"
+    },
+    "django_celery_beat.SolarSchedule": {
+      "event": "CharField",
+      "id": "AutoField",
+      "latitude": "DecimalField",
+      "longitude": "DecimalField"
+    },
+    "guardian.GroupObjectPermission": {
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "group": "ForeignKey",
+      "id": "AutoField",
+      "object_pk": "CharField",
+      "permission": "ForeignKey"
+    },
+    "guardian.UserObjectPermission": {
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "object_pk": "CharField",
+      "permission": "ForeignKey",
+      "user": "ForeignKey"
+    },
+    "library.Author": {
+      "bio": "TextField",
+      "born_on": "DateField",
+      "first_name": "CharField",
+      "id": "BigAutoField",
+      "last_name": "CharField"
+    },
+    "library.Book": {
+      "authors": "ManyToManyField",
+      "description": "TextField",
+      "genre": "ForeignKey",
+      "id": "BigAutoField",
+      "isbn": "CharField",
+      "published_on": "DateField",
+      "title": "CharField"
+    },
+    "library.Genre": {
+      "id": "BigAutoField",
+      "name": "CharField"
+    },
+    "library.Loan": {
+      "book": "ForeignKey",
+      "details": "TextField",
+      "due_on": "DateField",
+      "id": "BigAutoField",
+      "loaned_on": "DateField",
+      "member": "ForeignKey",
+      "returned_on": "DateField",
+      "status": "CharField"
+    },
+    "library.Member": {
+      "id": "BigAutoField",
+      "joined_on": "DateField",
+      "notes": "TextField",
+      "user": "OneToOneField"
+    },
+    "sessions.Session": {
+      "expire_date": "DateTimeField",
+      "session_data": "TextField",
+      "session_key": "CharField"
+    },
+    "sites.Site": {
+      "domain": "CharField",
+      "id": "AutoField",
+      "name": "CharField"
+    },
+    "socialaccount.SocialAccount": {
+      "date_joined": "DateTimeField",
+      "extra_data": "JSONField",
+      "id": "AutoField",
+      "last_login": "DateTimeField",
+      "provider": "CharField",
+      "uid": "CharField",
+      "user": "ForeignKey"
+    },
+    "socialaccount.SocialApp": {
+      "client_id": "CharField",
+      "id": "AutoField",
+      "key": "CharField",
+      "name": "CharField",
+      "provider": "CharField",
+      "provider_id": "CharField",
+      "secret": "CharField",
+      "settings": "JSONField",
+      "sites": "ManyToManyField"
+    },
+    "socialaccount.SocialToken": {
+      "account": "ForeignKey",
+      "app": "ForeignKey",
+      "expires_at": "DateTimeField",
+      "id": "AutoField",
+      "token": "TextField",
+      "token_secret": "TextField"
+    },
+    "store.Category": {
+      "id": "BigAutoField",
+      "name": "CharField",
+      "parent": "ForeignKey"
+    },
+    "store.Customer": {
+      "address": "TextField",
+      "id": "BigAutoField",
+      "phone": "CharField",
+      "user": "OneToOneField"
+    },
+    "store.Order": {
+      "created_at": "DateTimeField",
+      "customer": "ForeignKey",
+      "id": "BigAutoField",
+      "products": "ManyToManyField",
+      "status": "CharField",
+      "updated_at": "DateTimeField"
+    },
+    "store.OrderItem": {
+      "id": "BigAutoField",
+      "order": "ForeignKey",
+      "product": "ForeignKey",
+      "quantity": "PositiveIntegerField",
+      "unit_price": "DecimalField"
+    },
+    "store.Product": {
+      "category": "ForeignKey",
+      "created_at": "DateTimeField",
+      "description": "TextField",
+      "id": "BigAutoField",
+      "name": "CharField",
+      "price": "DecimalField",
+      "stock": "PositiveIntegerField",
+      "tags": "ManyToManyField"
+    },
+    "store.Review": {
+      "body": "TextField",
+      "created_at": "DateTimeField",
+      "customer": "ForeignKey",
+      "id": "BigAutoField",
+      "product": "ForeignKey",
+      "rating": "PositiveSmallIntegerField"
+    },
+    "store.Tag": {
+      "id": "BigAutoField",
+      "name": "CharField"
+    },
+    "taggit.Tag": {
+      "id": "AutoField",
+      "name": "CharField",
+      "slug": "SlugField"
+    },
+    "taggit.TaggedItem": {
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "object_id": "IntegerField",
+      "tag": "ForeignKey"
+    },
+    "tracker.Comment": {
+      "author": "ForeignKey",
+      "body": "TextField",
+      "created_at": "DateTimeField",
+      "id": "BigAutoField",
+      "task": "ForeignKey",
+      "updated_at": "DateTimeField"
+    },
+    "tracker.Project": {
+      "created_at": "DateTimeField",
+      "description": "TextField",
+      "id": "BigAutoField",
+      "name": "CharField",
+      "owner": "ForeignKey"
+    },
+    "tracker.Tag": {
+      "id": "BigAutoField",
+      "name": "CharField"
+    },
+    "tracker.Task": {
+      "assignee": "ForeignKey",
+      "created_at": "DateTimeField",
+      "description": "TextField",
+      "due_date": "DateField",
+      "id": "BigAutoField",
+      "parent": "ForeignKey",
+      "priority": "IntegerField",
+      "project": "ForeignKey",
+      "status": "CharField",
+      "tags": "ManyToManyField",
+      "title": "CharField",
+      "updated_at": "DateTimeField"
+    },
+    "wagtailadmin.Admin": {
+      "id": "AutoField"
+    },
+    "wagtailadmin.EditingSession": {
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "is_editing": "BooleanField",
+      "last_seen_at": "DateTimeField",
+      "object_id": "CharField",
+      "user": "ForeignKey"
+    },
+    "wagtailadmin.FormState": {
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "data": "TextField",
+      "id": "AutoField",
+      "last_updated_at": "DateTimeField",
+      "object_id": "CharField",
+      "parent_object_id": "CharField",
+      "user": "ForeignKey"
+    },
+    "wagtailcore.APIToken": {
+      "created": "DateTimeField",
+      "id": "AutoField",
+      "key_hash": "CharField",
+      "last_used_at": "DateTimeField",
+      "name": "CharField",
+      "prefix": "CharField",
+      "revoked_at": "DateTimeField",
+      "user": "ForeignKey"
+    },
+    "wagtailcore.Collection": {
+      "depth": "PositiveIntegerField",
+      "id": "AutoField",
+      "name": "CharField",
+      "numchild": "PositiveIntegerField",
+      "path": "CharField"
+    },
+    "wagtailcore.CollectionViewRestriction": {
+      "collection": "ForeignKey",
+      "groups": "ManyToManyField",
+      "id": "AutoField",
+      "password": "CharField",
+      "restriction_type": "CharField"
+    },
+    "wagtailcore.Comment": {
+      "contentpath": "TextField",
+      "created_at": "DateTimeField",
+      "id": "AutoField",
+      "page": "ParentalKey",
+      "position": "TextField",
+      "resolved_at": "DateTimeField",
+      "resolved_by": "ForeignKey",
+      "revision_created": "ForeignKey",
+      "text": "TextField",
+      "updated_at": "DateTimeField",
+      "user": "ForeignKey"
+    },
+    "wagtailcore.CommentReply": {
+      "comment": "ParentalKey",
+      "created_at": "DateTimeField",
+      "id": "AutoField",
+      "text": "TextField",
+      "updated_at": "DateTimeField",
+      "user": "ForeignKey"
+    },
+    "wagtailcore.GroupApprovalTask": {
+      "active": "BooleanField",
+      "content_type": "ForeignKey",
+      "groups": "ManyToManyField",
+      "id": "AutoField",
+      "name": "CharField",
+      "task_ptr": "OneToOneField"
+    },
+    "wagtailcore.GroupCollectionPermission": {
+      "collection": "ForeignKey",
+      "group": "ForeignKey",
+      "id": "AutoField",
+      "permission": "ForeignKey"
+    },
+    "wagtailcore.GroupPagePermission": {
+      "group": "ForeignKey",
+      "id": "AutoField",
+      "page": "ForeignKey",
+      "permission": "ForeignKey"
+    },
+    "wagtailcore.GroupSitePermission": {
+      "group": "ForeignKey",
+      "id": "AutoField",
+      "permission": "ForeignKey",
+      "site": "ForeignKey"
+    },
+    "wagtailcore.Locale": {
+      "id": "AutoField",
+      "language_code": "CharField"
+    },
+    "wagtailcore.ModelLogEntry": {
+      "action": "CharField",
+      "content_changed": "BooleanField",
+      "content_type": "ForeignKey",
+      "data": "JSONField",
+      "deleted": "BooleanField",
+      "id": "AutoField",
+      "label": "TextField",
+      "object_id": "CharField",
+      "revision": "ForeignKey",
+      "timestamp": "DateTimeField",
+      "user": "ForeignKey",
+      "uuid": "UUIDField"
+    },
+    "wagtailcore.Page": {
+      "_revisions": "GenericRelation",
+      "_specific_workflow_states": "GenericRelation",
+      "_workflow_states": "GenericRelation",
+      "alias_of": "ForeignKey",
+      "content_type": "ForeignKey",
+      "depth": "PositiveIntegerField",
+      "draft_title": "CharField",
+      "expire_at": "DateTimeField",
+      "expired": "BooleanField",
+      "first_published_at": "DateTimeField",
+      "go_live_at": "DateTimeField",
+      "has_unpublished_changes": "BooleanField",
+      "id": "AutoField",
+      "index_entries": "TextIDGenericRelation",
+      "last_published_at": "DateTimeField",
+      "latest_revision": "ForeignKey",
+      "latest_revision_created_at": "DateTimeField",
+      "live": "BooleanField",
+      "live_revision": "ForeignKey",
+      "locale": "ForeignKey",
+      "locked": "BooleanField",
+      "locked_at": "DateTimeField",
+      "locked_by": "ForeignKey",
+      "numchild": "PositiveIntegerField",
+      "owner": "ForeignKey",
+      "path": "CharField",
+      "search_description": "TextField",
+      "seo_title": "CharField",
+      "show_in_menus": "BooleanField",
+      "slug": "SlugField",
+      "title": "CharField",
+      "translation_key": "UUIDField",
+      "url_path": "TextField"
+    },
+    "wagtailcore.PageLogEntry": {
+      "action": "CharField",
+      "content_changed": "BooleanField",
+      "content_type": "ForeignKey",
+      "data": "JSONField",
+      "deleted": "BooleanField",
+      "id": "AutoField",
+      "label": "TextField",
+      "page": "ForeignKey",
+      "revision": "ForeignKey",
+      "timestamp": "DateTimeField",
+      "user": "ForeignKey",
+      "uuid": "UUIDField"
+    },
+    "wagtailcore.PageSubscription": {
+      "comment_notifications": "BooleanField",
+      "id": "AutoField",
+      "page": "ForeignKey",
+      "user": "ForeignKey"
+    },
+    "wagtailcore.PageViewRestriction": {
+      "groups": "ManyToManyField",
+      "id": "AutoField",
+      "page": "ForeignKey",
+      "password": "CharField",
+      "restriction_type": "CharField"
+    },
+    "wagtailcore.ReferenceIndex": {
+      "base_content_type": "ForeignKey",
+      "content_path": "TextField",
+      "content_path_hash": "UUIDField",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "model_path": "TextField",
+      "object_id": "CharField",
+      "to_content_type": "ForeignKey",
+      "to_object_id": "CharField"
+    },
+    "wagtailcore.Revision": {
+      "approved_go_live_at": "DateTimeField",
+      "base_content_type": "ForeignKey",
+      "content": "JSONField",
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "created_at": "DateTimeField",
+      "id": "AutoField",
+      "object_id": "CharField",
+      "object_str": "TextField",
+      "user": "ForeignKey"
+    },
+    "wagtailcore.Site": {
+      "hostname": "CharField",
+      "id": "AutoField",
+      "is_default_site": "BooleanField",
+      "port": "IntegerField",
+      "root_page": "ForeignKey",
+      "site_name": "CharField"
+    },
+    "wagtailcore.Task": {
+      "active": "BooleanField",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "name": "CharField"
+    },
+    "wagtailcore.TaskState": {
+      "comment": "TextField",
+      "content_type": "ForeignKey",
+      "finished_at": "DateTimeField",
+      "finished_by": "ForeignKey",
+      "id": "AutoField",
+      "revision": "ForeignKey",
+      "started_at": "DateTimeField",
+      "status": "CharField",
+      "task": "ForeignKey",
+      "workflow_state": "ForeignKey"
+    },
+    "wagtailcore.UploadedFile": {
+      "file": "FileField",
+      "for_content_type": "ForeignKey",
+      "id": "AutoField",
+      "uploaded_by_user": "ForeignKey"
+    },
+    "wagtailcore.Workflow": {
+      "active": "BooleanField",
+      "id": "AutoField",
+      "name": "CharField"
+    },
+    "wagtailcore.WorkflowContentType": {
+      "content_type": "OneToOneField",
+      "workflow": "ForeignKey"
+    },
+    "wagtailcore.WorkflowPage": {
+      "page": "OneToOneField",
+      "workflow": "ForeignKey"
+    },
+    "wagtailcore.WorkflowState": {
+      "base_content_type": "ForeignKey",
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "created_at": "DateTimeField",
+      "current_task_state": "OneToOneField",
+      "id": "AutoField",
+      "object_id": "CharField",
+      "requested_by": "ForeignKey",
+      "status": "CharField",
+      "workflow": "ForeignKey"
+    },
+    "wagtailcore.WorkflowTask": {
+      "id": "AutoField",
+      "sort_order": "IntegerField",
+      "task": "ForeignKey",
+      "workflow": "ParentalKey"
+    },
+    "wagtaildocs.Document": {
+      "collection": "ForeignKey",
+      "created_at": "DateTimeField",
+      "file": "FileField",
+      "file_hash": "CharField",
+      "file_size": "PositiveBigIntegerField",
+      "id": "AutoField",
+      "index_entries": "TextIDGenericRelation",
+      "tagged_items": "GenericRelation",
+      "tags": "TaggableManager",
+      "title": "CharField",
+      "uploaded_by_user": "ForeignKey"
+    },
+    "wagtailembeds.Embed": {
+      "author_name": "TextField",
+      "cache_until": "DateTimeField",
+      "hash": "CharField",
+      "height": "IntegerField",
+      "html": "TextField",
+      "id": "AutoField",
+      "last_updated": "DateTimeField",
+      "max_width": "SmallIntegerField",
+      "provider_name": "TextField",
+      "thumbnail_url": "TextField",
+      "title": "TextField",
+      "type": "CharField",
+      "url": "TextField",
+      "width": "IntegerField"
+    },
+    "wagtailforms.FormSubmission": {
+      "form_data": "JSONField",
+      "id": "AutoField",
+      "page": "ForeignKey",
+      "submit_time": "DateTimeField"
+    },
+    "wagtailimages.Image": {
+      "collection": "ForeignKey",
+      "created_at": "DateTimeField",
+      "description": "CharField",
+      "file": "WagtailImageField",
+      "file_hash": "CharField",
+      "file_size": "PositiveIntegerField",
+      "focal_point_height": "PositiveIntegerField",
+      "focal_point_width": "PositiveIntegerField",
+      "focal_point_x": "PositiveIntegerField",
+      "focal_point_y": "PositiveIntegerField",
+      "height": "IntegerField",
+      "id": "AutoField",
+      "index_entries": "TextIDGenericRelation",
+      "tagged_items": "GenericRelation",
+      "tags": "TaggableManager",
+      "title": "CharField",
+      "uploaded_by_user": "ForeignKey",
+      "width": "IntegerField"
+    },
+    "wagtailimages.Rendition": {
+      "file": "WagtailImageField",
+      "filter_spec": "CharField",
+      "focal_point_key": "CharField",
+      "height": "IntegerField",
+      "id": "AutoField",
+      "image": "ForeignKey",
+      "width": "IntegerField"
+    },
+    "wagtailredirects.Redirect": {
+      "automatically_created": "BooleanField",
+      "created_at": "DateTimeField",
+      "id": "AutoField",
+      "is_permanent": "BooleanField",
+      "old_path": "CharField",
+      "redirect_link": "URLField",
+      "redirect_page": "ForeignKey",
+      "redirect_page_route_path": "CharField",
+      "site": "ForeignKey"
+    },
+    "wagtailsearch.IndexEntry": {
+      "autocomplete": "TextField",
+      "body": "TextField",
+      "content_object": "GenericForeignKey",
+      "content_type": "ForeignKey",
+      "id": "AutoField",
+      "object_id": "CharField",
+      "title": "TextField",
+      "title_norm": "FloatField"
+    },
+    "wagtailsearch.SQLiteFTSIndexEntry": {
+      "autocomplete": "TextField",
+      "body": "TextField",
+      "index_entry": "OneToOneField",
+      "title": "TextField"
+    },
+    "wagtailusers.UserProfile": {
+      "approved_notifications": "BooleanField",
+      "avatar": "ImageField",
+      "contrast": "CharField",
+      "current_time_zone": "CharField",
+      "density": "CharField",
+      "dismissibles": "JSONField",
+      "id": "AutoField",
+      "keyboard_shortcuts": "BooleanField",
+      "preferred_language": "CharField",
+      "rejected_notifications": "BooleanField",
+      "submitted_notifications": "BooleanField",
+      "theme": "CharField",
+      "updated_comments_notifications": "BooleanField",
+      "user": "OneToOneField"
+    }
+  },
+  "dbNames": {
+    "account.EmailAddress": {
+      "table": "account_emailaddress",
+      "columns": {
+        "email": "email",
+        "id": "id",
+        "primary": "primary",
+        "user": "user_id",
+        "verified": "verified"
+      },
+      "through": {}
+    },
+    "account.EmailConfirmation": {
+      "table": "account_emailconfirmation",
+      "columns": {
+        "created": "created",
+        "email_address": "email_address_id",
+        "id": "id",
+        "key": "key",
+        "sent": "sent"
+      },
+      "through": {}
+    },
+    "admin.LogEntry": {
+      "table": "django_admin_log",
+      "columns": {
+        "action_flag": "action_flag",
+        "action_time": "action_time",
+        "change_message": "change_message",
+        "content_type": "content_type_id",
+        "id": "id",
+        "object_id": "object_id",
+        "object_repr": "object_repr",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "auth.Group": {
+      "table": "auth_group",
+      "columns": {
+        "id": "id",
+        "name": "name"
+      },
+      "through": {
+        "permissions": "auth_group_permissions"
+      }
+    },
+    "auth.Permission": {
+      "table": "auth_permission",
+      "columns": {
+        "codename": "codename",
+        "content_type": "content_type_id",
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "auth.User": {
+      "table": "auth_user",
+      "columns": {
+        "date_joined": "date_joined",
+        "email": "email",
+        "first_name": "first_name",
+        "id": "id",
+        "is_active": "is_active",
+        "is_staff": "is_staff",
+        "is_superuser": "is_superuser",
+        "last_login": "last_login",
+        "last_name": "last_name",
+        "password": "password",
+        "username": "username"
+      },
+      "through": {
+        "groups": "auth_user_groups",
+        "user_permissions": "auth_user_user_permissions"
+      }
+    },
+    "contenttypes.ContentType": {
+      "table": "django_content_type",
+      "columns": {
+        "app_label": "app_label",
+        "id": "id",
+        "model": "model"
+      },
+      "through": {}
+    },
+    "django_celery_beat.ClockedSchedule": {
+      "table": "django_celery_beat_clockedschedule",
+      "columns": {
+        "clocked_time": "clocked_time",
+        "id": "id"
+      },
+      "through": {}
+    },
+    "django_celery_beat.CrontabSchedule": {
+      "table": "django_celery_beat_crontabschedule",
+      "columns": {
+        "day_of_month": "day_of_month",
+        "day_of_week": "day_of_week",
+        "hour": "hour",
+        "id": "id",
+        "minute": "minute",
+        "month_of_year": "month_of_year",
+        "timezone": "timezone"
+      },
+      "through": {}
+    },
+    "django_celery_beat.IntervalSchedule": {
+      "table": "django_celery_beat_intervalschedule",
+      "columns": {
+        "every": "every",
+        "id": "id",
+        "period": "period"
+      },
+      "through": {}
+    },
+    "django_celery_beat.PeriodicTask": {
+      "table": "django_celery_beat_periodictask",
+      "columns": {
+        "args": "args",
+        "clocked": "clocked_id",
+        "crontab": "crontab_id",
+        "date_changed": "date_changed",
+        "description": "description",
+        "enabled": "enabled",
+        "exchange": "exchange",
+        "expire_seconds": "expire_seconds",
+        "expires": "expires",
+        "headers": "headers",
+        "id": "id",
+        "interval": "interval_id",
+        "kwargs": "kwargs",
+        "last_run_at": "last_run_at",
+        "name": "name",
+        "one_off": "one_off",
+        "priority": "priority",
+        "queue": "queue",
+        "routing_key": "routing_key",
+        "solar": "solar_id",
+        "start_time": "start_time",
+        "task": "task",
+        "total_run_count": "total_run_count"
+      },
+      "through": {}
+    },
+    "django_celery_beat.PeriodicTasks": {
+      "table": "django_celery_beat_periodictasks",
+      "columns": {
+        "ident": "ident",
+        "last_update": "last_update"
+      },
+      "through": {}
+    },
+    "django_celery_beat.SolarSchedule": {
+      "table": "django_celery_beat_solarschedule",
+      "columns": {
+        "event": "event",
+        "id": "id",
+        "latitude": "latitude",
+        "longitude": "longitude"
+      },
+      "through": {}
+    },
+    "guardian.GroupObjectPermission": {
+      "table": "guardian_groupobjectpermission",
+      "columns": {
+        "content_type": "content_type_id",
+        "group": "group_id",
+        "id": "id",
+        "object_pk": "object_pk",
+        "permission": "permission_id"
+      },
+      "through": {}
+    },
+    "guardian.UserObjectPermission": {
+      "table": "guardian_userobjectpermission",
+      "columns": {
+        "content_type": "content_type_id",
+        "id": "id",
+        "object_pk": "object_pk",
+        "permission": "permission_id",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "library.Author": {
+      "table": "library_author",
+      "columns": {
+        "bio": "bio",
+        "born_on": "born_on",
+        "first_name": "first_name",
+        "id": "id",
+        "last_name": "last_name"
+      },
+      "through": {}
+    },
+    "library.Book": {
+      "table": "library_book",
+      "columns": {
+        "description": "description",
+        "genre": "genre_id",
+        "id": "id",
+        "isbn": "isbn",
+        "published_on": "published_on",
+        "title": "title"
+      },
+      "through": {
+        "authors": "library_book_authors"
+      }
+    },
+    "library.Genre": {
+      "table": "library_genre",
+      "columns": {
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "library.Loan": {
+      "table": "library_loan",
+      "columns": {
+        "book": "book_id",
+        "details": "details",
+        "due_on": "due_on",
+        "id": "id",
+        "loaned_on": "loaned_on",
+        "member": "member_id",
+        "returned_on": "returned_on",
+        "status": "status"
+      },
+      "through": {}
+    },
+    "library.Member": {
+      "table": "library_member",
+      "columns": {
+        "id": "id",
+        "joined_on": "joined_on",
+        "notes": "notes",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "sessions.Session": {
+      "table": "django_session",
+      "columns": {
+        "expire_date": "expire_date",
+        "session_data": "session_data",
+        "session_key": "session_key"
+      },
+      "through": {}
+    },
+    "sites.Site": {
+      "table": "django_site",
+      "columns": {
+        "domain": "domain",
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "socialaccount.SocialAccount": {
+      "table": "socialaccount_socialaccount",
+      "columns": {
+        "date_joined": "date_joined",
+        "extra_data": "extra_data",
+        "id": "id",
+        "last_login": "last_login",
+        "provider": "provider",
+        "uid": "uid",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "socialaccount.SocialApp": {
+      "table": "socialaccount_socialapp",
+      "columns": {
+        "client_id": "client_id",
+        "id": "id",
+        "key": "key",
+        "name": "name",
+        "provider": "provider",
+        "provider_id": "provider_id",
+        "secret": "secret",
+        "settings": "settings"
+      },
+      "through": {
+        "sites": "socialaccount_socialapp_sites"
+      }
+    },
+    "socialaccount.SocialToken": {
+      "table": "socialaccount_socialtoken",
+      "columns": {
+        "account": "account_id",
+        "app": "app_id",
+        "expires_at": "expires_at",
+        "id": "id",
+        "token": "token",
+        "token_secret": "token_secret"
+      },
+      "through": {}
+    },
+    "store.Category": {
+      "table": "store_category",
+      "columns": {
+        "id": "id",
+        "name": "name",
+        "parent": "parent_id"
+      },
+      "through": {}
+    },
+    "store.Customer": {
+      "table": "store_customer",
+      "columns": {
+        "address": "address",
+        "id": "id",
+        "phone": "phone",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "store.Order": {
+      "table": "store_order",
+      "columns": {
+        "created_at": "created_at",
+        "customer": "customer_id",
+        "id": "id",
+        "status": "status",
+        "updated_at": "updated_at"
+      },
+      "through": {
+        "products": "store_orderitem"
+      }
+    },
+    "store.OrderItem": {
+      "table": "store_orderitem",
+      "columns": {
+        "id": "id",
+        "order": "order_id",
+        "product": "product_id",
+        "quantity": "quantity",
+        "unit_price": "unit_price"
+      },
+      "through": {}
+    },
+    "store.Product": {
+      "table": "store_product",
+      "columns": {
+        "category": "category_id",
+        "created_at": "created_at",
+        "description": "description",
+        "id": "id",
+        "name": "name",
+        "price": "price",
+        "stock": "stock"
+      },
+      "through": {
+        "tags": "store_product_tags"
+      }
+    },
+    "store.Review": {
+      "table": "store_review",
+      "columns": {
+        "body": "body",
+        "created_at": "created_at",
+        "customer": "customer_id",
+        "id": "id",
+        "product": "product_id",
+        "rating": "rating"
+      },
+      "through": {}
+    },
+    "store.Tag": {
+      "table": "store_tag",
+      "columns": {
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "taggit.Tag": {
+      "table": "taggit_tag",
+      "columns": {
+        "id": "id",
+        "name": "name",
+        "slug": "slug"
+      },
+      "through": {}
+    },
+    "taggit.TaggedItem": {
+      "table": "taggit_taggeditem",
+      "columns": {
+        "content_type": "content_type_id",
+        "id": "id",
+        "object_id": "object_id",
+        "tag": "tag_id"
+      },
+      "through": {}
+    },
+    "tracker.Comment": {
+      "table": "tracker_comment",
+      "columns": {
+        "author": "author_id",
+        "body": "body",
+        "created_at": "created_at",
+        "id": "id",
+        "task": "task_id",
+        "updated_at": "updated_at"
+      },
+      "through": {}
+    },
+    "tracker.Project": {
+      "table": "tracker_project",
+      "columns": {
+        "created_at": "created_at",
+        "description": "description",
+        "id": "id",
+        "name": "name",
+        "owner": "owner_id"
+      },
+      "through": {}
+    },
+    "tracker.Tag": {
+      "table": "tracker_tag",
+      "columns": {
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "tracker.Task": {
+      "table": "tracker_task",
+      "columns": {
+        "assignee": "assignee_id",
+        "created_at": "created_at",
+        "description": "description",
+        "due_date": "due_date",
+        "id": "id",
+        "parent": "parent_id",
+        "priority": "priority",
+        "project": "project_id",
+        "status": "status",
+        "title": "title",
+        "updated_at": "updated_at"
+      },
+      "through": {
+        "tags": "tracker_task_tags"
+      }
+    },
+    "wagtailadmin.Admin": {
+      "table": "wagtailadmin_admin",
+      "columns": {
+        "id": "id"
+      },
+      "through": {}
+    },
+    "wagtailadmin.EditingSession": {
+      "table": "wagtailadmin_editingsession",
+      "columns": {
+        "content_type": "content_type_id",
+        "id": "id",
+        "is_editing": "is_editing",
+        "last_seen_at": "last_seen_at",
+        "object_id": "object_id",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailadmin.FormState": {
+      "table": "wagtailadmin_formstate",
+      "columns": {
+        "content_type": "content_type_id",
+        "data": "data",
+        "id": "id",
+        "last_updated_at": "last_updated_at",
+        "object_id": "object_id",
+        "parent_object_id": "parent_object_id",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.APIToken": {
+      "table": "wagtailcore_apitoken",
+      "columns": {
+        "created": "created",
+        "id": "id",
+        "key_hash": "key_hash",
+        "last_used_at": "last_used_at",
+        "name": "name",
+        "prefix": "prefix",
+        "revoked_at": "revoked_at",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.Collection": {
+      "table": "wagtailcore_collection",
+      "columns": {
+        "depth": "depth",
+        "id": "id",
+        "name": "name",
+        "numchild": "numchild",
+        "path": "path"
+      },
+      "through": {}
+    },
+    "wagtailcore.CollectionViewRestriction": {
+      "table": "wagtailcore_collectionviewrestriction",
+      "columns": {
+        "collection": "collection_id",
+        "id": "id",
+        "password": "password",
+        "restriction_type": "restriction_type"
+      },
+      "through": {
+        "groups": "wagtailcore_collectionviewrestriction_groups"
+      }
+    },
+    "wagtailcore.Comment": {
+      "table": "wagtailcore_comment",
+      "columns": {
+        "contentpath": "contentpath",
+        "created_at": "created_at",
+        "id": "id",
+        "page": "page_id",
+        "position": "position",
+        "resolved_at": "resolved_at",
+        "resolved_by": "resolved_by_id",
+        "revision_created": "revision_created_id",
+        "text": "text",
+        "updated_at": "updated_at",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.CommentReply": {
+      "table": "wagtailcore_commentreply",
+      "columns": {
+        "comment": "comment_id",
+        "created_at": "created_at",
+        "id": "id",
+        "text": "text",
+        "updated_at": "updated_at",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.GroupApprovalTask": {
+      "table": "wagtailcore_groupapprovaltask",
+      "columns": {
+        "active": "active",
+        "content_type": "content_type_id",
+        "id": "id",
+        "name": "name",
+        "task_ptr": "task_ptr_id"
+      },
+      "through": {
+        "groups": "wagtailcore_groupapprovaltask_groups"
+      }
+    },
+    "wagtailcore.GroupCollectionPermission": {
+      "table": "wagtailcore_groupcollectionpermission",
+      "columns": {
+        "collection": "collection_id",
+        "group": "group_id",
+        "id": "id",
+        "permission": "permission_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.GroupPagePermission": {
+      "table": "wagtailcore_grouppagepermission",
+      "columns": {
+        "group": "group_id",
+        "id": "id",
+        "page": "page_id",
+        "permission": "permission_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.GroupSitePermission": {
+      "table": "wagtailcore_groupsitepermission",
+      "columns": {
+        "group": "group_id",
+        "id": "id",
+        "permission": "permission_id",
+        "site": "site_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.Locale": {
+      "table": "wagtailcore_locale",
+      "columns": {
+        "id": "id",
+        "language_code": "language_code"
+      },
+      "through": {}
+    },
+    "wagtailcore.ModelLogEntry": {
+      "table": "wagtailcore_modellogentry",
+      "columns": {
+        "action": "action",
+        "content_changed": "content_changed",
+        "content_type": "content_type_id",
+        "data": "data",
+        "deleted": "deleted",
+        "id": "id",
+        "label": "label",
+        "object_id": "object_id",
+        "revision": "revision_id",
+        "timestamp": "timestamp",
+        "user": "user_id",
+        "uuid": "uuid"
+      },
+      "through": {}
+    },
+    "wagtailcore.Page": {
+      "table": "wagtailcore_page",
+      "columns": {
+        "alias_of": "alias_of_id",
+        "content_type": "content_type_id",
+        "depth": "depth",
+        "draft_title": "draft_title",
+        "expire_at": "expire_at",
+        "expired": "expired",
+        "first_published_at": "first_published_at",
+        "go_live_at": "go_live_at",
+        "has_unpublished_changes": "has_unpublished_changes",
+        "id": "id",
+        "last_published_at": "last_published_at",
+        "latest_revision": "latest_revision_id",
+        "latest_revision_created_at": "latest_revision_created_at",
+        "live": "live",
+        "live_revision": "live_revision_id",
+        "locale": "locale_id",
+        "locked": "locked",
+        "locked_at": "locked_at",
+        "locked_by": "locked_by_id",
+        "numchild": "numchild",
+        "owner": "owner_id",
+        "path": "path",
+        "search_description": "search_description",
+        "seo_title": "seo_title",
+        "show_in_menus": "show_in_menus",
+        "slug": "slug",
+        "title": "title",
+        "translation_key": "translation_key",
+        "url_path": "url_path"
+      },
+      "through": {}
+    },
+    "wagtailcore.PageLogEntry": {
+      "table": "wagtailcore_pagelogentry",
+      "columns": {
+        "action": "action",
+        "content_changed": "content_changed",
+        "content_type": "content_type_id",
+        "data": "data",
+        "deleted": "deleted",
+        "id": "id",
+        "label": "label",
+        "page": "page_id",
+        "revision": "revision_id",
+        "timestamp": "timestamp",
+        "user": "user_id",
+        "uuid": "uuid"
+      },
+      "through": {}
+    },
+    "wagtailcore.PageSubscription": {
+      "table": "wagtailcore_pagesubscription",
+      "columns": {
+        "comment_notifications": "comment_notifications",
+        "id": "id",
+        "page": "page_id",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.PageViewRestriction": {
+      "table": "wagtailcore_pageviewrestriction",
+      "columns": {
+        "id": "id",
+        "page": "page_id",
+        "password": "password",
+        "restriction_type": "restriction_type"
+      },
+      "through": {
+        "groups": "wagtailcore_pageviewrestriction_groups"
+      }
+    },
+    "wagtailcore.ReferenceIndex": {
+      "table": "wagtailcore_referenceindex",
+      "columns": {
+        "base_content_type": "base_content_type_id",
+        "content_path": "content_path",
+        "content_path_hash": "content_path_hash",
+        "content_type": "content_type_id",
+        "id": "id",
+        "model_path": "model_path",
+        "object_id": "object_id",
+        "to_content_type": "to_content_type_id",
+        "to_object_id": "to_object_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.Revision": {
+      "table": "wagtailcore_revision",
+      "columns": {
+        "approved_go_live_at": "approved_go_live_at",
+        "base_content_type": "base_content_type_id",
+        "content": "content",
+        "content_type": "content_type_id",
+        "created_at": "created_at",
+        "id": "id",
+        "object_id": "object_id",
+        "object_str": "object_str",
+        "user": "user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.Site": {
+      "table": "wagtailcore_site",
+      "columns": {
+        "hostname": "hostname",
+        "id": "id",
+        "is_default_site": "is_default_site",
+        "port": "port",
+        "root_page": "root_page_id",
+        "site_name": "site_name"
+      },
+      "through": {}
+    },
+    "wagtailcore.Task": {
+      "table": "wagtailcore_task",
+      "columns": {
+        "active": "active",
+        "content_type": "content_type_id",
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "wagtailcore.TaskState": {
+      "table": "wagtailcore_taskstate",
+      "columns": {
+        "comment": "comment",
+        "content_type": "content_type_id",
+        "finished_at": "finished_at",
+        "finished_by": "finished_by_id",
+        "id": "id",
+        "revision": "revision_id",
+        "started_at": "started_at",
+        "status": "status",
+        "task": "task_id",
+        "workflow_state": "workflow_state_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.UploadedFile": {
+      "table": "wagtailcore_uploadedfile",
+      "columns": {
+        "file": "file",
+        "for_content_type": "for_content_type_id",
+        "id": "id",
+        "uploaded_by_user": "uploaded_by_user_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.Workflow": {
+      "table": "wagtailcore_workflow",
+      "columns": {
+        "active": "active",
+        "id": "id",
+        "name": "name"
+      },
+      "through": {}
+    },
+    "wagtailcore.WorkflowContentType": {
+      "table": "wagtailcore_workflowcontenttype",
+      "columns": {
+        "content_type": "content_type_id",
+        "workflow": "workflow_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.WorkflowPage": {
+      "table": "wagtailcore_workflowpage",
+      "columns": {
+        "page": "page_id",
+        "workflow": "workflow_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.WorkflowState": {
+      "table": "wagtailcore_workflowstate",
+      "columns": {
+        "base_content_type": "base_content_type_id",
+        "content_type": "content_type_id",
+        "created_at": "created_at",
+        "current_task_state": "current_task_state_id",
+        "id": "id",
+        "object_id": "object_id",
+        "requested_by": "requested_by_id",
+        "status": "status",
+        "workflow": "workflow_id"
+      },
+      "through": {}
+    },
+    "wagtailcore.WorkflowTask": {
+      "table": "wagtailcore_workflowtask",
+      "columns": {
+        "id": "id",
+        "sort_order": "sort_order",
+        "task": "task_id",
+        "workflow": "workflow_id"
+      },
+      "through": {}
+    },
+    "wagtaildocs.Document": {
+      "table": "wagtaildocs_document",
+      "columns": {
+        "collection": "collection_id",
+        "created_at": "created_at",
+        "file": "file",
+        "file_hash": "file_hash",
+        "file_size": "file_size",
+        "id": "id",
+        "title": "title",
+        "uploaded_by_user": "uploaded_by_user_id"
+      },
+      "through": {}
+    },
+    "wagtailembeds.Embed": {
+      "table": "wagtailembeds_embed",
+      "columns": {
+        "author_name": "author_name",
+        "cache_until": "cache_until",
+        "hash": "hash",
+        "height": "height",
+        "html": "html",
+        "id": "id",
+        "last_updated": "last_updated",
+        "max_width": "max_width",
+        "provider_name": "provider_name",
+        "thumbnail_url": "thumbnail_url",
+        "title": "title",
+        "type": "type",
+        "url": "url",
+        "width": "width"
+      },
+      "through": {}
+    },
+    "wagtailforms.FormSubmission": {
+      "table": "wagtailforms_formsubmission",
+      "columns": {
+        "form_data": "form_data",
+        "id": "id",
+        "page": "page_id",
+        "submit_time": "submit_time"
+      },
+      "through": {}
+    },
+    "wagtailimages.Image": {
+      "table": "wagtailimages_image",
+      "columns": {
+        "collection": "collection_id",
+        "created_at": "created_at",
+        "description": "description",
+        "file": "file",
+        "file_hash": "file_hash",
+        "file_size": "file_size",
+        "focal_point_height": "focal_point_height",
+        "focal_point_width": "focal_point_width",
+        "focal_point_x": "focal_point_x",
+        "focal_point_y": "focal_point_y",
+        "height": "height",
+        "id": "id",
+        "title": "title",
+        "uploaded_by_user": "uploaded_by_user_id",
+        "width": "width"
+      },
+      "through": {}
+    },
+    "wagtailimages.Rendition": {
+      "table": "wagtailimages_rendition",
+      "columns": {
+        "file": "file",
+        "filter_spec": "filter_spec",
+        "focal_point_key": "focal_point_key",
+        "height": "height",
+        "id": "id",
+        "image": "image_id",
+        "width": "width"
+      },
+      "through": {}
+    },
+    "wagtailredirects.Redirect": {
+      "table": "wagtailredirects_redirect",
+      "columns": {
+        "automatically_created": "automatically_created",
+        "created_at": "created_at",
+        "id": "id",
+        "is_permanent": "is_permanent",
+        "old_path": "old_path",
+        "redirect_link": "redirect_link",
+        "redirect_page": "redirect_page_id",
+        "redirect_page_route_path": "redirect_page_route_path",
+        "site": "site_id"
+      },
+      "through": {}
+    },
+    "wagtailsearch.IndexEntry": {
+      "table": "wagtailsearch_indexentry",
+      "columns": {
+        "autocomplete": "autocomplete",
+        "body": "body",
+        "content_type": "content_type_id",
+        "id": "id",
+        "object_id": "object_id",
+        "title": "title",
+        "title_norm": "title_norm"
+      },
+      "through": {}
+    },
+    "wagtailsearch.SQLiteFTSIndexEntry": {
+      "table": "wagtailsearch_indexentry_fts",
+      "columns": {
+        "autocomplete": "autocomplete",
+        "body": "body",
+        "index_entry": "rowid",
+        "title": "title"
+      },
+      "through": {}
+    },
+    "wagtailusers.UserProfile": {
+      "table": "wagtailusers_userprofile",
+      "columns": {
+        "approved_notifications": "approved_notifications",
+        "avatar": "avatar",
+        "contrast": "contrast",
+        "current_time_zone": "current_time_zone",
+        "density": "density",
+        "dismissibles": "dismissibles",
+        "id": "id",
+        "keyboard_shortcuts": "keyboard_shortcuts",
+        "preferred_language": "preferred_language",
+        "rejected_notifications": "rejected_notifications",
+        "submitted_notifications": "submitted_notifications",
+        "theme": "theme",
+        "updated_comments_notifications": "updated_comments_notifications",
+        "user": "user_id"
+      },
+      "through": {}
+    }
+  },
+  "physics": {
+    "edgeStyle": "bezier",
+    "liveDragPhysics": false,
+    "forceParams": {
+      "alphaDecay": 0.0228,
+      "alphaMin": 0.001,
+      "velocityDecay": 0.4,
+      "chargeStrength": -400,
+      "linkDistance": 180,
+      "collisionRadius": 80
+    },
+    "appMode": "normal",
+    "colorPalette": "pastel",
+    "backgroundStyle": "dots",
+    "minimapVisible": true,
+    "sidebarOpen": false,
+    "colorByType": false
+  }
+}

@@ -34,7 +34,7 @@ describe("every committed config fixture still imports", () => {
     expect(files).toEqual(
       expect.arrayContaining([
         "config-v1.json", "config-v2.json", "config-v3.json", "config-v4.json", "config-v5.json",
-        "config-v6.json", "config-v7.json",
+        "config-v6.json", "config-v7.json", "config-v8.json",
       ]),
     );
   });
@@ -335,6 +335,30 @@ describe("config-v6.json", () => {
   });
 });
 
+describe("config-v8.json", () => {
+  const dbNames = () => JSON.parse(fixture("config-v8.json")).dbNames;
+
+  it("carries every model's real table, columns and m2m through tables (issue #135)", () => {
+    const names = dbNames();
+    expect(Object.keys(names)).toHaveLength(76);
+    // A Meta.db_table that does not follow <app_label>_<model>.
+    expect(names["admin.LogEntry"].table).toBe("django_admin_log");
+    expect(names["admin.LogEntry"].columns).toMatchObject({ content_type: "content_type_id", user: "user_id" });
+    // An auto-created through table, and an explicit `through` model.
+    expect(names["library.Book"].through).toEqual({ authors: "library_book_authors" });
+    expect(names["store.Order"].through).toEqual({ products: "store_orderitem" });
+    // M2M fields have no column of their own.
+    expect(names["library.Book"].columns).not.toHaveProperty("authors");
+  });
+
+  it("restores the scene: the library app and admin.LogEntry", () => {
+    importConfig(fixture("config-v8.json"), null);
+    expect([...useSchemaStore.getState().visibleNodeIds].sort()).toEqual([
+      "admin.LogEntry", "library.Author", "library.Book", "library.Genre", "library.Loan", "library.Member",
+    ]);
+  });
+});
+
 describe("config-v7.json", () => {
   const saved = (): Record<string, Record<string, string>> => JSON.parse(fixture("config-v7.json")).schemaSnapshot;
 
@@ -347,6 +371,7 @@ describe("config-v7.json", () => {
         app_label: id.split(".")[0],
         app_name: id.split(".")[0],
         tags: [],
+        db_table: null,
         fields: Object.entries(fields).map(([name, type]) => ({
           ...field(name),
           field_type: type,
@@ -366,6 +391,7 @@ describe("config-v7.json", () => {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
   });
 
   it("carries a snapshot of every model's field types at export", () => {
@@ -419,6 +445,7 @@ describe("schema drift against a committed export", () => {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
   });
 
   it("drops order entries for fields that no longer exist and appends new ones", () => {

@@ -202,6 +202,7 @@ describe("sortAllFieldsByType", () => {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
     ...extra,
   });
   // Alphabetical, as the Python side delivers it.
@@ -299,6 +300,7 @@ describe("sort by type with colors (issue #115)", () => {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
     ...extra,
   });
   const fields = [

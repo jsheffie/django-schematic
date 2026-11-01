@@ -172,6 +172,14 @@ describe("export-v6.png", () => {
   });
 });
 
+describe("export-v8.png", () => {
+  it("carries exactly the bytes committed as config-v8.json, db names included (issue #135)", () => {
+    const embedded = extractTextChunk(pngFixture("export-v8.png"), "schematic");
+    expect(embedded).toBe(textFixture("config-v8.json"));
+    expect(JSON.parse(embedded!).dbNames["admin.LogEntry"].table).toBe("django_admin_log");
+  });
+});
+
 describe("export-v7.png", () => {
   it("carries exactly the bytes committed as config-v7.json", () => {
     expect(extractTextChunk(pngFixture("export-v7.png"), "schematic")).toBe(textFixture("config-v7.json"));

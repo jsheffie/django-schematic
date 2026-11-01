@@ -14,6 +14,7 @@ function field(name: string, field_type = "CharField"): FieldInfo {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
     internal_type: field_type,
   };
 }
@@ -26,9 +27,10 @@ const LIVE: SchemaGraph = {
       app_label: "store",
       app_name: "store",
       tags: [],
+      db_table: null,
       fields: [field("id", "BigAutoField"), field("status", "TextField"), field("total", "DecimalField")],
     },
-    { id: "store.Customer", name: "Customer", app_label: "store", app_name: "store", tags: [], fields: [field("id", "BigAutoField")] },
+    { id: "store.Customer", name: "Customer", app_label: "store", app_name: "store", tags: [], db_table: null, fields: [field("id", "BigAutoField")] },
   ],
   edges: [],
   app_labels: ["store"],
