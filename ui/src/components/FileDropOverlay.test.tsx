@@ -23,14 +23,16 @@ function setup() {
 }
 
 const overlay = () => screen.queryByTestId("file-drop-overlay");
+/** The overlay stays in the page between drags (see the regression test below); this is whether it shows. */
+const shown = () => overlay() !== null && !overlay()!.hidden;
 
 describe("FileDropOverlay", () => {
   it("shows a drop target while a file is dragged over the window", () => {
     setup();
-    expect(overlay()).toBeNull();
+    expect(shown()).toBe(false);
     fireEvent.dragEnter(window, { dataTransfer: files() });
-    expect(overlay()).not.toBeNull();
-    expect(overlay()!.textContent).toContain("Drop to import");
+    expect(shown()).toBe(true);
+    expect(overlay()!.textContent).toContain("Drop anywhere to import");
   });
 
   it("claims file drags so the browser never opens the file in place of the app", () => {
@@ -48,7 +50,22 @@ describe("FileDropOverlay", () => {
     fireEvent.drop(window, { dataTransfer: files(file) });
     expect(onDrop).toHaveBeenCalledWith(file);
     expect(onReject).not.toHaveBeenCalled();
-    expect(overlay()).toBeNull();
+    expect(shown()).toBe(false);
+  });
+
+  // Chrome on macOS fires a pointermove at the moment a file is released,
+  // just before the drop, and sends the drop to the element under the cursor
+  // at the last dragover: the overlay. Removing the overlay on that
+  // pointermove sent the drop to a detached element, so it never reached the
+  // window listener and Chrome opened the file in a new tab (issue #129).
+  it("still imports when the release's pointermove hides the overlay just before the drop", () => {
+    const { onDrop } = setup();
+    const file = png();
+    fireEvent.dragEnter(window, { dataTransfer: files() });
+    const dropTarget = overlay()!;
+    fireEvent.pointerMove(dropTarget);
+    expect(fireEvent.drop(dropTarget, { dataTransfer: files(file) })).toBe(false);
+    expect(onDrop).toHaveBeenCalledWith(file);
   });
 
   it("rejects more than one file, still keeping the browser from opening them", () => {
@@ -61,7 +78,7 @@ describe("FileDropOverlay", () => {
   it("leaves other drags alone, such as text dragged into a note", () => {
     const { onDrop } = setup();
     fireEvent.dragEnter(window, { dataTransfer: text() });
-    expect(overlay()).toBeNull();
+    expect(shown()).toBe(false);
     expect(fireEvent.dragOver(window, { dataTransfer: text() })).toBe(true);
     expect(fireEvent.drop(window, { dataTransfer: text() })).toBe(true);
     expect(onDrop).not.toHaveBeenCalled();
@@ -71,21 +88,21 @@ describe("FileDropOverlay", () => {
     setup();
     fireEvent.dragEnter(window, { dataTransfer: files() });
     fireEvent.dragLeave(overlay()!, { dataTransfer: files() });
-    expect(overlay()).toBeNull();
+    expect(shown()).toBe(false);
   });
 
   it("stays up while the drag moves over its own message", () => {
     setup();
     fireEvent.dragEnter(window, { dataTransfer: files() });
-    fireEvent.dragLeave(screen.getByText("Drop to import"), { dataTransfer: files() });
-    expect(overlay()).not.toBeNull();
+    fireEvent.dragLeave(screen.getByText("Drop anywhere to import"), { dataTransfer: files() });
+    expect(shown()).toBe(true);
   });
 
   it("clears a drop target left behind by a drag that ended elsewhere", () => {
     setup();
     fireEvent.dragEnter(window, { dataTransfer: files() });
     fireEvent.pointerMove(window);
-    expect(overlay()).toBeNull();
+    expect(shown()).toBe(false);
   });
 
   it("renders outside the toolbar, so the toolbar's transform cannot clip it", () => {

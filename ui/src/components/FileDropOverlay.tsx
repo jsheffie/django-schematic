@@ -25,6 +25,13 @@ function carriesFiles(e: DragEvent): boolean {
  * The overlay covers the whole window and its children ignore pointer events,
  * so a dragleave whose target is the overlay itself means the drag left the
  * window. relatedTarget is not used: Safari does not set it on drag events.
+ *
+ * The overlay element stays in the page and is only hidden, never unmounted.
+ * Chrome on macOS fires a pointermove at the moment a file is released, just
+ * before the drop, and sends the drop to the element that was under the cursor
+ * at the last dragover: the overlay. An overlay removed by that pointermove
+ * received the drop detached from the document, so it never bubbled to the
+ * window listener and Chrome opened the file in a new tab instead.
  */
 export default function FileDropOverlay({ onDrop, onReject }: Props) {
   const [active, setActive] = useState(false);
@@ -75,20 +82,20 @@ export default function FileDropOverlay({ onDrop, onReject }: Props) {
     };
   }, []);
 
-  if (!active) return null;
-
   // Portaled: FileMenu, which owns the import, sits in the transformed toolbar.
   // z-[60] puts it above the toolbar (z-40) and open dialogs (z-50).
+  // Always mounted, only hidden: see the comment above the component.
   return createPortal(
     <div
       ref={overlayRef}
       data-testid="file-drop-overlay"
+      hidden={!active}
       className="fixed inset-0 z-[60] bg-blue-50/70 backdrop-blur-[2px]"
     >
-      <div className="pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed border-blue-400 flex items-center justify-center">
+      <div className="pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed border-blue-500 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-2xl px-8 py-6 flex flex-col items-center gap-2 text-center">
           <IconImport className="w-8 h-8 text-blue-600" />
-          <p className="text-sm font-semibold text-gray-800">Drop to import</p>
+          <p className="text-sm font-semibold text-gray-800">Drop anywhere to import</p>
           <p className="text-xs text-gray-500">A PNG exported from schematic, or a JSON config</p>
         </div>
       </div>
