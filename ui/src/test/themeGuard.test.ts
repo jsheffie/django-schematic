@@ -46,4 +46,9 @@ describe("theme guard", () => {
   it("has no hard-coded hex, rgb or hsl colors", () => {
     expect(offending(/#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|"white"|"black"|,\s*white\)/)).toEqual([]);
   });
+
+  it("pairs accent text with a dark: variant, since accent shades read differently on dark", () => {
+    const accentText = /(^|[\s"'`])text-(red|blue|amber|green|purple|orange|yellow|indigo|violet|emerald|teal|sky|rose|pink)-\d+/;
+    expect(offending(accentText, (line) => !/dark:text-/.test(line) && !/aria-hidden/.test(line))).toEqual([]);
+  });
 });

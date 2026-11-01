@@ -8,6 +8,7 @@ import { IconColorByType, IconEye, IconEyeSlash, IconSortByType } from "./icons"
 import { AnchorHandle } from "./AnchorHandle";
 import { fieldHandleId } from "../lib/smartEdge";
 import { THEME } from "../lib/themeTokens";
+import { NODE_TEXT } from "../lib/nodeText";
 
 // Fallback when a row has no layout yet (or in jsdom), matching a text-xs row.
 const DEFAULT_ROW_HEIGHT = 22;
@@ -378,7 +379,7 @@ export function FieldEditor({
                 data-fieldrow={name}
                 data-dragging={isDragged ? "true" : undefined}
                 className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
-                  f.is_relation ? "text-blue-700 dark:text-blue-300 font-medium" : "text-gray-800"
+                  f.is_relation ? `${NODE_TEXT.relation} font-medium` : NODE_TEXT.name
                 } ${hidden ? HIDDEN_ROW_FADE : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm dark:bg-blue-500/15" : ""}`}
                 style={{
                   ...(color ? { backgroundColor: `${color}${hidden ? "1F" : "4D"}` } : undefined),
@@ -406,7 +407,7 @@ export function FieldEditor({
                   ≡
                 </button>
                 <button
-                  className="shrink-0 select-none text-gray-500 hover:text-gray-800"
+                  className={`shrink-0 select-none ${NODE_TEXT.type} hover:text-gray-900`}
                   onClick={() => toggleFieldHidden(nodeId, name)}
                   title={hidden ? "Show field" : "Hide field"}
                   aria-label={hidden ? "Show field" : "Hide field"}
@@ -422,7 +423,7 @@ export function FieldEditor({
                   aria-label="Field color"
                 />
                 <span className="flex-1 truncate">{name}</span>
-                <span className="text-gray-600 dark:text-gray-700 shrink-0">{f.field_type}</span>
+                <span className={`${NODE_TEXT.type} shrink-0`}>{f.field_type}</span>
                 {swatchFor === name && (
                   <SwatchPopover
                     current={color}
@@ -471,7 +472,7 @@ export function FieldEditor({
           </button>
         </div>
         <button
-          className="text-xs text-gray-500 hover:text-gray-800"
+          className={`text-xs ${NODE_TEXT.note} hover:text-gray-900`}
           onClick={() => resetFieldEdits(nodeId)}
           title="Clear all field edits on this model"
         >

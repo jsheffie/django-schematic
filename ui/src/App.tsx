@@ -23,7 +23,7 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center text-red-500">
+      <div className="flex h-full items-center justify-center text-red-600 dark:text-red-400">
         {error}
       </div>
     );
