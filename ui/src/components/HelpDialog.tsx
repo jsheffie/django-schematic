@@ -127,6 +127,7 @@ export default function HelpDialog() {
               <div><dt className="font-medium inline">Import config —</dt><dd className="inline text-gray-500"> restores a previously exported JSON config, including positions.</dd></div>
               <div><dt className="font-medium inline">Export PNG —</dt><dd className="inline text-gray-500"> downloads the canvas as a PNG image with the full config embedded inside. The layout and settings can be restored later via Import PNG.</dd></div>
               <div><dt className="font-medium inline">Import PNG —</dt><dd className="inline text-gray-500"> reads an exported PNG and restores the embedded config, including positions, visibility, and physics settings.</dd></div>
+              <div><dt className="font-medium inline">Drag and drop -</dt><dd className="inline text-gray-500"> drop a PNG exported from schematic or a JSON config anywhere on the page to import it, same as Import PNG and Import config.</dd></div>
               <div><dt className="font-medium inline">Reset —</dt><dd className="inline text-gray-500"> clears pinned positions, collapses all expanded fields, and removes every field edit (order, hidden fields, colors) and connector reshaping. Annotations are kept: delete them one by one, or import a config without them.</dd></div>
             </dl>
           </section>

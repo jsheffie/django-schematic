@@ -242,3 +242,53 @@ describe("FileMenu schema change warning (issue #131)", () => {
     expect(utils.queryByRole("alertdialog")).toBeNull();
   });
 });
+
+describe("FileMenu drag and drop import (issue #129)", () => {
+  const drop = (...files: File[]) =>
+    fireEvent.drop(window, { dataTransfer: { types: ["Files"], files, dropEffect: "none" } });
+
+  it("a dropped PNG imports like Import PNG", async () => {
+    const png = readFileSync(join(FIXTURES, "export-v7.png"));
+    renderMenu();
+    drop(new File([png], "orders (2).png", { type: "image/png" }));
+    await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("orders"));
+  });
+
+  it("a dropped JSON config imports like Import config", async () => {
+    const json = readFileSync(join(FIXTURES, "config-v7.json"), "utf8");
+    renderMenu();
+    drop(new File([json], "shop-layout.json", { type: "application/json" }));
+    await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("shop-layout"));
+  });
+
+  it("a dropped file of another kind shows an import error and changes nothing", async () => {
+    useSchemaStore.setState({ documentName: "orders" });
+    const utils = renderMenu();
+    drop(new File(["x"], "notes.txt", { type: "text/plain" }));
+    await utils.findByText('"notes.txt" is not a schematic file. Use a PNG exported from schematic or a JSON config.');
+    expect(useSchemaStore.getState().documentName).toBe("orders");
+  });
+
+  it("a dropped PNG without a config shows the same error as Import PNG", async () => {
+    const utils = renderMenu();
+    drop(new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], "shot.png", { type: "image/png" }));
+    await utils.findByText("This PNG does not contain an embedded schematic config.");
+  });
+
+  it("dropping several files at once shows an error", async () => {
+    const json = readFileSync(join(FIXTURES, "config-v7.json"), "utf8");
+    const utils = renderMenu();
+    drop(new File([json], "a.json", { type: "application/json" }), new File([json], "b.json", { type: "application/json" }));
+    await utils.findByText("Drop one file at a time.");
+    expect(useSchemaStore.getState().documentName).toBeNull();
+  });
+});
+
+describe("FileMenu import pickers", () => {
+  it("Import config also accepts an exported PNG", async () => {
+    const png = readFileSync(join(FIXTURES, "export-v7.png"));
+    const utils = renderMenu();
+    importFile(utils, "Import config", new File([png], "orders.png", { type: "image/png" }));
+    await waitFor(() => expect(useSchemaStore.getState().documentName).toBe("orders"));
+  });
+});

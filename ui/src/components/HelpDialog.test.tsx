@@ -16,4 +16,10 @@ describe("HelpDialog", () => {
     const { getByTestId } = render(<HelpDialog />);
     expect(getByTestId("app-version").textContent).toBe(`django-schematic v${pkg.version}`);
   });
+
+  it("explains drag and drop import in the File menu section (issue #129)", () => {
+    usePhysicsStore.getState().setHelpOpen(true);
+    const { getByText } = render(<HelpDialog />);
+    expect(getByText(/^Drag and drop/).parentElement!.textContent).toContain("PNG exported from schematic or a JSON config");
+  });
 });

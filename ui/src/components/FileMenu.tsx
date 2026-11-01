@@ -4,13 +4,14 @@ import { backdropClick } from "../lib/backdrop";
 import { useReactFlow } from "@xyflow/react";
 import { collectModelPositions, exportConfig, importConfig } from "../lib/config";
 import { basenameFromFile, defaultExportBasename } from "../lib/exportFilename";
-import { extractTextChunk } from "../lib/pngEmbed";
+import { ConfigFileError, readConfigFile } from "../lib/configFile";
 import { captureCanvasPng } from "../lib/pngExport";
 import { useSchemaStore } from "../store/schemaStore";
 import type { Viewport } from "@xyflow/react";
 import type { SchemaGraph } from "../lib/types";
 import type { SchemaChanges } from "../lib/schemaChanges";
 import SchemaChangesDialog from "./SchemaChangesDialog";
+import FileDropOverlay from "./FileDropOverlay";
 
 interface FilenameDialogProps {
   open: boolean;
@@ -194,27 +195,35 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
     URL.revokeObjectURL(url);
   }
 
-  function handleImport() {
+  // One path for both pickers and drag and drop (issue #129).
+  async function importFile(file: File) {
+    let read: Awaited<ReturnType<typeof readConfigFile>>;
+    try {
+      read = await readConfigFile(file);
+    } catch (e) {
+      if (!(e instanceof ConfigFileError)) throw e;
+      setErrorMsg(e.message);
+      return;
+    }
+    try {
+      const { schemaChanges: changes, ...viewport } = importConfig(read.json, schema);
+      // Restore the exact viewport saved at export time
+      setViewport(viewport as Viewport);
+      setDocumentName(basenameFromFile(file.name));
+      setSchemaChanges(changes);
+    } catch {
+      setErrorMsg(read.kind === "png" ? "Failed to restore config from PNG." : "Invalid config file.");
+    }
+  }
+
+  function pickFile(accept: string) {
     setOpen(false);
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".json,application/json";
+    input.accept = accept;
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const { schemaChanges: changes, ...viewport } = importConfig(ev.target?.result as string, schema);
-          // Restore the exact viewport saved at export time
-          setViewport(viewport as Viewport);
-          setDocumentName(basenameFromFile(file.name));
-          setSchemaChanges(changes);
-        } catch {
-          setErrorMsg("Invalid config file.");
-        }
-      };
-      reader.readAsText(file);
+      if (file) void importFile(file);
     };
     input.click();
   }
@@ -230,37 +239,6 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
     a.download = `${basename}.png`;
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  function handleImportPng() {
-    setOpen(false);
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".png,image/png";
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const buffer = ev.target?.result as ArrayBuffer;
-        const bytes = new Uint8Array(buffer);
-        const json = extractTextChunk(bytes, "schematic");
-        if (!json) {
-          setErrorMsg("This PNG does not contain an embedded schematic config.");
-          return;
-        }
-        try {
-          const { schemaChanges: changes, ...viewport } = importConfig(json, schema);
-          setViewport(viewport as Viewport);
-          setDocumentName(basenameFromFile(file.name));
-          setSchemaChanges(changes);
-        } catch {
-          setErrorMsg("Failed to restore config from PNG.");
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    };
-    input.click();
   }
 
   function handleReset() {
@@ -293,7 +271,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
           </button>
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            onClick={handleImport}
+            onClick={() => pickFile(".json,application/json")}
           >
             Import config
           </button>
@@ -305,7 +283,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
           </button>
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            onClick={handleImportPng}
+            onClick={() => pickFile(".png,image/png")}
           >
             Import PNG
           </button>
@@ -340,6 +318,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
         onClose={() => setErrorMsg(null)}
       />
       <SchemaChangesDialog changes={schemaChanges} onClose={() => setSchemaChanges(null)} />
+      <FileDropOverlay onDrop={(file) => void importFile(file)} onReject={setErrorMsg} />
     </div>
   );
 }
