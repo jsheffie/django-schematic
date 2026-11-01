@@ -105,12 +105,12 @@ export default function FileDropOverlay({ onDrop, onReject, quiet = false, onAct
       ref={overlayRef}
       data-testid="file-drop-overlay"
       hidden={!active}
-      className={`fixed inset-0 z-[60] ${quiet ? "" : "bg-blue-50/70 backdrop-blur-[2px]"}`}
+      className={`fixed inset-0 z-[60] ${quiet ? "" : "bg-blue-50/70 backdrop-blur-[2px] dark:bg-blue-950/60"}`}
     >
       {!quiet && (
         <div className="pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed border-blue-500 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-2xl px-8 py-6 flex flex-col items-center gap-2 text-center">
-            <IconImport className="w-8 h-8 text-blue-600" />
+          <div className="bg-surface rounded-xl shadow-2xl px-8 py-6 flex flex-col items-center gap-2 text-center">
+            <IconImport className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             <p className="text-sm font-semibold text-gray-800">Drop anywhere to import</p>
             <p className="text-xs text-gray-500">A PNG exported from schematic, or a JSON config</p>
           </div>

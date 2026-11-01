@@ -127,7 +127,7 @@ export default function ArrowDrawLayer() {
           />
         )}
       </svg>
-      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-white shadow">
+      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-gray-900/90 px-3 py-1 text-xs text-inverse shadow">
         Drag to draw an arrow. Esc cancels.
       </div>
     </div>

@@ -52,6 +52,8 @@ import { runDagreLayout } from "../hooks/useLayout";
 import { runElkLayout } from "../hooks/useElkLayout";
 import SettingsDrawer from "./SettingsDrawer";
 import { schemaEdgeId } from "../lib/pruneToSchema";
+import { THEME } from "../lib/themeTokens";
+import { useResolvedTheme } from "../hooks/useTheme";
 
 // Model tables, text blocks, and invisible anchors for the free ends of arrows.
 type CanvasNode = ModelNodeData | TextBlockNodeData | AnchorNodeData;
@@ -92,6 +94,7 @@ export default function SchemaCanvas({ schema }: Props) {
   const setMinimapVisible = usePhysicsStore((s) => s.setMinimapVisible);
   const colorPalette = usePhysicsStore((s) => s.colorPalette);
   const backgroundStyle = usePhysicsStore((s) => s.backgroundStyle);
+  const theme = useResolvedTheme();
   const annotationTool = usePhysicsStore((s) => s.annotationTool);
   const setAnnotationTool = usePhysicsStore((s) => s.setAnnotationTool);
   const selectedArrowId = usePhysicsStore((s) => s.selectedArrowId);
@@ -461,6 +464,7 @@ export default function SchemaCanvas({ schema }: Props) {
   return (
     <div className="relative w-full h-full">
       <ReactFlow
+        colorMode={theme}
         nodes={displayNodes}
         edges={rfEdges}
         nodeTypes={nodeTypes}
@@ -483,7 +487,7 @@ export default function SchemaCanvas({ schema }: Props) {
           <Background
             variant={backgroundStyle === "lines" ? BackgroundVariant.Lines : BackgroundVariant.Dots}
             gap={backgroundStyle === "lines" ? 24 : 20}
-            color={backgroundStyle === "lines" ? "#e5e7eb" : "#d1d5db"}
+            color={backgroundStyle === "lines" ? THEME.canvasLines : THEME.canvasDots}
             size={backgroundStyle === "lines" ? 1 : 1.5}
           />
         )}
@@ -499,16 +503,16 @@ export default function SchemaCanvas({ schema }: Props) {
               if (node.type === "anchor") return "transparent";
               if (node.type === "text") return textBlocks.get(node.id)?.color ?? DEFAULT_NOTE_COLOR;
               const data = node.data as ModelNodeData["data"];
-              return appColor(data?.appLabel ?? "", colorPalette);
+              return appColor(data?.appLabel ?? "", colorPalette, theme);
             }}
-            maskColor="rgba(255,255,255,0.7)"
+            maskColor={THEME.minimapMask}
           />
         )}
 
         {!minimapVisible && (
           <Panel position="bottom-right">
             <button
-              className="px-2 py-1 text-xs bg-white border border-gray-200 rounded shadow hover:bg-gray-50 text-gray-600"
+              className="px-2 py-1 text-xs bg-surface border border-gray-200 rounded shadow hover:bg-gray-50 text-gray-600"
               onClick={() => setMinimapVisible(true)}
               title="Show minimap"
             >
@@ -524,7 +528,7 @@ export default function SchemaCanvas({ schema }: Props) {
         <button
           onClick={() => setMinimapVisible(false)}
           title="Hide minimap"
-          className="minimap-close absolute z-10 bg-white/90 border border-gray-200 rounded text-gray-400 hover:text-gray-600 hover:bg-white leading-none"
+          className="minimap-close absolute z-10 bg-surface/90 border border-gray-200 rounded text-gray-500 hover:text-gray-600 hover:bg-surface leading-none"
           style={{ bottom: 150, right: 10, width: 16, height: 16, fontSize: 11, padding: 0 }}
         >
           ×

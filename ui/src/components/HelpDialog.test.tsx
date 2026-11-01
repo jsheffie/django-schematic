@@ -30,4 +30,13 @@ describe("HelpDialog", () => {
     expect(entry).toContain("drop zone");
     expect(entry).toContain("Choose file");
   });
+
+  it("describes the Theme setting and all three Settings tabs (issue #132)", () => {
+    usePhysicsStore.getState().setHelpOpen(true);
+    const { getByText } = render(<HelpDialog />);
+    const settings = getByText(/^Open with the Settings toggle/).textContent!;
+    expect(settings).toContain("Three tabs");
+    expect(settings).toMatch(/Theme \(System, Light or Dark\)/);
+    expect(settings).toContain("Fields");
+  });
 });

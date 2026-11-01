@@ -9,6 +9,7 @@ import { collectModelPositions, exportConfig } from "./config";
 import { injectTextChunk } from "./pngEmbed";
 import type { SchemaGraph } from "./types";
 import { usePhysicsStore } from "../store/physicsStore";
+import { resolvedToken } from "./themeTokens";
 
 /** UI chrome that must not end up in the image. */
 export function pngExportFilter(el: Element): boolean {
@@ -43,7 +44,8 @@ export async function captureCanvasPng(rf: CanvasHandle, schema: SchemaGraph): P
   const flowEl = document.querySelector(".react-flow") as HTMLElement | null;
   if (!flowEl) throw new Error("React Flow element not found");
 
-  const dataUrl = await toPng(flowEl, { backgroundColor: "#ffffff", filter: pngExportFilter });
+  // The theme on screen (issue #132): the canvas color fills the background.
+  const dataUrl = await toPng(flowEl, { backgroundColor: resolvedToken("canvas"), filter: pngExportFilter });
 
   const binary = atob(dataUrl.split(",")[1]);
   const bytes = new Uint8Array(binary.length);

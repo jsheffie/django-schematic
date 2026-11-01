@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 import type { SchemaGraph, NodeInfo } from "../lib/types";
 import { useSchemaStore } from "../store/schemaStore";
-import { appColor } from "../lib/colors";
+import { appColors } from "../lib/colors";
+import { usePhysicsStore } from "../store/physicsStore";
+import { useResolvedTheme } from "../hooks/useTheme";
 import { IconEye, IconEyeSlash } from "./icons";
 
 interface Props {
@@ -91,6 +93,9 @@ function IconButton({ onClick, title, disabled = false, children }: IconButtonPr
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function Sidebar({ schema }: Props) {
+  // App names use the node label color: the active palette, readable in either theme.
+  const colorPalette = usePhysicsStore((s) => s.colorPalette);
+  const theme = useResolvedTheme();
   const visibleNodeIds = useSchemaStore((s) => s.visibleNodeIds);
   const schemaInitialized = useSchemaStore((s) => s.schemaInitialized);
   const effectiveVisibleIds = useMemo(
@@ -133,7 +138,7 @@ export default function Sidebar({ schema }: Props) {
     allNodeIds.length > 0 && allNodeIds.every((id) => !effectiveVisibleIds.has(id));
 
   return (
-    <aside className="flex flex-col w-72 shrink-0 border-r border-gray-200 bg-white text-sm h-full">
+    <aside className="flex flex-col w-72 shrink-0 border-r border-gray-200 bg-surface text-sm h-full">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="px-3 pt-3 pb-2 border-b border-gray-200 shrink-0">
@@ -200,7 +205,7 @@ export default function Sidebar({ schema }: Props) {
           const noneAppVisible = nodeIds.every((id) => !effectiveVisibleIds.has(id));
           const allAppExpanded = nodeIds.every((id) => expandedNodeIds.has(id));
           const isCollapsed = collapsedApps.has(appLabel);
-          const color = appColor(appLabel);
+          const color = appColors(appLabel, colorPalette, theme).text;
           // Full dotted name (e.g. "django.contrib.auth") when available
           const displayName = schema.app_names?.[appLabel] ?? appLabel;
 
@@ -212,7 +217,7 @@ export default function Sidebar({ schema }: Props) {
 
                 {/* Fold/unfold chevron */}
                 <button
-                  className="flex items-center justify-center w-5 h-5 text-gray-400 hover:text-gray-600 shrink-0 transition-colors"
+                  className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-600 shrink-0 transition-colors"
                   onClick={() => toggleAppCollapse(appLabel)}
                   title={isCollapsed ? "Expand app" : "Collapse app"}
                 >
@@ -235,7 +240,7 @@ export default function Sidebar({ schema }: Props) {
 
                 {/* Expand/collapse field details for this app's nodes */}
                 <button
-                  className="flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 shrink-0 transition-colors"
+                  className="flex items-center justify-center w-6 h-6 rounded text-gray-500 hover:bg-gray-100 hover:text-gray-700 shrink-0 transition-colors"
                   onClick={() =>
                     allAppExpanded ? collapseNodes(nodeIds) : expandNodes(nodeIds)
                   }
@@ -246,7 +251,7 @@ export default function Sidebar({ schema }: Props) {
 
                 {/* Show / hide all models in this app */}
                 <button
-                  className="flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 shrink-0 transition-colors"
+                  className="flex items-center justify-center w-6 h-6 rounded text-gray-500 hover:bg-gray-100 hover:text-gray-700 shrink-0 transition-colors"
                   onClick={() =>
                     noneAppVisible
                       ? showApp(appLabel, nodeIds)
@@ -270,7 +275,7 @@ export default function Sidebar({ schema }: Props) {
                       {/* Model name */}
                       <span
                         className={`flex-1 truncate leading-5 min-w-0 ${
-                          isVisible ? "text-gray-700" : "text-gray-400"
+                          isVisible ? "text-gray-700" : "text-gray-500"
                         }`}
                       >
                         {node.name}
@@ -279,7 +284,7 @@ export default function Sidebar({ schema }: Props) {
                       {/* Abstract / proxy badges */}
                       {node.tags.includes("abstract") && (
                         <span
-                          className="text-xs text-gray-400 shrink-0 font-medium"
+                          className="text-xs text-gray-500 shrink-0 font-medium"
                           title="Abstract"
                         >
                           A
@@ -287,7 +292,7 @@ export default function Sidebar({ schema }: Props) {
                       )}
                       {node.tags.includes("proxy") && (
                         <span
-                          className="text-xs text-gray-400 shrink-0 font-medium"
+                          className="text-xs text-gray-500 shrink-0 font-medium"
                           title="Proxy"
                         >
                           P
@@ -296,7 +301,7 @@ export default function Sidebar({ schema }: Props) {
 
                       {/* Visibility toggle — always visible when hidden, fades in on row hover when visible */}
                       <button
-                        className="flex items-center justify-center w-6 h-6 rounded shrink-0 transition-colors hover:bg-gray-100 hover:text-gray-700 text-gray-400"
+                        className="flex items-center justify-center w-6 h-6 rounded shrink-0 transition-colors hover:bg-gray-100 hover:text-gray-700 text-gray-500"
                         onClick={() =>
                           canvasHidePositions.has(node.id)
                             ? restoreCanvasHiddenNode(node.id)

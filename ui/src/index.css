@@ -1,5 +1,102 @@
 @import "tailwindcss";
 
+/*
+ * Themes (issue #132). <html data-theme="light|dark"> is set by lib/theme.ts,
+ * and before first paint by the template's inline script. Every color the UI
+ * draws comes from a token below, so the two themes cannot drift apart:
+ *
+ * - The gray scale keeps its meaning by step in both themes: 50-100 subtle
+ *   fills, 200-300 borders, 400 icons, 500-600 secondary text, 700-900 ink.
+ *   Dark redefines the steps, so `text-gray-800` is strong ink in either theme.
+ *   On a dark-gray surface use `text-inverse`, never `text-white`.
+ * - Colors with no step meaning are semantic tokens: surface, canvas, inverse,
+ *   backdrop, foreground, ink, and the canvas, edge and minimap colors.
+ * - Accent colors (blue, red, amber, ...) keep their Tailwind values; a site
+ *   that needs a different shade in dark pairs it with a `dark:` variant.
+ *
+ * src/test/themeGuard.test.ts fails on raw white, black, hex or rgb colors in components.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme static {
+  /* Default text color, for anything without a text class. */
+  --color-foreground: #000000;
+  /* Panels, cards, dialogs, menus. */
+  --color-surface: #ffffff;
+  /* The diagram's background. */
+  --color-canvas: #ffffff;
+  /* Text on a dark-gray (inverted) surface such as a tooltip or a dark button. */
+  --color-inverse: #ffffff;
+  /* Modal backdrops. */
+  --color-backdrop: rgb(0 0 0 / 0.3);
+  /* Default ink for annotations: arrows and title text blocks. */
+  --color-ink: #1f2937;
+  --color-ink-selected: #2563eb;
+  /* Resize handles and selection outlines. */
+  --color-guide: #9ca3af;
+
+  --color-canvas-dots: #d1d5db;
+  --color-canvas-lines: #e5e7eb;
+  --color-minimap-mask: rgb(255 255 255 / 0.7);
+
+  /* Relation edges, their markers and labels (EdgeTypes, lib/markers). */
+  --color-edge-fk: #6b7280;
+  --color-edge-o2o: #2563eb;
+  --color-edge-m2m: #7c3aed;
+  --color-edge-subclass: #059669;
+  --color-edge-proxy: #d97706;
+}
+
+:root[data-theme="dark"] {
+  --color-gray-50: oklch(26.5% 0.02 262);
+  --color-gray-100: oklch(29.5% 0.022 262);
+  --color-gray-200: oklch(34% 0.024 262);
+  --color-gray-300: oklch(41% 0.026 262);
+  --color-gray-400: oklch(58% 0.025 262);
+  --color-gray-500: oklch(70% 0.02 262);
+  --color-gray-600: oklch(78% 0.016 262);
+  --color-gray-700: oklch(85% 0.012 262);
+  --color-gray-800: oklch(91% 0.008 262);
+  --color-gray-900: oklch(95% 0.005 262);
+  --color-gray-950: oklch(98% 0.003 262);
+
+  --color-foreground: oklch(95% 0.005 262);
+  --color-surface: oklch(23% 0.02 262);
+  --color-canvas: oklch(19% 0.016 262);
+  --color-inverse: oklch(21% 0.02 262);
+  --color-backdrop: rgb(0 0 0 / 0.6);
+  --color-ink: oklch(88% 0.01 262);
+  --color-ink-selected: #60a5fa;
+  --color-guide: oklch(58% 0.025 262);
+
+  --color-canvas-dots: oklch(36% 0.02 262);
+  --color-canvas-lines: oklch(27% 0.018 262);
+  --color-minimap-mask: oklch(16% 0.016 262 / 0.7);
+
+  --color-edge-fk: #9ca3af;
+  --color-edge-o2o: #60a5fa;
+  --color-edge-m2m: #a78bfa;
+  --color-edge-subclass: #34d399;
+  --color-edge-proxy: #fbbf24;
+}
+
+/* React Flow's own dark mode (colorMode="dark"), mapped onto the tokens above. */
+:root[data-theme="dark"] .react-flow.dark {
+  --xy-background-color-default: var(--color-canvas);
+  --xy-minimap-background-color-default: var(--color-surface);
+  --xy-minimap-node-background-color-default: var(--color-gray-200);
+  --xy-controls-button-background-color-default: var(--color-surface);
+  --xy-controls-button-background-color-hover-default: var(--color-gray-100);
+  --xy-controls-button-color-default: var(--color-gray-700);
+  --xy-controls-button-color-hover-default: var(--color-gray-900);
+  --xy-controls-button-border-color-default: var(--color-gray-200);
+  --xy-edge-label-background-color-default: var(--color-canvas);
+  --xy-edge-label-color-default: var(--color-gray-800);
+  /* Light draws dark dots with a white ring; dark inverts that. */
+  --xy-handle-background-color-default: var(--color-gray-700);
+  --xy-handle-border-color-default: var(--color-canvas);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -14,8 +111,13 @@ body,
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-foreground);
+}
+
 /* Title text blocks have no card; the outline shows where to grab them. */
 .annotation-title:hover {
-  outline: 1px dashed #d1d5db;
+  outline: 1px dashed var(--color-gray-300);
   outline-offset: 2px;
 }

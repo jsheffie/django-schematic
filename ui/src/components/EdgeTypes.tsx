@@ -17,6 +17,7 @@ import { useSchemaStore } from "../store/schemaStore";
 import { smartEdgeGeometry } from "../lib/smartEdge";
 import type { Point } from "../lib/smartEdge";
 import { ArrowEdge } from "./ArrowEdge";
+import { THEME } from "../lib/themeTokens";
 
 export type SchemaEdgeData = Edge<{
   relation_type: "fk" | "o2o" | "m2m" | "subclass" | "proxy";
@@ -26,13 +27,7 @@ export type SchemaEdgeData = Edge<{
   edgeStyle?: EdgeStyle;
 }, 'schema'>;
 
-const EDGE_COLORS: Record<string, string> = {
-  fk: "#6b7280",       // gray
-  o2o: "#2563eb",      // blue
-  m2m: "#7c3aed",      // purple
-  subclass: "#059669", // green
-  proxy: "#d97706",    // amber
-};
+const EDGE_COLORS: Record<string, string> = THEME.edge;
 
 const RELATION_LABELS: Record<string, string> = {
   fk: "one-to-many",
@@ -59,7 +54,7 @@ export function SchemaEdge({
   const [hovered, setHovered] = useState(false);
 
   const relType = data?.relation_type ?? "fk";
-  const color = EDGE_COLORS[relType] ?? "#6b7280";
+  const color = EDGE_COLORS[relType] ?? THEME.edge.fk;
   const style = data?.edgeStyle ?? "step";
 
   // Always call hooks — floating and smart bezier edges need live node
@@ -182,7 +177,7 @@ export function SchemaEdge({
         {hovered ? (
           /* Hover tooltip: type / field / reverse */
           <div
-            className="absolute bg-white border border-gray-200 rounded shadow-lg px-2 py-1.5 text-xs pointer-events-none z-[1001]"
+            className="absolute bg-surface border border-gray-200 rounded shadow-lg px-2 py-1.5 text-xs pointer-events-none z-[1001]"
             style={{
               // React Flow assigns nodes z-index from internals.z (0 normally,
               // 1000 when selected/elevated); the edge-label-renderer layer has
@@ -194,16 +189,16 @@ export function SchemaEdge({
             }}
           >
             <div className="flex gap-2">
-              <span className="text-gray-400 w-12 shrink-0">type</span>
+              <span className="text-gray-500 w-12 shrink-0">type</span>
               <span className="text-gray-700">{RELATION_LABELS[relType] ?? relType}</span>
             </div>
             <div className="flex gap-2">
-              <span className="text-gray-400 w-12 shrink-0">field</span>
+              <span className="text-gray-500 w-12 shrink-0">field</span>
               <span className="text-gray-700">{data?.field_name}</span>
             </div>
             {data?.related_name && (
               <div className="flex gap-2">
-                <span className="text-gray-400 w-12 shrink-0">reverse</span>
+                <span className="text-gray-500 w-12 shrink-0">reverse</span>
                 <span className="text-gray-700">{data.related_name}</span>
               </div>
             )}
@@ -211,7 +206,7 @@ export function SchemaEdge({
         ) : (
           data?.field_name && (
             <div
-              className="absolute text-xs text-gray-500 bg-white px-0.5 rounded pointer-events-none"
+              className="absolute text-xs text-gray-500 bg-surface px-0.5 rounded pointer-events-none"
               style={{
                 transform: `translate(-50%, ${isSmart ? "-150%" : "-50%"}) translate(${labelX}px,${labelY}px)`,
               }}
@@ -222,7 +217,7 @@ export function SchemaEdge({
         )}
         {showGrip && (
           <div
-            className="nodrag nopan absolute rounded-full border-2 bg-white"
+            className="nodrag nopan absolute rounded-full border-2 bg-surface"
             style={{
               width: 10,
               height: 10,

@@ -81,7 +81,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
             }`}
           >
             <span
-              className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+              className={`inline-block h-3.5 w-3.5 rounded-full bg-surface shadow transition-transform ${
                 colorByType ? "translate-x-4" : "translate-x-1"
               }`}
             />
@@ -93,7 +93,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
           Type colors
         </p>
-        <p className="text-[10px] text-gray-400 mb-2">
+        <p className="text-[10px] text-gray-500 mb-2">
           Auto types take turns through the remaining colors, so neighbouring groups in a table
           always differ.
         </p>
@@ -116,7 +116,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
                       open ? "bg-gray-100" : ""
                     }`}
                   >
-                    {color === null && <span className="text-[10px] text-gray-400">Auto</span>}
+                    {color === null && <span className="text-[10px] text-gray-500">Auto</span>}
                     <span
                       className="inline-block h-3.5 w-3.5 rounded-sm border border-gray-300"
                       style={{ background: color ?? AUTO_SWATCH }}
@@ -163,7 +163,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
             setPicking(null);
           }}
           disabled={!hasPicks}
-          className="mt-2 w-full rounded-md border border-gray-200 py-1.5 text-xs text-gray-600 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
+          className="mt-2 w-full rounded-md border border-gray-200 py-1.5 text-xs text-gray-600 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-surface"
         >
           Restore defaults
         </button>
@@ -174,7 +174,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
           Table colors
         </p>
         {confirmClear && coloredTables > 0 ? (
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
             <p>
               Remove the field colors from {coloredTables} {coloredTables === 1 ? "table" : "tables"}? Order and
               hidden fields stay.
@@ -182,7 +182,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
             <div className="mt-2 flex justify-end gap-2">
               <button
                 onClick={() => setConfirmClear(false)}
-                className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-gray-600 hover:bg-gray-50"
+                className="rounded-md border border-gray-200 bg-surface px-2.5 py-1 text-gray-600 hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -202,7 +202,7 @@ export default function TypeColorSettings({ schema }: { schema: SchemaGraph }) {
             onClick={() => setConfirmClear(true)}
             disabled={coloredTables === 0}
             title={coloredTables === 0 ? "No table has field colors" : undefined}
-            className="w-full rounded-md border border-gray-200 py-1.5 text-xs text-gray-600 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
+            className="w-full rounded-md border border-gray-200 py-1.5 text-xs text-gray-600 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-surface"
           >
             Clear colors on all tables
           </button>

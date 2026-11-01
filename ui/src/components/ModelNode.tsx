@@ -15,6 +15,8 @@ import { FieldEditor } from "./FieldEditor";
 import { AnchorHandle } from "./AnchorHandle";
 import { HEADER_HANDLE_ID, fieldHandleId } from "../lib/smartEdge";
 import type { FieldInfo } from "../lib/types";
+import { THEME } from "../lib/themeTokens";
+import { useResolvedTheme } from "../hooks/useTheme";
 
 export type ModelNodeData = Node<{
   nodeId: string;
@@ -28,14 +30,14 @@ function FieldRow({ field, color }: { field: FieldInfo; color?: string }) {
   return (
     <div
       className={`relative flex items-center gap-2 px-2 py-0.5 text-xs ${
-        field.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
+        field.is_relation ? "text-blue-700 dark:text-blue-300 font-medium" : "text-gray-800"
       }`}
       style={color ? { backgroundColor: `${color}4D` } : undefined}
     >
       <AnchorHandle id={fieldHandleId(field.name)} />
       <span className="flex-1 truncate">{field.name}</span>
-      <span className="text-gray-400 shrink-0">{field.field_type}</span>
-      {field.null && <span className="text-gray-300">null</span>}
+      <span className="text-gray-600 dark:text-gray-700 shrink-0">{field.field_type}</span>
+      {field.null && <span className="text-gray-600 dark:text-gray-700">null</span>}
     </div>
   );
 }
@@ -51,6 +53,7 @@ export const ModelNode = memo(function ModelNode({
   const fieldEdits = useSchemaStore((s) => s.fieldEdits.get(data.nodeId));
   const expandNodes = useSchemaStore((s) => s.expandNodes);
   const colorPalette = usePhysicsStore((s) => s.colorPalette);
+  const theme = useResolvedTheme();
   const editingNodeId = usePhysicsStore((s) => s.editingNodeId);
   const setEditingNode = usePhysicsStore((s) => s.setEditingNode);
   const { getNode } = useReactFlow();
@@ -86,7 +89,7 @@ export const ModelNode = memo(function ModelNode({
 
   const { visible: visibleFields, hiddenCount } = applyFieldEdits(data.fields, fieldEdits);
 
-  const { border: borderColor, bg: bgColor } = appColors(data.appLabel, colorPalette);
+  const { border: borderColor, bg: bgColor, text: labelColor } = appColors(data.appLabel, colorPalette, theme);
 
   const isAbstract = data.tags.includes("abstract");
   const isProxy = data.tags.includes("proxy");
@@ -98,7 +101,7 @@ export const ModelNode = memo(function ModelNode({
       style={{
         border: `2px solid ${borderColor}`,
         borderStyle: isAbstract ? "dashed" : "solid",
-        backgroundColor: isProxy ? "#fff" : bgColor,
+        backgroundColor: isProxy ? THEME.surface : bgColor,
       }}
     >
       {/* Default handles for the step style / React Flow's own edge anchoring.
@@ -110,11 +113,11 @@ export const ModelNode = memo(function ModelNode({
 
       {/* Double-click hide confirmation */}
       {showHidePrompt && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded bg-white/95 p-2">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded bg-surface/95 p-2">
           <span className="text-xs font-medium text-gray-700">Hide this model?</span>
           <div className="flex gap-1.5">
             <button
-              className="rounded bg-gray-700 px-2.5 py-1 text-xs text-white hover:bg-gray-900"
+              className="rounded bg-gray-700 px-2.5 py-1 text-xs text-inverse hover:bg-gray-900"
               onClick={() => {
               const pos = getNode(data.nodeId)?.position ?? { x: 0, y: 0 };
               hideNodeFromCanvas(data.nodeId, pos);
@@ -143,8 +146,8 @@ export const ModelNode = memo(function ModelNode({
         <AnchorHandle id={HEADER_HANDLE_ID} />
         <span className="font-semibold flex-1 truncate">{data.name}</span>
         <button
-          className="nodrag shrink-0 rounded px-0.5 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-700"
-          style={isEditing ? { opacity: 1, color: borderColor } : undefined}
+          className="nodrag shrink-0 rounded px-0.5 text-xs text-gray-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-700"
+          style={isEditing ? { opacity: 1, color: labelColor } : undefined}
           onClick={(e) => {
             e.stopPropagation();
             if (isEditing) {
@@ -160,15 +163,15 @@ export const ModelNode = memo(function ModelNode({
           ✎
         </button>
         {isAbstract && (
-          <span className="text-xs text-gray-400 shrink-0">abstract</span>
+          <span className="text-xs text-gray-500 shrink-0">abstract</span>
         )}
         {isProxy && (
-          <span className="text-xs text-gray-400 shrink-0">proxy</span>
+          <span className="text-xs text-gray-500 shrink-0">proxy</span>
         )}
         {isThrough && (
-          <span className="text-xs text-gray-400 shrink-0">through</span>
+          <span className="text-xs text-gray-500 shrink-0">through</span>
         )}
-        <span className="text-xs shrink-0" style={{ color: borderColor }}>
+        <span className="text-xs shrink-0" style={{ color: labelColor }}>
           {data.appLabel}
         </span>
       </div>
@@ -182,14 +185,14 @@ export const ModelNode = memo(function ModelNode({
         isExpanded && (
           <div className="py-1">
             {data.fields.length === 0 ? (
-              <div className="px-2 py-0.5 text-xs text-gray-400">no fields</div>
+              <div className="px-2 py-0.5 text-xs text-gray-500">no fields</div>
             ) : (
               visibleFields.map((f) => (
                 <FieldRow key={f.name} field={f} color={fieldEdits?.fieldColors[f.name]} />
               ))
             )}
             {hiddenCount > 0 && (
-              <div className="px-2 py-0.5 text-center text-[10px] text-gray-400 select-none">
+              <div className="px-2 py-0.5 text-center text-[10px] text-gray-500 select-none">
                 · {hiddenCount} hidden ·
               </div>
             )}

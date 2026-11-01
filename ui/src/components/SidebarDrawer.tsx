@@ -37,7 +37,7 @@ export default function SidebarDrawer({ schema }: Props) {
 
       {/* Tab handle — rides the right edge of the drawer */}
       <button
-        className="fixed top-16 z-30 flex items-center justify-center bg-white border border-l-0 border-gray-200 shadow-md hover:bg-gray-50 rounded-r-md text-gray-400 hover:text-gray-600 text-sm select-none"
+        className="fixed top-16 z-30 flex items-center justify-center bg-surface border border-l-0 border-gray-200 shadow-md hover:bg-gray-50 rounded-r-md text-gray-500 hover:text-gray-600 text-sm select-none"
         style={{
           left: DRAWER_WIDTH,
           width: 20,

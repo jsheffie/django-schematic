@@ -7,6 +7,7 @@ import type { FieldInfo } from "../lib/types";
 import { IconColorByType, IconEye, IconEyeSlash, IconSortByType } from "./icons";
 import { AnchorHandle } from "./AnchorHandle";
 import { fieldHandleId } from "../lib/smartEdge";
+import { THEME } from "../lib/themeTokens";
 
 // Fallback when a row has no layout yet (or in jsdom), matching a text-xs row.
 const DEFAULT_ROW_HEIGHT = 22;
@@ -26,7 +27,7 @@ function SwatchPopover({
   return (
     <div
       data-swatch-popover
-      className="absolute left-10 top-full z-20 mt-0.5 flex items-center gap-1 rounded border border-gray-200 bg-white p-1 shadow-md"
+      className="absolute left-10 top-full z-20 mt-0.5 flex items-center gap-1 rounded border border-gray-200 bg-surface p-1 shadow-md"
     >
       {FIELD_COLOR_SWATCHES.map((c) => (
         <button
@@ -359,7 +360,7 @@ export function FieldEditor({
   return (
     <div className="nokey py-1">
       {displayed.length === 0 ? (
-        <div className="px-2 py-0.5 text-xs text-gray-400">no fields</div>
+        <div className="px-2 py-0.5 text-xs text-gray-500">no fields</div>
       ) : (
         <div ref={listRef} role="listbox" aria-label={`Fields of ${modelName}`}>
           {displayed.map((f, index) => {
@@ -377,13 +378,13 @@ export function FieldEditor({
                 data-fieldrow={name}
                 data-dragging={isDragged ? "true" : undefined}
                 className={`relative flex items-center gap-1.5 px-1.5 py-0.5 text-xs ${
-                  f.is_relation ? "text-blue-700 font-medium" : "text-gray-600"
-                } ${hidden ? HIDDEN_ROW_FADE : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm" : ""}`}
+                  f.is_relation ? "text-blue-700 dark:text-blue-300 font-medium" : "text-gray-800"
+                } ${hidden ? HIDDEN_ROW_FADE : ""} ${isDragged ? "z-10 bg-blue-50 shadow-sm dark:bg-blue-500/15" : ""}`}
                 style={{
                   ...(color ? { backgroundColor: `${color}${hidden ? "1F" : "4D"}` } : undefined),
                   ...(shift !== 0 ? { transform: `translateY(${shift}px)` } : undefined),
                   ...(isSelected
-                    ? { outline: `2px solid ${accentColor ?? "#3b82f6"}`, outlineOffset: -2 }
+                    ? { outline: `2px solid ${accentColor ?? THEME.inkSelected}`, outlineOffset: -2 }
                     : undefined),
                 }}
                 onClick={(e) => onRowClick(e, name)}
@@ -396,7 +397,7 @@ export function FieldEditor({
                     else handleRefs.current.delete(name);
                   }}
                   data-reorder-handle
-                  className="cursor-grab touch-none select-none px-0.5 text-gray-400 outline-none active:cursor-grabbing"
+                  className="cursor-grab touch-none select-none px-0.5 text-gray-500 outline-none active:cursor-grabbing"
                   title="Drag, or select and press ↑ ↓ (j k), to reorder"
                   aria-label={`Reorder ${name}`}
                   onPointerDown={(e) => onHandleDown(e, name)}
@@ -415,13 +416,13 @@ export function FieldEditor({
                 <button
                   data-swatch-toggle
                   className="h-3 w-3 shrink-0 rounded-sm border border-gray-400"
-                  style={{ backgroundColor: color ?? "#ffffff" }}
+                  style={{ backgroundColor: color ?? THEME.surface }}
                   onClick={() => setSwatchFor(swatchFor === name ? null : name)}
                   title="Field color"
                   aria-label="Field color"
                 />
                 <span className="flex-1 truncate">{name}</span>
-                <span className="text-gray-400 shrink-0">{f.field_type}</span>
+                <span className="text-gray-600 dark:text-gray-700 shrink-0">{f.field_type}</span>
                 {swatchFor === name && (
                   <SwatchPopover
                     current={color}
@@ -442,7 +443,7 @@ export function FieldEditor({
       <div className="mt-1 flex items-center justify-end gap-2 border-t border-gray-200 px-2 pt-1">
         <div className="mr-auto inline-flex">
           <button
-            className="relative inline-flex items-center gap-1 rounded-l border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:z-10 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:bg-white"
+            className="relative inline-flex items-center gap-1 rounded-l border border-gray-300 bg-surface px-2 py-0.5 text-xs text-gray-700 hover:z-10 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-default disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:bg-surface"
             onClick={() => sortFieldsByType(nodeId, fields, { withColors: colorByType })}
             disabled={isDragging}
             title="Primary key, then relations, then fields grouped by type, then booleans, dates and times last"
@@ -454,8 +455,8 @@ export function FieldEditor({
           <button
             className={`relative -ml-px inline-flex items-center rounded-r border px-1 py-0.5 hover:z-10 ${
               colorByType
-                ? "z-10 border-blue-400 bg-blue-50 hover:border-blue-500"
-                : "border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50"
+                ? "z-10 border-blue-400 bg-blue-50 hover:border-blue-500 dark:bg-blue-500/15"
+                : "border-gray-300 bg-surface hover:border-gray-400 hover:bg-gray-50"
             }`}
             onClick={() => setColorByType(!colorByType)}
             aria-pressed={colorByType}
@@ -477,7 +478,7 @@ export function FieldEditor({
           Reset
         </button>
         <button
-          className="rounded bg-gray-700 px-2 py-0.5 text-xs text-white hover:bg-gray-900"
+          className="rounded bg-gray-700 px-2 py-0.5 text-xs text-inverse hover:bg-gray-900"
           onClick={() => setEditingNode(null)}
         >
           Done

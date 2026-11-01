@@ -42,17 +42,17 @@ export default function ImportPngDialog({ open, dragging, onChoose, onCancel }: 
   // Portaled: the File menu lives in the transformed toolbar, which would make `fixed` relative to it.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onCancel)} />
+      <div data-dialog-backdrop className="absolute inset-0 bg-backdrop" onClick={backdropClick(onCancel)} />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4"
+        className="relative bg-surface rounded-xl shadow-2xl w-full max-w-sm mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 id={titleId} className="text-sm font-semibold text-gray-800">Import PNG</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">
+          <button onClick={onCancel} className="text-gray-500 hover:text-gray-600 text-xl leading-none" aria-label="Close">
             ×
           </button>
         </div>
@@ -60,12 +60,12 @@ export default function ImportPngDialog({ open, dragging, onChoose, onCancel }: 
           <div
             data-active={dragging || undefined}
             className={`flex flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors ${
-              dragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50"
+              dragging ? "border-blue-500 bg-blue-50 dark:bg-blue-500/15" : "border-gray-300 bg-gray-50"
             }`}
           >
-            <IconImport className={`w-7 h-7 ${dragging ? "text-blue-600" : "text-gray-400"}`} />
+            <IconImport className={`w-7 h-7 ${dragging ? "text-blue-600 dark:text-blue-400" : "text-gray-500"}`} />
             {dragging ? (
-              <p className="text-sm font-semibold text-blue-700">Release to import</p>
+              <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Release to import</p>
             ) : (
               <>
                 <p className="text-sm font-medium text-gray-700">Drop an exported PNG here</p>
@@ -76,7 +76,7 @@ export default function ImportPngDialog({ open, dragging, onChoose, onCancel }: 
           <div className="flex justify-end gap-2">
             <button
               onClick={onCancel}
-              className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 text-xs text-gray-600 bg-surface border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>

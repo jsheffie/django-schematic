@@ -55,8 +55,8 @@ export default function SliderInput({
       />
       {(leftLabel || rightLabel) && (
         <div className="flex justify-between mt-0.5">
-          <span className="text-[10px] text-gray-400">{leftLabel}</span>
-          <span className="text-[10px] text-gray-400">{rightLabel}</span>
+          <span className="text-[10px] text-gray-500">{leftLabel}</span>
+          <span className="text-[10px] text-gray-500">{rightLabel}</span>
         </div>
       )}
     </div>

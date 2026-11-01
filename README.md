@@ -30,6 +30,7 @@ See all your models, fields, and relationships as an interactive, force-directed
 - Hierarchical layout via dagre
 - Click to expand/collapse field lists per model
 - App-based color coding
+- Light and dark themes (Settings > Appearance > Theme; System follows your OS setting)
 - Show/hide models and apps via sidebar
 - Django 5.x + Python 3.12+ only
 
