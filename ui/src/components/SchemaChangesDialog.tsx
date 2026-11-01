@@ -49,12 +49,12 @@ export default function SchemaChangesDialog({ changes, onClose }: Props) {
   // Portaled: the File menu lives in the transformed toolbar, which would make `fixed` relative to it.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onClose)} />
+      <div data-dialog-backdrop className="absolute inset-0 bg-backdrop" onClick={backdropClick(onClose)} />
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[80vh]"
+        className="relative bg-surface rounded-xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -62,7 +62,7 @@ export default function SchemaChangesDialog({ changes, onClose }: Props) {
             <span aria-hidden className="text-amber-500">⚠</span>
             The schema has changed
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600 text-xl leading-none" aria-label="Close">
             ×
           </button>
         </div>

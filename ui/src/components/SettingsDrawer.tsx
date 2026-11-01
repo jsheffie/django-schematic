@@ -1,5 +1,8 @@
 import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore, type EdgeStyle, type ForceParams, type ColorPalette, type BackgroundStyle } from "../store/physicsStore";
+import { THEME_PREFERENCES, type ThemePreference } from "../lib/theme";
+import { paletteSwatches } from "../lib/colors";
+import { useResolvedTheme } from "../hooks/useTheme";
 import SliderInput from "./SliderInput";
 import TypeColorSettings from "./TypeColorSettings";
 import type { SchemaGraph } from "../lib/types";
@@ -9,6 +12,51 @@ interface Props {
   onReheat: (params: ForceParams) => void;
 }
 
+const THEME_LABELS: Record<ThemePreference, string> = { system: "System", light: "Light", dark: "Dark" };
+
+/** Segmented System / Light / Dark control: a radio group with arrow-key navigation (issue #132). */
+function ThemeSetting() {
+  const theme = usePhysicsStore((s) => s.theme);
+  const setTheme = usePhysicsStore((s) => s.setTheme);
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const i = THEME_PREFERENCES.indexOf(theme);
+    const next = THEME_PREFERENCES[(i + step + THEME_PREFERENCES.length) % THEME_PREFERENCES.length];
+    setTheme(next);
+    e.currentTarget.querySelector<HTMLElement>(`[data-value="${next}"]`)?.focus();
+  }
+
+  return (
+    <section>
+      <p id="theme-setting-label" className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        Theme
+      </p>
+      <div role="radiogroup" aria-labelledby="theme-setting-label" className="flex gap-2" onKeyDown={onKeyDown}>
+        {THEME_PREFERENCES.map((value) => (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={theme === value}
+            tabIndex={theme === value ? 0 : -1}
+            data-value={value}
+            onClick={() => setTheme(value)}
+            className={`flex-1 py-1.5 text-xs rounded-md border transition-colors ${
+              theme === value
+                ? "bg-blue-600 border-blue-600 text-white"
+                : "bg-surface border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            {THEME_LABELS[value]}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const TABS = [
   { value: "appearance", label: "Appearance" },
   { value: "fields", label: "Fields" },
@@ -16,6 +64,7 @@ const TABS = [
 ] as const;
 
 export default function SettingsDrawer({ schema, onReheat }: Props) {
+  const theme = useResolvedTheme();
   const drawerOpen = usePhysicsStore((s) => s.drawerOpen);
   const setDrawerOpen = usePhysicsStore((s) => s.setDrawerOpen);
   const edgeStyle = usePhysicsStore((s) => s.edgeStyle);
@@ -54,7 +103,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
 
       {/* Drawer panel */}
       <div
-        className="relative h-full w-72 bg-white border-l border-gray-200 shadow-xl flex flex-col overflow-y-auto"
+        className="relative h-full w-72 bg-surface border-l border-gray-200 shadow-xl flex flex-col overflow-y-auto"
         style={{
           transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.25s ease",
@@ -67,7 +116,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
           <button
             onClick={() => setDrawerOpen(false)}
             title="Close settings"
-            className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+            className="text-gray-500 hover:text-gray-600 text-lg leading-none"
           >
             ×
           </button>
@@ -80,7 +129,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
               key={value}
               className={`flex-1 py-2 text-xs font-semibold transition-colors ${
                 activeTab === value
-                  ? "text-blue-600 border-b-2 border-blue-600"
+                  ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
                   : "text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => setActiveTab(value)}
@@ -94,6 +143,8 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
 
           {activeTab === "appearance" && (
             <>
+              <ThemeSetting />
+
               {/* Color Palette */}
               <section>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -102,16 +153,16 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                 <div className="flex flex-col gap-1.5">
                   {(
                     [
-                      { value: "pastel" as ColorPalette, label: "Pastel", desc: "Soft HSL colors, one per app", swatches: ["hsl(0,55%,45%)", "hsl(120,55%,45%)", "hsl(210,55%,45%)", "hsl(45,55%,45%)", "hsl(270,55%,45%)"] },
-                      { value: "schema-graph" as ColorPalette, label: "Schema Graph", desc: "Vibrant", swatches: ["#e91e63", "#1976d2", "#388e3c", "#f57c00", "#7b1fa2"] },
-                      { value: "muted" as ColorPalette, label: "Muted", desc: "Subdued, professional tones", swatches: ["#64748b", "#16a34a", "#2563eb", "#dc2626", "#7c3aed"] },
-                    ] satisfies { value: ColorPalette; label: string; desc: string; swatches: string[] }[]
-                  ).map(({ value, label, desc, swatches }) => (
+                      { value: "pastel" as ColorPalette, label: "Pastel", desc: "Soft HSL colors, one per app" },
+                      { value: "schema-graph" as ColorPalette, label: "Schema Graph", desc: "Vibrant" },
+                      { value: "muted" as ColorPalette, label: "Muted", desc: "Subdued, professional tones" },
+                    ] satisfies { value: ColorPalette; label: string; desc: string }[]
+                  ).map(({ value, label, desc }) => (
                     <label
                       key={value}
                       className={`flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 border ${
                         colorPalette === value
-                          ? "border-blue-400 bg-blue-50"
+                          ? "border-blue-400 bg-blue-50 dark:bg-blue-500/15"
                           : "border-gray-100 hover:bg-gray-50"
                       }`}
                     >
@@ -127,12 +178,12 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-medium text-gray-700">{label}</span>
                           <div className="flex gap-0.5">
-                            {swatches.map((c, i) => (
+                            {paletteSwatches(value, theme).map((c, i) => (
                               <span key={i} className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: c }} />
                             ))}
                           </div>
                         </div>
-                        <p className="text-[10px] text-gray-400">{desc}</p>
+                        <p className="text-[10px] text-gray-600">{desc}</p>
                       </div>
                     </label>
                   ))}
@@ -158,7 +209,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                       className={`flex-1 py-1.5 text-xs rounded-md border transition-colors ${
                         backgroundStyle === value
                           ? "bg-blue-600 border-blue-600 text-white"
-                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                          : "bg-surface border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
                       {label}
@@ -184,7 +235,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                       key={value}
                       className={`flex items-start gap-2 cursor-pointer rounded-md px-2 py-1.5 border ${
                         edgeStyle === value
-                          ? "border-blue-400 bg-blue-50"
+                          ? "border-blue-400 bg-blue-50 dark:bg-blue-500/15"
                           : "border-gray-100 hover:bg-gray-50"
                       } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
                     >
@@ -199,7 +250,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                       />
                       <div>
                         <span className="text-xs font-medium text-gray-700">{label}</span>
-                        <p className="text-[10px] text-gray-400">{desc}</p>
+                        <p className="text-[10px] text-gray-600">{desc}</p>
                       </div>
                     </label>
                   ))}
@@ -260,7 +311,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                     }`}
                   >
                     <span
-                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-surface shadow transition-transform ${
                         physicsEnabled ? "translate-x-4" : "translate-x-1"
                       }`}
                     />
@@ -284,7 +335,7 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
                     }`}
                   >
                     <span
-                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-surface shadow transition-transform ${
                         liveDragPhysics ? "translate-x-4" : "translate-x-1"
                       }`}
                     />
@@ -293,81 +344,84 @@ export default function SettingsDrawer({ schema, onReheat }: Props) {
               </section>
 
               {/* Force Simulation */}
-              <section className={!forceActive ? "opacity-40 pointer-events-none" : ""}>
+              <section>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                   Force Simulation
                 </p>
                 {!forceActive && (
-                  <p className="text-[10px] text-gray-400 mb-2">Switch to Organic layout to enable</p>
+                  <p className="text-[10px] text-gray-500 mb-2">Switch to Organic layout to enable</p>
                 )}
 
-                <SliderInput
-                  label="Alpha Decay"
-                  value={forceParams.alphaDecay}
-                  min={0.001}
-                  max={0.1}
-                  step={0.001}
-                  onChange={(v) => setForceParams({ alphaDecay: v })}
-                  leftLabel="slow settle"
-                  rightLabel="fast settle"
-                />
-                <SliderInput
-                  label="Alpha Min"
-                  value={forceParams.alphaMin}
-                  min={0.0001}
-                  max={0.05}
-                  step={0.0001}
-                  onChange={(v) => setForceParams({ alphaMin: v })}
-                />
-                <SliderInput
-                  label="Velocity Decay"
-                  value={forceParams.velocityDecay}
-                  min={0.1}
-                  max={0.9}
-                  step={0.01}
-                  onChange={(v) => setForceParams({ velocityDecay: v })}
-                  leftLabel="floaty"
-                  rightLabel="snappy"
-                />
-                <SliderInput
-                  label="Charge Strength"
-                  value={forceParams.chargeStrength}
-                  min={-1200}
-                  max={-50}
-                  step={10}
-                  onChange={(v) => setForceParams({ chargeStrength: v })}
-                  leftLabel="weak"
-                  rightLabel="strong"
-                />
-                <SliderInput
-                  label="Link Distance"
-                  value={forceParams.linkDistance}
-                  min={50}
-                  max={500}
-                  step={10}
-                  onChange={(v) => setForceParams({ linkDistance: v })}
-                />
-                <SliderInput
-                  label="Collision Radius"
-                  value={forceParams.collisionRadius}
-                  min={20}
-                  max={200}
-                  step={5}
-                  onChange={(v) => setForceParams({ collisionRadius: v })}
-                />
+                {/* Only the controls dim while inactive; the hint above stays readable. */}
+                <div className={!forceActive ? "opacity-40 pointer-events-none" : ""}>
+                  <SliderInput
+                    label="Alpha Decay"
+                    value={forceParams.alphaDecay}
+                    min={0.001}
+                    max={0.1}
+                    step={0.001}
+                    onChange={(v) => setForceParams({ alphaDecay: v })}
+                    leftLabel="slow settle"
+                    rightLabel="fast settle"
+                  />
+                  <SliderInput
+                    label="Alpha Min"
+                    value={forceParams.alphaMin}
+                    min={0.0001}
+                    max={0.05}
+                    step={0.0001}
+                    onChange={(v) => setForceParams({ alphaMin: v })}
+                  />
+                  <SliderInput
+                    label="Velocity Decay"
+                    value={forceParams.velocityDecay}
+                    min={0.1}
+                    max={0.9}
+                    step={0.01}
+                    onChange={(v) => setForceParams({ velocityDecay: v })}
+                    leftLabel="floaty"
+                    rightLabel="snappy"
+                  />
+                  <SliderInput
+                    label="Charge Strength"
+                    value={forceParams.chargeStrength}
+                    min={-1200}
+                    max={-50}
+                    step={10}
+                    onChange={(v) => setForceParams({ chargeStrength: v })}
+                    leftLabel="weak"
+                    rightLabel="strong"
+                  />
+                  <SliderInput
+                    label="Link Distance"
+                    value={forceParams.linkDistance}
+                    min={50}
+                    max={500}
+                    step={10}
+                    onChange={(v) => setForceParams({ linkDistance: v })}
+                  />
+                  <SliderInput
+                    label="Collision Radius"
+                    value={forceParams.collisionRadius}
+                    min={20}
+                    max={200}
+                    step={5}
+                    onChange={(v) => setForceParams({ collisionRadius: v })}
+                  />
 
-                <button
-                  onClick={() => onReheat(forceParams)}
-                  disabled={!physicsEnabled}
-                  title={!physicsEnabled ? "Resume physics to apply" : undefined}
-                  className={`w-full mt-1 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${
-                    physicsEnabled
-                      ? "bg-blue-500 hover:bg-blue-600"
-                      : "bg-blue-300 cursor-not-allowed"
-                  }`}
-                >
-                  Apply to running sim
-                </button>
+                  <button
+                    onClick={() => onReheat(forceParams)}
+                    disabled={!physicsEnabled}
+                    title={!physicsEnabled ? "Resume physics to apply" : undefined}
+                    className={`w-full mt-1 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${
+                      physicsEnabled
+                        ? "bg-blue-500 hover:bg-blue-600"
+                        : "bg-blue-300 cursor-not-allowed"
+                    }`}
+                  >
+                    Apply to running sim
+                  </button>
+                </div>
               </section>
             </>
           )}

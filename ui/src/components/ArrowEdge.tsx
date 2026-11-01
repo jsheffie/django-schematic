@@ -115,7 +115,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
       <EdgeLabelRenderer>
         {arrow.label && (
           <div
-            className="absolute rounded bg-white/90 px-1 text-xs"
+            className="absolute rounded bg-surface/90 px-1 text-xs"
             style={{
               color: ARROW_COLOR,
               transform: `translate(-50%, ${isBezier ? "-150%" : "-50%"}) translate(${g.mid.x}px,${g.mid.y}px)`,
@@ -128,7 +128,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
         {showGrip && (
           <div
             data-export-skip
-            className="nodrag nopan absolute rounded-full border-2 bg-white"
+            className="nodrag nopan absolute rounded-full border-2 bg-surface"
             style={{
               width: 10,
               height: 10,
@@ -156,7 +156,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
         {selected && (
           <div
             data-export-skip
-            className="nodrag nopan absolute flex items-center gap-1 rounded border border-gray-200 bg-white px-1 py-0.5 text-[10px] shadow-md"
+            className="nodrag nopan absolute flex items-center gap-1 rounded border border-gray-200 bg-surface px-1 py-0.5 text-[10px] shadow-md"
             style={{
               pointerEvents: "all",
               zIndex: 1001,
@@ -166,7 +166,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
           >
             <button
               className={`rounded px-1.5 py-0.5 leading-none ${
-                arrow.startHead ? "bg-gray-800 text-white" : "text-gray-600 hover:bg-gray-100"
+                arrow.startHead ? "bg-gray-800 text-inverse" : "text-gray-600 hover:bg-gray-100"
               }`}
               aria-pressed={!!arrow.startHead}
               aria-label="Arrowhead at start"
@@ -188,7 +188,7 @@ export function ArrowEdge({ id, source, target, data, selected }: EdgeProps<Arro
               }}
             />
             <button
-              className="rounded px-1.5 py-0.5 leading-none text-gray-500 hover:bg-red-50 hover:text-red-600"
+              className="rounded px-1.5 py-0.5 leading-none text-gray-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/15 dark:hover:text-red-400"
               aria-label="Delete arrow"
               title="Delete arrow"
               onClick={() => {

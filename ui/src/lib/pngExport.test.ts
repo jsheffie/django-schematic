@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { pngExportFilter } from "./pngExport";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { toPng } from "html-to-image";
+import { captureCanvasPng, pngExportFilter } from "./pngExport";
+
+vi.mock("html-to-image", () => ({ toPng: vi.fn() }));
 
 function el(className: string, attrs: Record<string, string> = {}): Element {
   const e = document.createElement("div");
@@ -24,5 +29,23 @@ describe("pngExportFilter", () => {
 
   it("drops the zoom controls panel", () => {
     expect(pngExportFilter(el("react-flow__panel react-flow__controls bottom left"))).toBe(false);
+  });
+});
+
+// Issue #132: the PNG is exported in the theme on screen.
+describe("captureCanvasPng background", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+    document.documentElement.style.removeProperty("--color-canvas");
+  });
+
+  it("fills the PNG with the current theme's canvas color", async () => {
+    const png = readFileSync(join(__dirname, "__fixtures__/export-v7.png")).toString("base64");
+    vi.mocked(toPng).mockResolvedValue(`data:image/png;base64,${png}`);
+    document.body.innerHTML = '<div class="react-flow"></div>';
+    document.documentElement.style.setProperty("--color-canvas", "rgb(20, 24, 33)");
+    const schema = { nodes: [], edges: [], app_labels: [], app_names: {} };
+    await captureCanvasPng({ getNodes: () => [], setNodes: vi.fn() }, schema);
+    expect(vi.mocked(toPng).mock.calls[0][1]).toMatchObject({ backgroundColor: "rgb(20, 24, 33)" });
   });
 });

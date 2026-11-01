@@ -6,9 +6,12 @@ import SettingsHandle from "./components/SettingsHandle";
 import HelpDialog from "./components/HelpDialog";
 import AutomationBridge from "./components/AutomationBridge";
 import { useSchema } from "./hooks/useSchema";
+import { useApplyTheme } from "./hooks/useTheme";
 
 export default function App() {
   const { schema, loading, error } = useSchema();
+  // Before the early returns, so the loading and error states are themed too.
+  useApplyTheme();
 
   if (loading) {
     return (
@@ -20,7 +23,7 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center text-red-500">
+      <div className="flex h-full items-center justify-center text-red-600 dark:text-red-400">
         {error}
       </div>
     );

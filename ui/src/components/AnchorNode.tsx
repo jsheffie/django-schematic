@@ -34,7 +34,7 @@ export const AnchorNode = memo(function AnchorNode({ data }: NodeProps<AnchorNod
       {selected && (
         <span
           data-export-skip
-          className="block rounded-full bg-white"
+          className="block rounded-full bg-surface"
           style={{ width: 8, height: 8, border: `2px solid ${ARROW_COLOR_SELECTED}` }}
         />
       )}

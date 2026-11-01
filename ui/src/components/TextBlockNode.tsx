@@ -10,11 +10,12 @@ import { useSchemaStore } from "../store/schemaStore";
 import { usePhysicsStore } from "../store/physicsStore";
 import { FIELD_COLOR_SWATCHES } from "../lib/fieldEdits";
 import type { TextBlockStyle } from "../lib/annotations";
+import { THEME } from "../lib/themeTokens";
 
 export type TextBlockNodeData = Node<{ blockId: string }, "text">;
 
-export const DEFAULT_NOTE_COLOR = "#f59e0b"; // amber swatch
-const DEFAULT_TITLE_COLOR = "#1f2937";
+export const DEFAULT_NOTE_COLOR = FIELD_COLOR_SWATCHES[2]; // amber
+const DEFAULT_TITLE_COLOR = THEME.ink;
 const FOLD = 12; // px, the folded corner of a note
 
 // React Flow needs a source and a target handle on every node an edge touches.
@@ -32,7 +33,7 @@ function StyleButton({ active, onClick, children }: { active: boolean; onClick: 
   return (
     <button
       className={`rounded px-1.5 py-0.5 leading-none ${
-        active ? "bg-gray-800 text-white" : "text-gray-600 hover:bg-gray-100"
+        active ? "bg-gray-800 text-inverse" : "text-gray-600 hover:bg-gray-100"
       }`}
       aria-pressed={active}
       onClick={onClick}
@@ -56,7 +57,7 @@ function BlockToolbar({
   return (
     <div
       data-export-skip
-      className="nodrag nopan absolute bottom-full left-0 mb-1.5 flex items-center gap-1 whitespace-nowrap rounded border border-gray-200 bg-white px-1 py-0.5 text-[10px] shadow-md"
+      className="nodrag nopan absolute bottom-full left-0 mb-1.5 flex items-center gap-1 whitespace-nowrap rounded border border-gray-200 bg-surface px-1 py-0.5 text-[10px] shadow-md"
       onDoubleClick={(e) => e.stopPropagation()}
     >
       <StyleButton active={style === "note"} onClick={() => onStyle("note")}>Note</StyleButton>
@@ -157,7 +158,7 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
         isVisible={!!selected}
         minWidth={80}
         minHeight={32}
-        color={isTitle ? "#9ca3af" : color}
+        color={isTitle ? THEME.guide : color}
         onResizeEnd={(_, p) =>
           updateTextBlock(data.blockId, { x: p.x, y: p.y, width: p.width, height: p.height })
         }
@@ -180,11 +181,11 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
         }`}
         style={
           isTitle
-            ? { color, outline: selected ? "1px dashed #9ca3af" : undefined, outlineOffset: 2 }
+            ? { color, outline: selected ? `1px dashed ${THEME.guide}` : undefined, outlineOffset: 2 }
             : {
                 borderColor: color,
                 // Opaque tint so a note covers whatever it sits on.
-                backgroundColor: `color-mix(in srgb, ${color} 14%, white)`,
+                backgroundColor: `color-mix(in srgb, ${color} 14%, ${THEME.surface})`,
                 color: DEFAULT_TITLE_COLOR,
                 clipPath: `polygon(0 0, calc(100% - ${FOLD}px) 0, 100% ${FOLD}px, 100% 100%, 0 100%)`,
               }
@@ -197,7 +198,7 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
             style={{
               width: FOLD,
               height: FOLD,
-              background: `linear-gradient(to bottom left, transparent 50%, color-mix(in srgb, ${color} 55%, white) 50%)`,
+              background: `linear-gradient(to bottom left, transparent 50%, color-mix(in srgb, ${color} 55%, ${THEME.surface}) 50%)`,
             }}
           />
         )}
@@ -221,7 +222,7 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
           />
         ) : (
           <div className="whitespace-pre-wrap break-words">
-            {block.text || <span className="text-gray-400">Double-click to edit</span>}
+            {block.text || <span className="text-gray-500">Double-click to edit</span>}
           </div>
         )}
       </div>
@@ -230,7 +231,7 @@ export const TextBlockNode = memo(function TextBlockNode({ data, selected, heigh
         data-export-skip
         aria-label="Delete text block"
         title="Delete"
-        className="nodrag nopan absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 bg-white text-[10px] leading-none text-gray-500 opacity-0 shadow-sm transition-opacity hover:bg-gray-100 hover:text-gray-800 group-hover:opacity-100"
+        className="nodrag nopan absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 bg-surface text-[10px] leading-none text-gray-500 opacity-0 shadow-sm transition-opacity hover:bg-gray-100 hover:text-gray-800 group-hover:opacity-100"
         onClick={remove}
         onDoubleClick={(e) => e.stopPropagation()}
       >

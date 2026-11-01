@@ -57,16 +57,16 @@ export default function SortAllDialog({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onCancel)} />
+      <div data-dialog-backdrop className="absolute inset-0 bg-backdrop" onClick={backdropClick(onCancel)} />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="sort-all-dialog-title"
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4"
+        className="relative bg-surface rounded-xl shadow-2xl w-full max-w-sm mx-4"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 id="sort-all-dialog-title" className="text-sm font-semibold text-gray-800">Sort all tables by type</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
+          <button onClick={onCancel} className="text-gray-500 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
         </div>
         <div className="px-5 py-4 flex flex-col gap-3 text-xs text-gray-600">
           <p>
@@ -90,7 +90,7 @@ export default function SortAllDialog({
               No table has a custom field order yet, so nothing arranged by hand will be replaced.
             </p>
           ) : (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
               <span className="font-medium">
                 {count === 1
                   ? "1 table already has a custom field order"
@@ -104,7 +104,7 @@ export default function SortAllDialog({
           <div className="flex justify-end gap-2 pt-1">
             <button
               onClick={onCancel}
-              className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 text-xs text-gray-600 bg-surface border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>

@@ -6,6 +6,8 @@
  * so that html-to-image captures the <defs> block during PNG export.
  */
 
+import { THEME } from "./themeTokens";
+
 export const RELATION_MARKERS: Record<
   "fk" | "o2o" | "m2m" | "subclass" | "proxy",
   { markerStart?: string; markerEnd?: string }
@@ -20,8 +22,8 @@ export const RELATION_MARKERS: Record<
 /** Annotation arrow heads: ink and selected-blue variants. */
 export const ARROW_MARKER = "annotation-arrow";
 export const ARROW_MARKER_SELECTED = "annotation-arrow-selected";
-export const ARROW_COLOR = "#1f2937";
-export const ARROW_COLOR_SELECTED = "#2563eb";
+export const ARROW_COLOR = THEME.ink;
+export const ARROW_COLOR_SELECTED = THEME.inkSelected;
 
 /** Shared marker attributes */
 const MARKER_PROPS = {
@@ -36,7 +38,8 @@ const MARKER_PROPS = {
 /**
  * Hidden SVG containing all marker <defs>. Render as a direct child of
  * <ReactFlow> so the defs are inside the `.react-flow` DOM subtree and
- * therefore captured by html-to-image during PNG export.
+ * therefore captured by html-to-image during PNG export. Colors are theme
+ * tokens set through `style`: SVG presentation attributes don't resolve var().
  */
 export function MarkerDefs() {
   return (
@@ -51,9 +54,9 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <line x1="0" y1="5"  x2="9" y2="0"  stroke="#6b7280" strokeWidth="1.5" />
-          <line x1="0" y1="5"  x2="9" y2="5"  stroke="#6b7280" strokeWidth="1.5" />
-          <line x1="0" y1="5"  x2="9" y2="10" stroke="#6b7280" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="0"  style={{ stroke: THEME.edge.fk }} strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="5"  style={{ stroke: THEME.edge.fk }} strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="10" style={{ stroke: THEME.edge.fk }} strokeWidth="1.5" />
         </marker>
 
         {/* Double-bar "one" — two vertical bars — gray (FK source) */}
@@ -62,8 +65,8 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <line x1="9" y1="0" x2="9" y2="10" stroke="#6b7280" strokeWidth="1.5" />
-          <line x1="6" y1="0" x2="6" y2="10" stroke="#6b7280" strokeWidth="1.5" />
+          <line x1="9" y1="0" x2="9" y2="10" style={{ stroke: THEME.edge.fk }} strokeWidth="1.5" />
+          <line x1="6" y1="0" x2="6" y2="10" style={{ stroke: THEME.edge.fk }} strokeWidth="1.5" />
         </marker>
 
         {/* Single bar — blue (O2O both ends) */}
@@ -72,7 +75,7 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <line x1="9" y1="0" x2="9" y2="10" stroke="#2563eb" strokeWidth="1.5" />
+          <line x1="9" y1="0" x2="9" y2="10" style={{ stroke: THEME.edge.o2o }} strokeWidth="1.5" />
         </marker>
 
         {/* Crow's foot "many" — three prongs fanning from stem — purple (M2M both ends) */}
@@ -81,9 +84,9 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <line x1="0" y1="5"  x2="9" y2="0"  stroke="#7c3aed" strokeWidth="1.5" />
-          <line x1="0" y1="5"  x2="9" y2="5"  stroke="#7c3aed" strokeWidth="1.5" />
-          <line x1="0" y1="5"  x2="9" y2="10" stroke="#7c3aed" strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="0"  style={{ stroke: THEME.edge.m2m }} strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="5"  style={{ stroke: THEME.edge.m2m }} strokeWidth="1.5" />
+          <line x1="0" y1="5"  x2="9" y2="10" style={{ stroke: THEME.edge.m2m }} strokeWidth="1.5" />
         </marker>
 
         {/* Hollow triangle — green (subclass / UML inheritance at target) */}
@@ -92,7 +95,7 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto"
         >
-          <path d="M 0 0 L 9 5 L 0 10 Z" fill="white" stroke="#059669" strokeWidth="1.5" />
+          <path d="M 0 0 L 9 5 L 0 10 Z" style={{ fill: THEME.canvas, stroke: THEME.edge.subclass }} strokeWidth="1.5" />
         </marker>
 
         {/* Hollow triangle — amber (proxy / UML realization at target) */}
@@ -101,7 +104,7 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto"
         >
-          <path d="M 0 0 L 9 5 L 0 10 Z" fill="white" stroke="#d97706" strokeWidth="1.5" />
+          <path d="M 0 0 L 9 5 L 0 10 Z" style={{ fill: THEME.canvas, stroke: THEME.edge.proxy }} strokeWidth="1.5" />
         </marker>
 
         {/* Filled arrowhead - annotation arrows. auto-start-reverse so the same
@@ -111,14 +114,14 @@ export function MarkerDefs() {
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <path d="M 0 0 L 10 5 L 0 10 Z" fill={ARROW_COLOR} />
+          <path d="M 0 0 L 10 5 L 0 10 Z" style={{ fill: ARROW_COLOR }} />
         </marker>
         <marker
           id={ARROW_MARKER_SELECTED}
           {...MARKER_PROPS}
           orient="auto-start-reverse"
         >
-          <path d="M 0 0 L 10 5 L 0 10 Z" fill={ARROW_COLOR_SELECTED} />
+          <path d="M 0 0 L 10 5 L 0 10 Z" style={{ fill: ARROW_COLOR_SELECTED }} />
         </marker>
       </defs>
     </svg>

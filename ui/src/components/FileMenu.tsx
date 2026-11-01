@@ -59,17 +59,17 @@ function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCanc
   // Without the portal the modal is pinned to the toolbar, not the viewport.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onCancel)} />
+      <div data-dialog-backdrop className="absolute inset-0 bg-backdrop" onClick={backdropClick(onCancel)} />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4"
+        className="relative bg-surface rounded-xl shadow-2xl w-full max-w-sm mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 id={titleId} className="text-sm font-semibold text-gray-800">{title}</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
+          <button onClick={onCancel} className="text-gray-500 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
         </div>
         <div className="px-5 py-4 flex flex-col gap-4">
           <label htmlFor={inputId} className="text-xs text-gray-600 font-medium">Filename</label>
@@ -81,15 +81,15 @@ function FilenameDialog({ open, defaultName, extension, title, onConfirm, onCanc
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirm(); } }}
-              className="flex-1 px-3 py-2 text-gray-800 bg-white outline-none min-w-0"
+              className="flex-1 px-3 py-2 text-gray-800 bg-surface outline-none min-w-0"
               spellCheck={false}
             />
-            <span className="flex items-center px-3 bg-gray-50 text-gray-400 text-xs border-l border-gray-300 select-none whitespace-nowrap">
+            <span className="flex items-center px-3 bg-gray-50 text-gray-500 text-xs border-l border-gray-300 select-none whitespace-nowrap">
               {extension}
             </span>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-gray-600 bg-surface border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
             <button onClick={confirm} className="px-3 py-1.5 text-xs text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Export</button>
           </div>
         </div>
@@ -117,11 +117,11 @@ function ErrorDialog({ message, onClose }: ErrorDialogProps) {
   // Portaled: the toolbar is transformed, which would make `fixed` relative to it.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div data-dialog-backdrop className="absolute inset-0 bg-black/30" onClick={backdropClick(onClose)} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+      <div data-dialog-backdrop className="absolute inset-0 bg-backdrop" onClick={backdropClick(onClose)} />
+      <div className="relative bg-surface rounded-xl shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-800">Import error</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600 text-xl leading-none" aria-label="Close">×</button>
         </div>
         <div className="px-5 py-4 flex flex-col gap-4">
           <p className="text-xs text-gray-700">{message}</p>
@@ -257,7 +257,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
         className={`px-2 py-1 rounded text-xs border transition-colors flex items-center gap-0.5 ${
           open
             ? "bg-blue-600 border-blue-600 text-white"
-            : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
+            : "bg-surface border-gray-200 hover:bg-gray-50 text-gray-700"
         }`}
         onClick={() => setOpen((v) => !v)}
         title="File operations"
@@ -267,7 +267,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[110px] w-max py-1 flex flex-col">
+        <div className="absolute top-full mt-1 left-0 bg-surface border border-gray-200 rounded-md shadow-lg z-50 min-w-[110px] w-max py-1 flex flex-col">
           <button
             className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
             onClick={() => openExportDialog("json")}
@@ -297,7 +297,7 @@ export default function FileMenu({ schema }: { schema: SchemaGraph }) {
           </button>
           <div className="border-t border-gray-100 my-1" />
           <button
-            className="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+            className="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/15"
             onClick={handleReset}
           >
             Reset

@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Django Schematic</title>
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Apply the saved theme before the stylesheet loads, so a dark page never
+      // flashes light (issue #132). Mirrors ui/src/lib/theme.ts: same key, and an
+      // unknown value means System.
+      (function () {
+        var pref = "system";
+        try {
+          pref = localStorage.getItem("django-schematic:theme") || "system";
+        } catch (e) {}
+        var dark =
+          pref === "dark" ||
+          (pref !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var root = document.documentElement;
+        root.dataset.theme = dark ? "dark" : "light";
+        root.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'schematic/main.css' %}" />
   </head>

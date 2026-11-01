@@ -23,7 +23,7 @@ function IconBtn({ onClick, title, label, active, children }: {
       className={`w-7 h-7 flex items-center justify-center rounded text-sm border transition-colors ${
         active
           ? "bg-blue-600 border-blue-600 text-white"
-          : "bg-white border-gray-200 hover:bg-gray-50 text-gray-600"
+          : "bg-surface border-gray-200 hover:bg-gray-50 text-gray-600"
       }`}
     >
       {children}
@@ -105,17 +105,17 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
 
   const layoutBtnBase = "px-2 py-0.5 rounded text-xs border transition-colors leading-tight";
   const layoutActive = "bg-blue-600 border-blue-600 text-white font-medium";
-  const layoutInactive = "bg-white border-gray-200 hover:bg-gray-50 text-gray-700";
+  const layoutInactive = "bg-surface border-gray-200 hover:bg-gray-50 text-gray-700";
 
   const modeBtnBase = "px-2 py-0.5 rounded text-xs border transition-colors leading-tight";
   const modeActive = "bg-blue-600 border-blue-600 text-white font-medium";
-  const modeInactive = "bg-white border-gray-200 hover:bg-gray-50 text-gray-700";
+  const modeInactive = "bg-surface border-gray-200 hover:bg-gray-50 text-gray-700";
 
   return (
-    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg shadow px-2 py-1.5">
+    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 bg-surface border border-gray-200 rounded-lg shadow px-2 py-1.5">
       {/* Layout section */}
       <div className="flex flex-col items-center gap-0.5">
-        <span className="text-[10px] text-gray-400 leading-none self-start">Layout</span>
+        <span className="text-[10px] text-gray-500 leading-none self-start">Layout</span>
         <div className="grid grid-cols-2 gap-0.5">
           {LAYOUT_GRID.map((layout) => (
             <button
@@ -134,7 +134,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
 
       {/* Mode section */}
       <div className="flex flex-col items-center gap-0.5">
-        <span className="text-[10px] text-gray-400 leading-none self-start">Mode</span>
+        <span className="text-[10px] text-gray-500 leading-none self-start">Mode</span>
         <div className="flex flex-col gap-0.5">
           <button
             className={`${modeBtnBase} ${!physicsEnabled ? modeActive : modeInactive}`}
@@ -160,7 +160,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
         className={`flex flex-col gap-0.5 transition-opacity ${isOrganic ? "opacity-100" : "opacity-40"}`}
         title={isOrganic ? "Change distance between connected nodes" : "Only available in Organic layout"}
       >
-        <span className="text-[10px] text-gray-400 leading-none">Node Spacing</span>
+        <span className="text-[10px] text-gray-500 leading-none">Node Spacing</span>
         <div className="flex items-center gap-1.5">
           <input
             type="range"
@@ -182,7 +182,7 @@ export default function Toolbar({ schema }: { schema: SchemaGraph }) {
 
       {/* Annotations: text blocks and arrows */}
       <div className="flex flex-col items-center gap-0.5">
-        <span className="text-[10px] text-gray-400 leading-none self-start">Annotate</span>
+        <span className="text-[10px] text-gray-500 leading-none self-start">Annotate</span>
         <div className="flex gap-0.5">
           <IconBtn
             onClick={() => addTextBlockAtCenter("note")}
