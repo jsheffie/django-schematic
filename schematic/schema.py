@@ -32,6 +32,9 @@ class FieldInfo:
     # Django's get_internal_type(), e.g. "DateTimeField" for a custom subclass.
     # Lets the UI classify fields by what they are, not by what they are called.
     internal_type: str
+    # The database column (`db_column`, or `<name>_id` for a ForeignKey). None
+    # for a ManyToManyField, whose rows live in the through table (issue #135).
+    column: str | None
 
 
 @dataclasses.dataclass(frozen=True, order=True)
@@ -42,6 +45,8 @@ class NodeInfo:
     app_name: str    # e.g. "django.contrib.auth" (full dotted module path)
     tags: tuple[str, ...]   # "abstract", "proxy"
     fields: tuple[FieldInfo, ...]
+    # The database table (`Meta.db_table`); None for abstract models (issue #135).
+    db_table: str | None
 
 
 @dataclasses.dataclass(frozen=True, order=True)
@@ -51,9 +56,12 @@ class EdgeInfo:
     relation_type: str  # "fk" | "o2o" | "m2m" | "subclass" | "proxy"
     field_name: str
     related_name: str | None
-    # Name of the field on `target` this relation points at.The frontend
+    # Name of the field on `target` this relation points at. The frontend
     # uses it to anchor the target end of an edge to that field's row.
     target_field: str | None
+    # m2m edges: the table holding the links, auto-created or an explicit
+    # `through` model. None for every other relation (issue #135).
+    through_db_table: str | None = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -94,9 +102,23 @@ def _extract_fields(model: type[django_models.Model]) -> tuple[FieldInfo, ...]:
                 unique=getattr(f, "unique", False),
                 primary_key=bool(getattr(f, "primary_key", False)),
                 internal_type=_internal_type(f),
+                column=_column(f),
             )
         )
     return tuple(sorted(fields))
+
+
+def _column(f: object) -> str | None:
+    """The field's database column; None for a ManyToManyField, which has none of its own."""
+    if getattr(f, "many_to_many", False):
+        return None
+    column = getattr(f, "column", None)
+    return column if isinstance(column, str) else None
+
+
+def _db_table(model: type[django_models.Model]) -> str | None:
+    """The model's database table. Abstract models have none, though Django still names one."""
+    return None if model._meta.abstract else model._meta.db_table
 
 
 def _internal_type(f: object) -> str:
@@ -158,6 +180,7 @@ def _extract_edges(
         from django.db.models import ForeignKey, ManyToManyField, OneToOneField
 
         target_field: str | None
+        through_db_table: str | None = None
         if isinstance(f, OneToOneField):
             rel = "o2o"
             target_field = f.target_field.name
@@ -171,6 +194,8 @@ def _extract_edges(
             # Not f.target_field: it raises FieldDoesNotExist for M2M fields
             # with a custom `through` model (path infos resolve lazily).
             target_field = f.related_model._meta.pk.name
+            through = f.remote_field.through
+            through_db_table = through._meta.db_table if through is not None else None
         else:
             # Unrecognized relation field type — fall back to "fk" with no
             # resolvable target_field.
@@ -185,6 +210,7 @@ def _extract_edges(
                 field_name=f.name,
                 related_name=getattr(f, "related_query_name", lambda: None)() or None,
                 target_field=target_field,
+                through_db_table=through_db_table,
             )
         )
 
@@ -269,6 +295,7 @@ def build_schema(filter_apps: list[str] | None = None) -> SchemaGraph:
                 app_name=app_name_map.get(m._meta.app_label, m._meta.app_label),
                 tags=_tags(m, is_through=(m in through_models)),
                 fields=_extract_fields(m),
+                db_table=_db_table(m),
             )
             for m in all_models
         )
