@@ -34,10 +34,10 @@ beforeEach(() => {
   });
 });
 
-describe("exportConfig v7", () => {
-  it("exports version 7 with fieldEdits, edgeOffsets and annotations", () => {
+describe("exportConfig", () => {
+  it("exports the current version with fieldEdits, edgeOffsets and annotations", () => {
     const config = JSON.parse(exportConfig(null));
-    expect(config.version).toBe(7);
+    expect(config.version).toBe(8);
     expect(config.fieldEdits).toEqual({ "testapp.Order": EDITS });
     expect(config.edgeOffsets).toEqual({
       "testapp.Order->testapp.Customer:customer": { x: 30, y: -12 },
@@ -285,6 +285,7 @@ describe("importing an older config against the live schema (issue #131)", () =>
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
     internal_type: "CharField",
     ...extra,
   });
@@ -294,6 +295,7 @@ describe("importing an older config against the live schema (issue #131)", () =>
     app_label: "testapp",
     app_name: "testapp",
     tags: [],
+    db_table: null,
     fields,
   });
   const FK = {
@@ -303,6 +305,7 @@ describe("importing an older config against the live schema (issue #131)", () =>
     field_name: "customer",
     related_name: null,
     target_field: "id",
+    through_db_table: null,
   };
 
   // Live schema: since the export, Order lost `notes`, `total` went from an
@@ -340,9 +343,9 @@ describe("importing an older config against the live schema (issue #131)", () =>
     });
   });
 
-  it("exports version 7 with a snapshot of the schema's field types", () => {
+  it("exports a snapshot of the schema's field types (since v7)", () => {
     const config = JSON.parse(exportConfig(OLDER));
-    expect(config.version).toBe(7);
+    expect(config.version).toBe(8);
     expect(config.schemaSnapshot["testapp.Order"]).toEqual({
       id: "CharField",
       customer: "CharField",

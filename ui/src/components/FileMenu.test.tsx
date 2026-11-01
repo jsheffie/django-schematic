@@ -15,14 +15,15 @@ const node = (id: string): NodeInfo => ({
   app_label: "shop",
   app_name: "shop",
   tags: [],
+  db_table: null,
   fields: [],
 });
 
 const SCHEMA: SchemaGraph = {
   nodes: [node("shop.Order"), node("shop.Customer"), node("shop.Item")],
   edges: [
-    { source: "shop.Order", target: "shop.Customer", relation_type: "fk", field_name: "customer", related_name: null, target_field: "id" },
-    { source: "shop.Item", target: "shop.Order", relation_type: "fk", field_name: "order", related_name: null, target_field: "id" },
+    { source: "shop.Order", target: "shop.Customer", relation_type: "fk", field_name: "customer", related_name: null, target_field: "id", through_db_table: null },
+    { source: "shop.Item", target: "shop.Order", relation_type: "fk", field_name: "order", related_name: null, target_field: "id", through_db_table: null },
   ],
   app_labels: ["shop"],
   app_names: { shop: "shop" },
@@ -172,6 +173,7 @@ describe("FileMenu schema change warning (issue #131)", () => {
     null: false,
     unique: false,
     primary_key: false,
+    column: name,
   });
   const LIVE: SchemaGraph = {
     ...SCHEMA,

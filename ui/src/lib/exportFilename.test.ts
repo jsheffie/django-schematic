@@ -15,6 +15,7 @@ const node = (id: string): NodeInfo => ({
   app_label: id.split(".")[0],
   app_name: id.split(".")[0],
   tags: [],
+  db_table: null,
   fields: [],
 });
 
@@ -25,6 +26,7 @@ const edge = (source: string, target: string, relation_type: EdgeInfo["relation_
   field_name: "f",
   related_name: null,
   target_field: null,
+  through_db_table: null,
 });
 
 const block = (text: string, x: number, y: number, style: TextBlock["style"] = "title"): TextBlock => ({

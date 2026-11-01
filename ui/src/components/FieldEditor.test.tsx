@@ -15,6 +15,7 @@ const FIELDS: FieldInfo[] = ["a", "b", "c", "d"].map((name) => ({
   null: false,
   unique: false,
   primary_key: false,
+  column: name,
   internal_type: "CharField",
 }));
 const NATURAL = FIELDS.map((f) => f.name);
@@ -27,6 +28,7 @@ const typed = (name: string, field_type: string, extra: Partial<FieldInfo> = {})
   null: false,
   unique: false,
   primary_key: false,
+  column: name,
   ...extra,
 });
 // Alphabetical, as the Python side delivers it (issue #111 example, trimmed).

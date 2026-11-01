@@ -15,6 +15,7 @@ const field = (name: string, field_type: string, extra: Partial<FieldInfo> = {})
   null: false,
   unique: false,
   primary_key: false,
+  column: name,
   ...extra,
 });
 
@@ -24,6 +25,7 @@ const node = (id: string, fields: FieldInfo[]) => ({
   app_label: id.split(".")[0],
   app_name: id.split(".")[0],
   tags: [],
+  db_table: null,
   fields,
 });
 
